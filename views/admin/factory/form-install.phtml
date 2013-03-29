@@ -1,0 +1,110 @@
+<div class="form">
+<?= $this->forms->begin_form($form,array('onSubmit' => 'return check_'.$form->name.'(this);')); ?>
+<?= $this->forms->hidden('__hrandom') ?>
+<table border="0" cellspacing="5" cellpadding="0" width="100%" class="form">
+<?php 
+
+$jsv = array();
+
+foreach($class->form_fields as $name => $parms) { 
+	$type 		= trim($parms['type']);
+	unset($parms['type']);
+	
+	$items 		= CMS::items_for_select($parms['items']);
+	unset($parms['items']);
+	
+	$caption 	= trim($parms['caption']);
+	$original_caption = $caption;
+	if ($caption!='') $caption .= ':';
+	unset($parms['caption']);
+	
+	$comment 	= trim($parms['comment']);
+	if ($comment!='') $comment = "<div class=\"comment\">$comment</div>";
+	unset($parms['comment']);
+	
+	$match 		= trim($parms['match']); 
+	unset($parms['match']);
+	
+	$error_message 	= trim($parms['error_message']); 
+	unset($parms['error_message']);
+	
+	if ($match=='presence') $match = '/[^\s]+/';
+	if ($match!='') if ($match[0]=='/') {
+		if ($error_message=='') $error_message = 'Error: '.$caption;
+		$jsv[$name] = array(
+			'match' => $match,
+			'message' => $error_message,
+		);
+	}
+	
+	
+	unset($parms['value']);
+	unset($parms['checked']);
+	
+	
+	switch($type) {
+		case 'select':
+			?><tr>
+				<th nowrap><?= $caption ?></th>
+				<td><?php 
+					$parms['name'] = $form->name."[$name]";
+					echo $this->tags->tag('select',$parms,false);
+					foreach($items as $k => $v) {
+						$p = array('value' => $k);
+						if ($k==$form[$name]) $p['selected'] = true;
+						echo $this->tags->tag('option',$p,false);
+						echo htmlspecialchars($v);
+						echo '</option>';
+					}
+					echo '</select>';
+				?><?= $comment ?></td>
+			</tr><?php
+			break;
+		case 'checkbox':
+			?><tr>
+				<th nowrap><?= $caption ?></th>
+				<td><?= $this->forms->checkbox($name,$parms) ?><?= $comment ?></td>
+			</tr><?php
+			break;
+		case 'checkboxr':
+			?><tr>
+				<th nowrap>&nbsp;</th>
+				<td><?= $this->forms->checkbox($name,$parms) ?> <?= $original_caption ?><?= $comment ?></td>
+			</tr><?php
+			break;
+		default:
+			?><tr>
+				<th nowrap><?= $caption ?></th>
+				<td><?= $this->forms->input($name,$parms) ?><?= $comment ?></td>
+			</tr><?php
+	}
+	
+	
+} 
+
+?>
+
+<tr>
+<th>&nbsp;</th>
+<td width="100%"><input type="submit" value="<?= htmlspecialchars($class->submit_caption) ?>" /></td>
+</tr>
+
+</table>
+<?= $this->forms->end_form($form); ?>
+</div>
+  
+<script type="text/javascript">
+<!--
+
+function check_<?= $form->name ?>(frm) {
+<?php foreach($jsv as $name => $_jsv) { ?>
+	if (!document.getElementById("<?= $form->name ?>_<?= $name ?>").value.match(<?= $_jsv['match'] ?>)) {
+		alert("<?= htmlspecialchars($_jsv['message']) ?>");
+		return false;
+	}
+<?php } ?>
+	return true;
+}
+
+//-->
+</script>

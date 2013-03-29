@@ -1,0 +1,77 @@
+<?php
+	$h1 = $title_list;
+	$mode = 'list';
+	if ($can_add) $forced_buttons = array($button_add => array('onClick'=>"location.href='$_add'"));
+	include('h1container.phtml');
+
+	if ($c->get_layout()) include('layout-top.phtml');
+	$mass_edit = false;
+
+?>
+
+<table width="100%" class="table_admin_main"><tr>
+  <?php include('sidebar.phtml'); ?>
+  <td width="100%" valign="top">   
+    <?php if ($controller->list_include_before_table) include($controller->list_include_before_table); ?>
+
+    <table border="0" cellspacing="0" cellpadding="0" width="100%"><tr>
+      <?php include('extra-navigator.phtml'); ?>
+      <?php if (trim($page_navigator)!='') { ?>
+        <td class="left_big_border">&nbsp;<?= CMS::lang()->_common->pages ?>: <?= $page_navigator ?></td>
+      <?php } ?>
+
+    </tr></table>
+
+
+    <?php if ($count==0) { ?>
+      <div class="brdr" style="margin-top:5px;"><?= CMS::lang($norows) ?></div>
+    <?php } else { ?>
+
+    <script type="text/javascript">
+    <!--
+	    function delCnfrm() {
+		    return confirm("<?= htmlspecialchars(CMS::lang($del_confirm)) ?>");
+	    }
+
+	    function copyCnfrm() {
+		    <?php if ($copy_confirm) { ?>
+		    return confirm("<?= htmlspecialchars(CMS::lang($copy_confirm)) ?>");
+		    <?php } else { ?>
+		    return true;
+		    <?php } ?>
+	    }
+
+    //-->
+    </script>
+
+<form name="masseditform" method="post" action="<?= $controller->admin_url('massupdate') ?>">
+<?php foreach($rows as $row) { ?><input type="hidden" name="ids[<?= $row[':id'] ?>]" value="<?= $row[':id'] ?>"><?php } ?>
+
+
+<?php if ($template_list) include($c->template_path($template_list)); else include('list-'.$list_style.'.phtml'); ?>
+
+<?php } ?>
+<?php if ($mass_edit&&$can_massupdate) { ?>
+<div align="right"><input type="submit" value="<?= htmlspecialchars(CMS::lang($submit_mass_edit)) ?>"></div>
+<?php } ?>
+</form>
+
+<?php if (trim($page_navigator)!='') { ?>
+<table border="0" cellspacing="0" cellpadding="0" width="100%"><tr>
+<td width="100%" class="left_big_border" nowrap>&nbsp;<?= CMS::lang()->_common->pages ?>: <?= $page_navigator ?></td>
+</tr></table>
+<?php } ?>
+
+<?php if ($controller->list_include_after_table) include($controller->list_include_after_table); ?>
+
+</td></tr></table>
+<?php include('messages_for_get_parms.phtml'); ?>
+
+
+<?php if ($add_in_list) { ?>
+<h2><?= ($title_add_in_list?$title_add_in_list:$title_add) ?></h2>
+<?php include($view_form.'.phtml'); ?>
+<?php } ?>
+
+
+<?php if ($c->get_layout()) include('layout-bottom.phtml'); ?>

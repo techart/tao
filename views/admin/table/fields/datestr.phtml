@@ -1,0 +1,16 @@
+<?php 
+	if ($parms['datepicker']||$type=='icalendar') {
+		print CMS::stdstyle('datepicker.css');
+		print CMS::stdscript('date.js','scripts/date.js');
+		print CMS::stdscript('datepicker.js');
+		print CMS::stdscript('datepick.js','scripts/datepick.js');
+		$parms['class'] = 'date-pick dp-applied';
+	}
+	
+	if (!isset($parms['style'])) $parms['style'] = 'width:130px;';
+
+	unset($parms['datepicker']);
+	unset($parms['with_time']);
+	unset($parms['with_seconds']);
+	print $this->forms->input($name,$parms); 
+?>

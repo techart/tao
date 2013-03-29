@@ -1,0 +1,28 @@
+<?php if (!CMS_Factory::$use_style) include('css.inc'); ?>
+<h1><?= $title ?></h1>
+
+<div class="brdr">
+	<?php if (trim($rdir)!='') { $_rdir = preg_replace('{([^/]+)$}','',$rdir); $_rdir = trim($_rdir,'/'); ?>
+	<div class="repository_dir">
+		<a href="<?= $c->repository_url($_rdir) ?>">[ .. ]</a>
+	</div>
+	<?php } ?>
+	
+	<?php foreach($dirs as $_dir => $_title) { ?>
+	<div class="repository_dir">
+		<a href="<?= $c->repository_url($_dir) ?>"><?= $_title ?></a>
+	</div>
+	<?php } ?>
+	
+	<?php foreach($components as $_name => $component) {
+		 $version = trim($component->version);
+		 $vclass = $component->can_update()?'update':'noupdate';
+	?>
+	<div class="repository_component">
+		<div class="version <?= $vclass ?>"><?= $version ?></div>
+		<a href="<?= $c->install_url($rdir,$_name) ?>"><?= $component->title ?></a><?= $component->description ?>
+	</div>
+	<?php } ?>
+	
+	
+</div>

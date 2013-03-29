@@ -1,0 +1,51 @@
+<?php
+
+	$_date		= $c->list_field_parm('date','source');
+	$_title		= $c->list_field_parm('title','source','title');
+	$_announce	= $c->list_field_parm('announce','source','announce');
+	$_isactive	= $c->list_field_parm('isactive','source');
+
+
+?>
+<?php foreach($rows as $row) { ?>
+	<div class="list-lent">
+		<div class="buttons">
+		
+			<?php if ($can_edit) { ?>
+			<a href="<?= $row[':edit'] ?>" class="edit">&nbsp;</a>
+			<?php } ?>
+
+			<?php if ($can_delete) { ?>
+			<a href="<?= $row[':del'] ?>" class="del" onClick="return delCnfrm();">&nbsp;</a>
+			<?php } ?>
+
+			<?php if ($can_copy) { ?>
+			<a href="<?= $row[':copy'] ?>" class="copy">&nbsp;</a>
+			<?php } ?>
+		</div>
+
+		<?php
+			if ($_isactive) {
+				$mass_edit = true;
+				$parms = array(
+					'type' => 'checkbox',
+					'name' => $_isactive.'['.$row[':id'].']',
+					'value' => 1,
+				);
+				if ($row->$_isactive) $parms['checked'] = true;
+				echo $this->tags->tag('input',$parms);
+			}
+		?>
+		<?php if ($_date) { 
+			$_sdate = $row->$_date;
+			$_sdate = CMS::date('d.m.Y',$_sdate);
+		?>
+		<span class="date"><?= $_sdate ?></span>
+		<?php } ?>
+		
+		<a class="title" href="<?= $row[':edit'] ?>"><?= $row->$_title ?></a>
+
+		<div class="announce"><?= $row->announce ?></div>
+
+	</div>
+<?php } ?>

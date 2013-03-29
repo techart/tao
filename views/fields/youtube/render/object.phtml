@@ -1,0 +1,25 @@
+<?= $this->tag('object', $object_attrs, false) ?>
+<? foreach($object_params_tags as $params_tag_name => $params_tag_value) { ?>
+	<?= $this->content_tag('param', '', array('name' => $params_tag_name, 'value' => $params_tag_value)) ?>
+<? } ?>
+	<?= $this->content_tag('embed', '', $embed_attrs) ?>
+</object>
+<?php if($parms['enablejseapi']) { ?>
+<script type="text/javascript">
+	<!--
+	var <?= $player_api_id ?>;
+	function onYouTubePlayerReady(playerId) {
+		<?= $player_api_id ?> = document.getElementById('<?= $player_api_id ?>');
+<?
+	if(Core_Types::is_iterable($events)) {
+		foreach($events as $event => $event_callback) {
+?>
+		ytplayer.addEventListener('<?= $event ?>','<?= $event_callback ?>');
+<?
+		}
+	}
+?>
+	}
+	//-->
+</script>
+<?php } ?>

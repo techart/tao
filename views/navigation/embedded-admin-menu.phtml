@@ -1,0 +1,1 @@
+<ul><?php foreach($this->links as $link) { $is_parent = count($link->sublinks->links); ?><li<?= ($is_parent ? ' class="parent"' : '') ?>><a href="<?= $link->url ?>"><?= $link->title ?></a><?php if($is_parent) echo $link->sublinks->draw('embedded-admin-menu') ?></li><?php } ?></ul>

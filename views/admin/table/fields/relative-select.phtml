@@ -1,0 +1,14 @@
+<?php 
+		$parms['name'] = $form->name."[$name]";
+		$parms['id'] = $form->name."_$name";
+		$parms['start_value'] = $form[$name];
+		if (isset($parms['relative_field'])) {
+			$rf = $parms['relative_field'];
+			if (!Core_Types::is_iterable($rf)) $rf = array($rf); 
+			$relative_fields[$name] = $rf;
+			unset($parms['relative_field']);
+		}
+		echo $this->tags->tag('select',$parms,false);
+		$relative_items[$name] = $items;
+		echo '</select>';
+?>

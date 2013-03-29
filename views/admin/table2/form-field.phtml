@@ -1,0 +1,17 @@
+<?php
+
+if (!$tab || (isset($data['tab'])&&$tab==$data['tab'])) {
+	$type = CMS_Fields::type($data);
+	$type->view = $this;
+	$tpl = $controller->template("form-field-$field");
+	if (is_file($tpl)) {
+		include($tpl);
+	}
+	else {
+		$data['__item'] = $item;
+		$data['__item_id'] = $item_id;
+		$type->draw_in_layout($field,$data,'table');
+	}
+}
+
+?>

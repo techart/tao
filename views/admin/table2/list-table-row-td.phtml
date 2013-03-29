@@ -1,0 +1,46 @@
+<?php
+
+$args = isset($data['td'])?
+	$data['td'] :
+	array();
+	
+$args['id'] = "table-data-row-{$item_id}-{$field}";
+
+
+$type = isset($data['type'])?
+		trim($data['type']) :
+		'input';
+
+$type = CMS_Fields::type($type);
+$type->view = $this;
+
+
+if (isset($massupdate_fields[$field])) {
+	$edata = $massupdate_fields[$field];
+	$etype = CMS_Fields::type($edata);
+	$etype->view = $this;
+	$ename = "{$field}{$item_id}";
+
+	ob_start();
+	$value = $etype->draw($ename,$edata);
+	print $value;
+	$value = ob_get_contents();
+	ob_end_clean();
+	
+}
+
+else {
+	$value = $type->view_value($row,$field,$data);
+	if ($tpl = $list_fields_templates_values[$field]) {
+		ob_start();
+		include($tpl);
+		$value = ob_get_contents();
+		ob_end_clean();
+	}
+}
+
+
+
+print $this->tags->content_tag('td',$value,$args);
+
+

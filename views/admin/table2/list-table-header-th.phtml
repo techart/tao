@@ -1,0 +1,24 @@
+<?php
+
+if (is_string($data)) {
+	$data = array('caption' => $data);
+}
+
+$args = isset($data['th'])?
+		$data['th'] :
+		array();
+		
+$args['id'] = "table-data-th-$field";
+if (!isset($args['class'])) $args['class'] = "table-data-th table-data-th-$field";
+
+if ($url = $controller->sort_url($field,'asc')) $args['data-sort-asc'] = $url;
+if ($url = $controller->sort_url($field,'desc')) $args['data-sort-desc'] = $url;
+
+if ($sort==$field) {
+	$args['data-sort-current'] = $sort_direction;
+	$args['data-url-nosort'] = $controller->action_url('list',1,false,array('sort' => false));
+}
+
+print $this->tags->content_tag('th','<div class="ta-th">'.$data['caption'].'</div>',$args);
+
+

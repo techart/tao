@@ -1,0 +1,9 @@
+<?php
+$caption = trim($data['caption']);
+if ($caption=='') $caption = CMS::lang()->_common->captcha;
+if (!isset($tagparms['style'])) $tagparms['style'] = 'width:100px;'
+
+?>
+<?= $this->forms->hidden($type_object->field_code($_name)) ?>
+<div class="captcha_caption"><?= $caption ?>:</div>
+<?= $this->forms->input($_name,$tagparms) ?>

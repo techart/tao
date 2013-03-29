@@ -1,0 +1,57 @@
+<?php
+print CMS::stdstyle('tabs.css');
+print CMS::stdscript('tabs.js');
+?> 
+<div id="formtabs">
+  <ul class="tabs-nav">
+    <?php foreach($form_tabs as $tab => $tab_data) {
+	    if (is_string($tab_data)) {
+		    $tab_caption = $tab_data;
+		    $tab_data = array('caption' => $tab_data);
+	    }
+
+	    else $tab_caption = $tab_data['caption'];
+
+	    if (isset($item_id)&&$item_id>0) {
+		    if (isset($tab_data['add_only'])&&$tab_data['add_only']) continue;
+	    }
+
+	    else {
+		    if (isset($tab_data['edit_only'])&&$tab_data['edit_only']) continue;
+	    }
+
+	    if (isset($tab_data['if_component_exists'])) {
+		    if (!CMS::component_exists($tab_data['if_component_exists'])) continue;
+	    }
+
+
+    ?>
+    <li><a href="#formtab-<?= $tab ?>"><span><?= CMS::lang($tab_caption) ?></span></a></li>
+    <? } ?>
+  </ul>
+
+  <?php $_c = 0; foreach($form_tabs as $tab => $tab_caption) { $_c++; ?>
+  <div id="formtab-<?= $tab ?>" class="tabs-container<?= $_c>1?' tabs-hide':'' ?>">
+    <table border="0" cellspacing="5" cellpadding="0" width="100%" class="form">
+      <?php foreach($form_fields as $name => $parms) if (isset($parms['tab'])&&$parms['tab']==$tab) {
+	     include('field.phtml');
+      } ?>
+
+      <tr>
+        <th><span class="showchange">&nbsp;</span></th>
+        <td width="100%"><input type="submit" value="<?= htmlspecialchars(CMS::lang($submit)) ?>" /></td>
+      </tr>
+
+    </table>
+  </div>
+  <? } ?>
+</div>
+
+<script type="text/javascript">
+<!--
+$(function(){
+	$('#formtabs').tabs(<?= $tabs_parms ?>);
+});
+//-->
+</script>
+

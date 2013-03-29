@@ -1,0 +1,19 @@
+<?php if (count($filters_buttons)>0) { ?>
+
+	<div class="table-admin-filters-buttons">
+
+	<?php
+		foreach($filters_buttons as $_caption => $_url) {
+			$p = array('href' => $_url);
+			if ($_caption[0]=='*') {
+				$_caption = substr($_caption,1);
+				$p['class'] = 'current';
+			}
+			print $this->tags->content_tag('a',$_caption,$p);
+		}
+	?>
+
+
+	</div>
+
+<?php } ?>

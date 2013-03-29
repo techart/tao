@@ -1,0 +1,34 @@
+.attachment-icon {
+	background-repeat: no-repeat;
+	background-position: center center;
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+}
+
+.attachment-icon-edit {
+	background-image: url(/files/_assets/images/edit.gif);
+}
+
+.attachment-icon-order {
+	background-image: url(/files/_assets/images/icons/transform_move.png);
+	cursor: move;
+}
+
+.field-render-documents {
+	list-style: none;
+	padding:0;
+	margin:0;
+	overflow: hidden;
+	height: 100%;
+}
+
+.field-render-documents-item {
+	clear: both;
+	overflow: hidden;
+	height: 100%;
+}
+.field-render-documents-subitem {
+	float:left;
+	padding: 0 3px;
+}

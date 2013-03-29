@@ -1,0 +1,32 @@
+<?php
+
+	print $this->tags->tag('select',array('name' => $form->name."[$name"."_dd]"));
+	for($i=1;$i<32;$i++) {
+		$opt = array('value' => $i);
+		if ($form[$name.'_dd']==$i) $opt['selected'] = true;
+		print $this->tags->tag('option',$opt);
+		print $i;
+		print '</option>';
+	}
+	print '</select> ';
+
+	print $this->tags->tag('select',array('name' => $form->name."[$name"."_mm]"));
+	$months = CMS::lang()->_common->month_r;
+	for($i=1;$i<13;$i++) {
+		$opt = array('value' => $i);
+		if ($form[$name.'_mm']==$i) $opt['selected'] = true;
+		print $this->tags->tag('option',$opt);
+		print $months[$i-1];
+		print '</option>';
+	}
+	print '</select>';
+
+	print $this->tags->tag('select',array('name' => $form->name."[$name"."_yy]"));
+	for($i=1900;$i<2100;$i++) {
+		$opt = array('value' => $i);
+		if ($form[$name.'_yy']==$i) $opt['selected'] = true;
+		print $this->tags->tag('option',$opt);
+		print $i;
+		print '</option>';
+	}
+	print '</select> ';

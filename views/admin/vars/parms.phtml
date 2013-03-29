@@ -1,0 +1,28 @@
+<h1><?= ($title?$title:CMS::lang()->_vars->title.': '.$item->title) ?></h1>
+
+<form name="chparmsform" action="<?= $_chparms ?>" method="post">
+<table class="form" width="100%">	
+	<tr>
+		<th style="width:100px;"><b><?= CMS::lang()->_vars->type ?>:</b></th>
+		<td><select name="vartype"><?php foreach(CMS_Vars::$types as $type) {
+			?><option value="<?= $type->type() ?>"<?= ($type->type()==$item->vartype?' selected':'') ?>><?= $type->title() ?></option><?php
+		}?></select></td>
+	</tr>
+	<tr>
+		<th style="width:100px;"><b><?= CMS::lang()->_vars->identifier ?>:</b></th>
+		<td><input type="text" name="code" style="width:200px;" value="<?= htmlspecialchars($item->code) ?>"></td>
+	</tr>
+	<tr>
+		<th style="width:100px;"><b><?= CMS::lang()->_vars->comment ?>:</b></th>
+		<td><input type="text" name="title" style="width:98%;" value="<?= htmlspecialchars($item->title) ?>"></td>
+	</tr>
+	<tr>
+		<th>&nbsp;</th>
+		<td><input type="checkbox" name="full" value="1" <?= ($item->full==1?'checked':'') ?>> <?= CMS::lang()->_vars->restricted ?></td>
+	</tr>
+	<tr>
+		<th>&nbsp;</th>
+		<td><input type="submit" class="submit-button" value="<?= htmlspecialchars(CMS::lang()->_vars->submit_edit) ?>"></td>
+	</tr>
+</table>	
+</form>

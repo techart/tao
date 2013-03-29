@@ -1,0 +1,67 @@
+div.addattache {
+	position: relative;
+	background-image: url(/files/_assets/images/icons/plus-button.png);
+	background-repeat: no-repeat;
+	background-position: 0 1px;
+	width: 150px;
+	height: 16px;
+	padding: 0 0 0 0;
+	cursor: pointer;
+}
+
+	div.addattache p.add-attache-caption {
+		font-size: 11px;
+		color: #484;
+		position: absolute;
+		text-decoration: underline;
+		top: 2px;
+		left: 20px;
+		margin: 0;
+		padding: 0;
+	}
+
+
+	div.addattache div.attaches-load-indicator {
+		width: 214px;
+		height: 15px;
+		position: absolute;
+		background-image: url(/files/_assets/images/hloading.gif);
+		background-repeat: no-repeat;
+		top: 2px;
+		left: 20px;
+		display: none;
+	}
+
+table.attaches-list {
+	border-spacing: 1px;
+	border: none;
+	margin: 0 0 2px 0;
+}
+
+	table.attaches-list tr td {
+		background-color: #eee;
+	}
+
+	table.attaches-list tr:hover td {
+		background-color: #8ADCE8;
+	}
+
+	table.attaches-list td.file {
+		padding: 0 5px;
+	}
+
+		table.attaches-list td.file a {
+			font-size: 11px;
+			text-decoration: none;
+			color: #444;
+			display: block;
+		}
+
+		.attaches-list .delete-attachment {
+			background-image: url(/files/_assets/images/del.png);
+			background-repeat: no-repeat;
+			background-position: center center;
+			width: 16px;
+			height: 16px;
+			cursor: pointer;
+		}

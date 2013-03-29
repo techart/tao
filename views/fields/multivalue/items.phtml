@@ -1,0 +1,8 @@
+<ul class="field-multivalue-items">
+<?php foreach($items as $item_name => $iitem): ?>
+	<?php 
+		print $this->partial($type_object->template($data, 'item'), array('iitem' => $iitem, 'item_name' => $item_name)) 
+	?>
+<?php endforeach; ?>
+</ul>
+

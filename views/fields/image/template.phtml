@@ -1,0 +1,54 @@
+<?php
+
+	$c = CMS::$current_controller;
+	$lang = CMS::lang()->_common;
+	$this->use_styles(CMS::stdfile_url('styles/fields/image.css'));
+	$this->use_scripts(CMS::stdfile_url('scripts/ajaxupload.js'));
+
+	$value = trim($form[$name]);
+
+	if ($value!='' && $value[0] != '#' && !is_file($value)) {
+		$value = '';
+		$form[$name] = '';
+	}
+
+	$vname = preg_replace('{[^a-z0-9_]+}','',$name);
+
+	$preview_url = false;
+	$preview_path = false;
+	$image_path = false;
+	$preview_url = false;
+
+	if ($value!='')
+		$preview_url = $c->field_action_url($name,'preview',$item);
+
+	if ($value!='') {
+
+		if ($value[0]=='#') {
+			$_value = substr($value,1);
+			$image_path = CMS::temp_dir().'/'.$_value;
+			//$preview_url = Net_HTTP::Request($c->field_action_url($name,'preview',$item))->parameters(array('filename' => $_value))->uri;
+			$preview_url = $c->field_action_url($name,'preview',$item);
+			$image_url = Net_HTTP::Request($c->field_action_url($name,'temp',$item))->parameters(array('filename' => $_value))->uri;
+		}
+
+		else {
+			$preview_path = $type_object->admin_preview_path($name,$data,$item);
+			$preview_url = $type_object->admin_preview_url($name,$data,$item);
+			$image_path = $type_object->value_to_path($value);
+			$image_url = $type_object->value_to_url($value);
+		}
+	}
+
+	$ffid = "{$form->name}_{$name}";
+
+?>
+
+<?= $this->forms->hidden($name,$tagparms) ?>
+
+<div class="image-field" id="image-field-<?= $name ?>">
+	<div class="upload-image" id="upload-image-<?= $name ?>" data-url="<?= $c->field_action_url($name,'upload',$item,array('code'=>$type_object->temp_code())) ?>"><?= $lang->ta_browse ?></div>
+	<div class="image-load-indicator" id="image-load-indicator-<?= $name ?>">&nbsp;</div>
+	<div data-url-upload="<?= $c->field_action_url($name,'preview',$item) ?>"  data-url="<?= $type_object->admin_preview_url($name,$data,$item) ?>" class="image-preview" id="image-preview-<?= $name ?>">&nbsp;</div>
+	<div data-url="<?= $c->field_action_url($name,'info',$item) ?>" class="image-info" id="image-info-<?= $name ?>"><?php include('info.phtml'); ?></div>
+</div>

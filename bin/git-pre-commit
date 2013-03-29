@@ -1,0 +1,29 @@
+#!/bin/sh
+if git-rev-parse --verify HEAD >/dev/null 2>&1
+then
+  against=HEAD
+else
+  against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+fi
+
+filter_php='grep -P ''.php$'
+
+get_changes="git diff-index --cached --name-only $against"
+
+# Source file checking:
+( echo "* Checking PHP syntax" && 
+  $get_changes | $filter_php | xargs -n1 php -l) &&
+( echo "* Checking tabs" &&
+  ! ( $get_changes | $filter_php | xargs -n1 grep -PnH '\t')) &&
+( echo "* Checking suspicious comments" &&
+  ! ($get_changes | $filter_php | xargs -n1 grep -PnH '^[ ]+///'))  &&
+( echo "* Checking coding style:" &&
+  ( echo "* - missing spacing" &&
+    ! ($get_changes | $filter_php | xargs -n1 grep -PnH --regexp='\sif\(|\sfor\(|\sswitch\(|\swhile\(|\sforeach\(')) &&
+  ( echo "* - PHP embedding" &&
+    ($get_changes | $filter_php | \
+         xargs -I '{}' sh -c "(head -n 1 {} | grep -qP '^<\?php\$') && (tail -n 1 {} | grep -qP '^\?>\$') || ! echo '{}:bad PHP embedding'"))) &&
+( echo "* Checking if xml comments are well-formed" &&
+  ($get_changes | $filter_php | xargs -I '{}' sh -c "(awk '!/\/\/\//{print \"\"};/\/\/\//{sub(/\/\/\//,\"\");print}' {} | sed 's/^\/\/\///' | xmllint --noout -) && echo '{}: ok'")) &&
+( echo "* Checking for version change" &&
+  ($get_changes | $filter_php | xargs -I '{}' sh -c "(git diff --cached | grep -PnH 'const\s+VERSION\s*=') || (echo '{}: version not changed' && false)"))

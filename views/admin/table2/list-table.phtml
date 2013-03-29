@@ -1,0 +1,25 @@
+<?php
+
+	ob_start();
+	include($controller->template('list-table-rows'));
+	$table_rows_html = ob_get_contents();
+	ob_end_clean();
+
+	ob_start();
+	include($controller->template('list-table-header'));
+	$table_header_html = ob_get_contents();
+	ob_end_clean();
+
+?>
+<div class="table-data">
+	<table class="table-data">
+		
+		<?= $table_header_html ?>
+
+		<?= $table_rows_html ?>
+
+	</table>
+
+
+</div>
+

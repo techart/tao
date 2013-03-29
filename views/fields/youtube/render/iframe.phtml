@@ -1,0 +1,37 @@
+<?php if(!$parms['enableiframeapi']) { ?>
+<?= $this->content_tag('iframe', '', $attrs) ?>
+<?php } else { ?>
+	<?php $time = time(); ?>
+	<div id="<?= $player_api_id ?>"></div>
+
+	<script type="text/javascript">
+	<!--
+		var tag = document.createElement('script');
+		tag.src = "http://www.youtube.com/player_api";
+		var firstScriptTag = document.getElementsByTagName('script')[0];
+		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+		var <?= $player_api_id ?>;
+		
+		function onYouTubePlayerAPIReady() {
+			<?= $player_api_id ?> = new YT.Player('<?= $player_api_id ?>', {
+<?php
+	$player_parms_str = array();
+	foreach($player_parms as $player_parm_name => $player_parm_value)  {
+		$parm_str = array();
+		if(Core_Types::is_array($player_parm_value)) {
+			foreach ($player_parm_value as $sub_parm => $sub_parm_value)
+				$parms_str[] = $sub_parm . ': ' . (Core_Types::is_number($sub_parm_value) ? $sub_parm_value : "'".$sub_parm_value."'");
+			$parm_str = $player_parm_name . ': ' . '{' . implode(',', $parms_str) . '}';
+		} else {
+			$parm_str = $player_parm_name . ': ' . (Core_Types::is_number($player_parm_value) ? $player_parm_value : "'".$player_parm_value."'");
+		}
+		$player_parms_str[] = $parm_str;
+	}
+?>
+				<?= implode(',', $player_parms_str) ?>});
+		}
+	//-->
+	</script>
+	
+<?php } ?>

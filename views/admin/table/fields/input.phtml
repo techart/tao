@@ -1,0 +1,6 @@
+<?php if (trim($caption)!='') $caption .= ':'; ?>
+<tr>
+	<th nowrap><?= $caption ?></th>
+	<td class="input-text"><?= $this->forms->input($name,$parms); ?><?php if ($comment!='') { ?><div class="comment"><?= $comment ?></div><?php } ?></td>
+</tr>	
+	

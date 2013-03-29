@@ -1,0 +1,11 @@
+<div class="brdr">
+	<?php $fn = trim($item->value); if ($fn!=''&&IO_FS::exists($fn)) { ?>
+		<a href="<?= CMS::file_url($fn) ?>"><?= CMS::lang()->_vars->file ?></a>
+	<?php } ?>
+	<form method="post" action="<?= $_change ?>" enctype="multipart/form-data">
+	<table cellspacing="1" cellpadding="0" border="0"><tr>
+		<td><input type="file" name="value"></td>
+		<td><input type="submit" class="submit-button" value="<?= htmlspecialchars(CMS::lang()->_vars->submit_edit) ?>"></td>
+	</tr></table>
+	</form>
+</div>

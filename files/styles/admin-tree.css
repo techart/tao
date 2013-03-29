@@ -1,0 +1,42 @@
+.x-tree-panel .x-grid-row .x-grid-cell-last {
+	border-right: none !important;
+}
+
+html body .tree-table-data {
+	padding-bottom: 25px;
+}
+
+.tao-tree-icon-var, .x-grid-tree-node-expanded .tao-tree-icon-var {
+	background-image: url('/files/_assets/images/var.gif');
+}
+
+.tao-tree-icon-var-full {
+	background-image: url('/files/_assets/images/var-lock.gif');
+}
+
+.tao-tree-icon-var-dir {
+	width: 16px;
+	background-image: url('../images/extjs/tree/folder.gif');
+}
+
+.x-grid-tree-node-expanded .tao-tree-icon-var-dir {
+	background-image: url('../images/extjs/tree/folder-open.gif');
+}
+
+.tao-tree-icon-edit {
+	background: url("/files/_assets/images/edit.gif") 0 0 no-repeat;
+	margin: 0 auto;
+	display: block;
+	width: 16px;
+	height: 16px;
+	text-decoration: none;
+}
+
+.tao-tree-icon-delete {
+	background-image: url("/files/_assets/images/del.gif");
+	margin: 0 auto;
+	display: block;
+	width: 16px;
+	height: 16px;
+	text-decoration: none;
+}

@@ -1,0 +1,50 @@
+h2.load-dump {
+	padding:20px 0 5px 20px;
+	background-position: 0 24px;
+}
+
+em.folder, em.folder-lock, em.var, em.var-lock {
+	display:block; 
+	text-decoration: none; 
+	width: 16px; 
+	height: 16px;
+	background-repeat: no-repeat; 
+}	
+
+em.folder { 
+	background-image: url(/files/_assets/images/folder.gif);
+}
+
+em.folder-lock { 
+	background-image: url(/files/_assets/images/folder-lock.gif);
+}
+
+em.var { 
+	background-image: url(/files/_assets/images/var.gif);
+}
+
+em.var-lock { 
+	background-image: url(/files/_assets/images/var-lock.gif);
+}
+
+.x-grid-row:hover {
+	text-decoration: underline;
+}
+.x-grid-row.var-type-dir:hover {
+	text-decoration: none;
+}
+
+
+.x-grid-cell {
+	height: 30px;
+}
+
+.tree-table-data {
+	padding-bottom: 2px !important;
+}
+
+.var-add-icon {
+	background: url('/files/_assets/images/icons/plus-button.png') no-repeat 1px 5px;
+	width: 30px;
+	height:30px;
+}

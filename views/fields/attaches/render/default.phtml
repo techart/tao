@@ -1,0 +1,5 @@
+<ul>
+	<?php foreach ($filelist_urls as $name => $url): ?>
+		<li><?= $this->link_to($url, $name, array('target' => '_blank')) ?></li>
+	<?php endforeach; ?>
+</ul>

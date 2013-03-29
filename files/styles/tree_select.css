@@ -1,0 +1,32 @@
+/*  Стандартный стиль оформления  */
+div.tree_select { font-size: 13px; cursor: pointer; width: 0; }
+
+    div.tree_select_top { width: 200px; overflow: hidden; text-overflow: ellipsis; border: 1px solid #000; background-color: #eef; padding: 2px; cursor: pointer; }
+
+    div.tree_select_selectioner { display: none; position: absolute; float: left; border: 1px solid #000; background-color: #eef; margin-top: 2px; overflow: auto; width: 200px; padding: 2px; max-height: 400px; }
+
+	div.tree_select_array { width: 95%; background-color: #eef; padding-bottom: 2px; }
+	div.tree_select_one { width: 95%; overflow: hidden; background-color: #eef; padding-bottom: 2px; }
+	    div.branch { width: 7px; height: 10px; float: left; margin-left: -3px; }
+		div.tree_select_sub div.branch { border-bottom: 1px dashed #777; }
+	    div.tree_select_node { height: 100%; overflow: hidden; }
+	    div.tree_select_node:hover,
+	    div.tree_select_node_active { background-color: #aaa; }
+		div.tree_select_icon { float: left; background-repeat: no-repeat; background-position: center; margin-right: 3px; width: 20px; height: 20px; }
+		    div.tree_select_one_icon { background-image: url(/files/_assets/images/extjs/tree/leaf.gif); margin-top: 2px; }    
+		    div.tree_select_array_icon { background-image: url(/files/_assets/images/extjs/tree/folder.gif); }
+		    div.tree_select_array_open_icon { background-image: url(/files/_assets/images/extjs/tree/folder-open.gif); } 
+		div.tree_select_caption { overflow: hidden; text-overflow: ellipsis; max-width: 135px; float: left; }
+	    div.tree_select_sub { display: none; padding: 2px 0; background-color: #eef; min-width: 185px; margin-left: 15px; }
+
+div.tree_select_sub > div.tree_select_array,
+div.tree_select_sub > div.tree_select_one { border-left: 1px dashed #777; padding-left: 3px; }
+
+div.tree_select_sub > div.tree_item_last { border-left: none; }
+div.tree_select_sub > div.tree_item_last > div.branch { border-left: 1px dashed #777; }
+
+div.tree_select_array > div.tree_select_node { font-weight: bold; }
+
+div.tree_select_array > div.tree_select_node > div.tree_select_caption { margin-top: 3px; }
+div.tree_select_one > div.tree_select_node > div.tree_select_caption { margin-top: 4px; }
+/*  !Стандартный стиль оформления  */

@@ -1,0 +1,63 @@
+<?php
+
+	$_thumb		= $c->list_field_parm('thumb','source','thumb');
+	$_title		= $c->list_field_parm('title','source','title');
+	$_header	= $c->list_field_parm('header','source','header');
+	$_isactive	= $c->list_field_parm('isactive','source','isactive');
+	$_ord		= $c->list_field_parm('ord','source','ord');
+	$mass_edit	= true;
+
+	if (!$thumb_size) $thumb_size = CMS::$cfg->gallery->thumb_size;
+	if (!$thumb_size) $thumb_size = CMS::$cfg->image->thumb_size;
+	if (!$thumb_size) $thumb_size = 180;
+
+	if ($m = Core_Regexps::match_with_results('{^(\d+)x(\d+)$}',$thumb_size)) {
+		$thumb_width = $m[1];
+		$thumb_height = $m[2];
+	}
+
+	if (!$thumb_width) $thumb_width = $thumb_size;
+	if (!$thumb_width) $thumb_width = CMS::$cfg->gallery->thumb_width;
+	if (!$thumb_width) $thumb_width = CMS::$cfg->image->thumb_width;
+	if (!$thumb_width) $thumb_width = 180;
+
+	if (!$thumb_height) $thumb_height = $thumb_size;
+	if (!$thumb_height) $thumb_height = CMS::$cfg->gallery->thumb_height;
+	if (!$thumb_height) $thumb_height = CMS::$cfg->image->thumb_height;
+	if (!$thumb_height) $thumb_height = 180;
+
+
+?>
+<?php foreach($rows as $row) {
+
+	$thumb = $row->$_thumb;
+
+
+
+	?>
+	<div class="list-gallery">
+		<div class="isactive"><?php
+			$parms = array(
+				'type' => 'checkbox',
+				'name' => $_isactive.'['.$row[':id'].']',
+				'value' => 1,
+			);
+			if ($row->$_isactive) $parms['checked'] = true;
+			echo $this->tags->tag('input',$parms);
+		?></div>
+		<div class="header" nowrap style="width:<?= $thumb_size-15 ?>px"><?= $row->$_header ?></div>
+		<a class="thumb" href="<?= $row[':edit'] ?>" style="width:<?= $thumb_width ?>px;height:<?= $thumb_height ?>px;<?= $thumb ? "background-image: url(/$thumb)" : '' ?>"></a>
+		<?php if ($can_delete) { ?>
+		<a href="<?= $row[':del'] ?>" class="del" onClick="return delCnfrm();">&nbsp;</a>
+		<?php } ?>
+		<div class="ord"><?php
+			$parms = array(
+				'type' => 'text',
+				'name' => $_ord.'['.$row[':id'].']',
+				'value' => $row->$_ord,
+			);
+			echo $this->tags->tag('input',$parms);
+		?></div>
+	</div>
+<?php } ?>
+<div class="clear"></div><hr />

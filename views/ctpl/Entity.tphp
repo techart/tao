@@ -1,0 +1,30 @@
+<?php
+
+class %CLASS% extends CMS_ORM_Mapper implements Core_ModuleInterface {
+	const MODULE  = '%MODULE%';
+	const VERSION = '0.0.0';
+
+	static function initialize($config=array()) {
+		CMS_ORM::map('%TABLE%','%MODULE%');
+	}
+
+	public function setup() {
+		return $this
+			->table('%TABLE%')
+			->classname('%MODULE%.Item')
+			->key('%SERIAL%')
+			->order_by('%SERIAL%')
+			->columns(%COLUMNS%);
+	}
+
+}
+
+class %CLASS%_Item extends CMS_ORM_Entity {
+
+	public function setup() {%DEFAULTS%
+		return parent::setup();
+	}
+	
+}
+
+?>

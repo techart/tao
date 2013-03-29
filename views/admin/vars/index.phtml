@@ -1,0 +1,40 @@
+<?php
+$lang = CMS_Admin::$lang;
+$fc = $item->full_code();
+$help = false;
+if ($component) {
+	$_component = CMS::$component_original_names[$component];
+	$_dir = CMS::component_dir("$_component/help/$lang/vars");
+	$_fc = preg_replace('{^'.$component.':}','',$fc);
+	if ($fc&&IO_FS::exists("$_dir/$_fc")) $help = CMS_Admin::help("vars/$_fc",$_component);
+}
+else if ($fc&&IO_FS::exists(CMS::app_path("help/vars/$fc"))) $help = "_app/vars/$fc";
+
+?>
+<?= CMS::stdscript('tabby.js') ?>
+<?= CMS::stdstyle('vars.css') ?>
+
+<script type="text/javascript">
+<!--
+$(function(){ 
+	$('td.use-tab-key textarea').tabby(); 
+});
+//-->
+</script>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr>
+	<td><h1><?= ($title?$title:CMS::lang()->_vars->title.': '.$item->title) ?></h1></td>
+<?php if ($help) { ?>
+	<td><a href="<?= $help ?>" class="helpbox"><img src="<?= CMS::stdfile_url('images/icon-help.gif') ?>" width="11" height="11"> <?= CMS::lang()->_vars->help ?></a></td>
+<?php } ?>
+<?php if (isset($_up)) { ?>
+	<td align="right"><a class="admin-link-button admin-link-button-right" href="<?= $_up ?>"><?= CMS::lang()->_vars->levelup ?></a></td>
+<?php } ?>
+</tr></table>	
+	
+<?php include($item->vartype.'.phtml'); ?>
+<?php if (isset($error)) { ?>
+<script type="text/javascript">
+	alert("<?= htmlspecialchars($error) ?>");
+</script>
+<?php } ?>

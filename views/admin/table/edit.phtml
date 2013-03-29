@@ -1,0 +1,47 @@
+<?php 
+	$h1 = $title_edit;
+	$mode = 'edit';
+	if ($right_button_list) $forced_buttons = array($button_list => array('onClick'=>"location.href='$_list'"));
+	include('h1container.phtml');
+	if ($c->get_layout()) include('layout-top.phtml');
+
+
+	if ($stay_on_edit) {
+		$this->use_scripts(CMS_Admin::$jquery);
+		?><script type="text/javascript">
+		<!--
+			$(function() {
+
+				function show_change() {
+					$('span.showchange').text('*');
+				}
+
+				$('.checkchange').bind('change',show_change).bind('keypress',show_change);
+			});
+		//-->
+		</script><?php
+	}
+
+?>
+
+<table width="100%" class="table_admin_main"><tr>
+  <?php include('sidebar.phtml'); ?>
+  
+  <td width="100%" valign="top">   
+    <?php if ($controller->edit_include_before_form) include($controller->edit_include_before_form); ?>
+    <?php include($view_errors.'.phtml'); ?>
+
+    <?php if ($extra_navigator_on_edit) { ?>
+      <table width="100%"><tr>
+      <?php include('extra-navigator.phtml'); ?>
+      </tr></table><hr />
+    <?php } ?>
+
+    <?php include($view_form.'.phtml'); ?>
+    <?php if ($controller->edit_include_after_form) include($controller->edit_include_after_form); ?>
+  </td>
+
+</tr></table>
+<?php include('messages_for_get_parms.phtml'); ?>
+
+<?php if ($c->get_layout()) include('layout-bottom.phtml'); ?>

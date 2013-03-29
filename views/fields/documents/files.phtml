@@ -1,0 +1,33 @@
+<?php
+$code = $type_object->temp_code();
+$dir = $type_object->dir_path($item,$code,$name,$data);
+$files = $type_object->files_data($name, $data, $item);
+?>
+<table class="attaches-list attaches-list-ordered attaches-list-container" data-save-url="<?= CMS::$current_controller->field_action_url($name,'save',$item) ?>">
+<?php
+if (!empty($files['files'])) {
+	foreach($files['files'] as $k => $f)	{
+		$filename = $f['name'];
+		$parms = array('id="' . "field-$name-attaches-row-$k" . '"', 'class="field-attaches-row"');
+		foreach ($f as $n => $v)
+			$parms[] = 'data-f-'. $n . '="' . htmlspecialchars($v) . '"';
+		?>
+		<tr <?= implode(' ', $parms) ?>>
+			
+			<td class="order"><div class="attachment-icon attachment-icon-order" >&nbsp;</div></td>
+			
+			<?php print $this->partial($type_object->template($data, 'list_fields'),array('filename' => $filename, 'code' => $code, 'file_data' => $f)) ?>
+			
+			<td class="edit"><div class="attachment-icon attachment-icon-edit" >&nbsp;</div></td>
+			
+			<td class="delete"><div class="delete-attachment" href="<?= CMS::$current_controller->field_action_url($name,'delete',$item,array('code'=>$code,'file' => $filename)) ?>">&nbsp;</div></td>
+			
+		</tr>
+
+		<?php
+	}
+}
+?>
+</table>
+
+

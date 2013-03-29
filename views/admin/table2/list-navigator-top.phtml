@@ -1,0 +1,13 @@
+<?php include($controller->template('list-filters-buttons')); ?>
+
+<?php include($controller->template('list-filters-form')); ?>
+
+<?php if ($page_navigator) { ?>
+
+	<div class="table-admin-page-navigator-top" nowrap>
+		<span><?= CMS::lang()->_common->pages ?>:</span> <?= $page_navigator ?>
+	</div>
+
+<?php } ?>
+
+<div class="clear"></div>

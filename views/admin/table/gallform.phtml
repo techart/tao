@@ -1,0 +1,34 @@
+		<tr>
+			<th>Порядок:</th>
+			<td class="input-text"><input class="btips" title="Необязательный параметр, указывающий порядок сортировки записей. Внимание: введенное значение трактуется как строка, а не число, т.е. &quot;11&quot; следует раньше, чем &quot;2&quot;" type="text" name="ord" style="width: 50px;" value="<?= htmlspecialchars($file['ord']) ?>"></td>
+		</tr>
+		
+		<tr>
+			<th>Псевдоним:</th>
+			<td class="input-text"><input class="btips" title="Необязательный параметр. Служит для более наглядной вставки файла (картинки) в текст страницы - не по числовому идентификатору, а по псевдониму - строке, несущей смысловую нагрузку" type="text" name="alias" style="width: 150px;" value="<?= htmlspecialchars($file['alias']) ?>"></td>
+		</tr>
+		<tr>
+			<th>Заголовок:</th>
+			<td class="input-textarea"><textarea name="name" style="width: 200px;height:60px;font-size:10px;"><?= htmlspecialchars($file['name']) ?></textarea></td>
+		</tr>
+		<tr>
+			<th>Файл:</th>
+			<td class="input-upload">
+				<input class="btips" title="Основной файл. Его нужно закачать обязательно." type="file" name="up" size="12" style="width:200px;">
+				<?php
+					$uri = trim($file['file_uri']);
+					if ($uri!='') echo "<br /><a href='$uri' target='_blank'>Посмотреть</a>";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<th>Превью:</th>
+			<td class="input-upload">
+				<input class="btips" title="Картинка-превью" type="file" name="pr" size="12" style="width:200px;">
+				<?php
+					$uri = trim($file['preview_uri']);
+					if ($uri!='') echo "<br /><a href='$uri' target='_blank'>Посмотреть</a>";
+				?>
+			</td>
+		</tr>
+

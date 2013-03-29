@@ -1,0 +1,5 @@
+<?php
+$src = $type_object->field_src_name($_name,$data);
+$this->use_scripts(CMS::stdfile_url('scripts/tabby.js'));
+print $this->forms->textarea($src,$tagparms);
+?>

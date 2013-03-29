@@ -1,0 +1,20 @@
+<?php
+$c = CMS::$current_controller;
+if ($image_path&&$m = Core_Regexps::match_with_results('{\.([^.]+)$}',$image_path)) {
+	$ext = strtoupper($m[1]);
+	$size = filesize($image_path);
+	
+	$ssize = "{$size}b";
+	if ($size>=1024) $ssize = ceil($size/1024).'kb';
+
+
+	$isz = getImageSize($image_path);
+
+
+?>
+<a class="file" href="<?= $image_url ?>" target="_blank"><?= $ext ?> <?= $isz[0] ?>x<?= $isz[1] ?>, <?= $ssize ?></a>
+<div class="image-button image-button-del" id="image-button-del-<?= $name ?>" data-url="<?= $c->field_action_url($name,'delete',$item) ?>">&nbsp;</div>
+<div class="image-button image-button-left" id="image-button-left-<?= $name ?>" data-url="<?= $c->field_action_url($name,'left',$item) ?>">&nbsp;</div>
+<div class="image-button image-button-right" id="image-button-right-<?= $name ?>" data-url="<?= $c->field_action_url($name,'right',$item) ?>">&nbsp;</div>
+
+<?php } ?>

@@ -1,0 +1,95 @@
+<?php
+	include($controller->template("list-navigator-top"));
+
+
+if ($count==0) { 
+	include($controller->template("list-norows"));
+}
+
+else {
+
+
+	if ($massupdate_form) {
+		print $this->forms->begin_form($massupdate_form);
+		print $this->forms->hidden('ids');
+	}
+
+	$this->use_scripts(CMS::stdfile_url('scripts/admin-list.js'));
+	include($controller->template("list-before-data"));
+
+
+	$enabled_actions = array();
+	$row_actions = $controller->row_actions();
+	foreach($row_actions as $action => $_a) {
+		$enabled_actions[$action] = false;
+	}
+
+
+	$rows_enabled_actions = array();
+	foreach($rows as $row) {
+		$_ea = array();
+		foreach($row_actions as $action => $_a) {
+			if ($controller->row_action_enabled($row,$action)) {
+				$enabled_actions[$action] = true;
+				$_ea[$action] = true;
+			}
+		}
+		$rows_enabled_actions[$controller->item_id($row)] = $_ea;
+	}
+
+	ob_start();
+	include($controller->template("list-$list_style"));
+	$list_html = ob_get_contents();
+	ob_end_clean();
+
+
+	print $list_html;
+
+
+
+	include($controller->template("list-after-data"));
+
+
+	include($controller->template("list-navigator-bottom"));
+
+	if ($massupdate_form) {
+		print $this->forms->end_form($massupdate_form);
+	}
+
+
+	foreach($row_actions as $action => $_a) if ($_a&&$enabled_actions[$action]) {
+		if (is_string($_a)) $_a = array('confirm' => $_a);
+		if ($_a===true) $_a = array();
+
+		?>
+
+		<script type="text/javascript">
+		<!--
+
+			$(function() {
+				$('a.action-button-<?= $action ?>').each(function() {
+					var a = $(this);
+					var href = a.attr('rel');
+					if (href==undefined) return;
+					a.attr('href',href);
+					<?php if (isset($_a['confirm'])&&is_string($_a['confirm'])) { ?>
+					a.click(function() {
+						return confirm('<?= htmlspecialchars(CMS::lang($_a['confirm'])) ?>');
+					});
+					<?php } ?>
+				});
+			});
+
+		//-->
+		</script>
+
+		<?php
+	}
+}
+
+if ($form) {
+	print("<h2>{$controller->title_add_in_list}</h2>");
+	include($controller->template('form'));
+}
+
+?>

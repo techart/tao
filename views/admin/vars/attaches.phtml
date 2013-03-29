@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+	<?= CMS::stdstyle('admin-layout.css') ?>
+	<?= CMS::stdstyle('admin-controls.css') ?>
+</head>
+<body style="padding:5px;">
+<?php 
+$this->no_layout(); 
+$action = $c->make_uri('addfile',$id);
+?>
+<script type="text/javascript">
+<!--
+	function delCnfrm() {
+		return confirm("<?= htmlspecialchars(CMS::lang()->_vars->confirm_delete_file) ?>");
+	}
+//-->
+</script>
+
+<form method="post" action="<?= $action ?>" enctype="multipart/form-data">
+<b><?= CMS::lang()->_vars->add_file ?>:</b> <input type="file" name="up"> <input type="submit" class="submit-button" value="<?= htmlspecialchars(CMS::lang()->_vars->submit_add) ?>">
+</form>
+<hr />
+<?php if (sizeof($attaches)==0) { ?>
+<?= CMS::lang()->_vars->no_attaches ?>
+<?php } else { 
+	foreach($attaches as $attach) {
+?>
+
+	<div class="attach">
+		<table class="attach"><tr>
+			<td><a href="/<?= $attach['path'] ?>" target="_blank"><?= $attach['name'] ?></a></td>
+			<th><a class="del12" href="<?= $c->make_uri('delfile',$id) ?>?file=<?= $attach['name'] ?>" onClick="return delCnfrm();"></a></th>
+		</tr></table>
+	</div>
+	
+
+<?php	
+	}
+
+} ?>
+
+</body>
+</html>

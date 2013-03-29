@@ -1,0 +1,58 @@
+<?php
+$this->use_styles(CMS::stdfile_url('styles/tabs.css'));
+$this->use_scripts(CMS::stdfile_url('scripts/tabs.js'));
+
+if (!$c->use_tinymce) $mce = false;
+
+if (isset($mce)&&$mce) {
+	$this->use_scripts('tiny_mce/tiny_mce.js','tiny_mce_init.js');
+}
+
+?>
+<form method="post" action="<?= $_change ?>">
+  <div id="formtabs">
+    <ul class="tabs-nav">
+      <li><a href="#formtab-text"><span><?= CMS::lang()->_vars->tab_text ?></span></a></li>
+      <li><a href="#formtab-attaches"><span><?= CMS::lang()->_vars->tab_attaches ?></span></a></li>
+      <?php if (isset($with_parms)&&$with_parms) { ?>
+      <li><a href="#formtab-parms"><span><?= CMS::lang()->_vars->tab_parms ?></span></a></li>
+      <?php } ?>
+    </ul>
+	
+	
+	
+    <div id="formtab-text">
+      <textarea <?= (isset($mce)&&$mce?'id="editor_textarea" class="mce-advanced"':'') ?> name="value" style="width:98%;height:400px;"><?= htmlspecialchars($item->value) ?></textarea>
+    </div>	
+
+    <div id="formtab-attaches">
+      <?= $this->tags->tag('iframe',array('class' => 'input', 'style' => 'width:98%;height:400px;','src'=> $c->attaches_url($id))); ?></iframe>
+    </div>	
+    
+    <?php if (isset($with_parms)&&$with_parms) { ?>
+    <div id="formtab-parms">
+      <textarea id="parms_textarea" name="parmsrc" style="width:98%;height:400px;"><?= htmlspecialchars($item->parmsrc) ?></textarea>
+    </div>	
+    <?php } ?>
+	
+  </div>
+  <input type="submit" class="submit-button" value="<?= htmlspecialchars(CMS::lang()->_vars->submit_edit) ?>">
+</form>
+
+<?php if (isset($mce)&&$mce) { ?>
+<script language="javascript" type="text/javascript">
+<!--
+	tiny_mce_init('<?= $c->make_uri('imagelist',$item->id) ?>');
+//-->
+</script>
+<?php } ?>
+
+
+<script type="text/javascript">
+<!--
+$(function(){
+	$('#formtabs').tabs();
+	$('#parms_textarea').tabby(); 
+});
+//-->
+</script>

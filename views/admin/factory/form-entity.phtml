@@ -1,0 +1,29 @@
+<form method="post" name="form_entity" action="<?= $c->entity_url() ?>" target="_blank" onSubmit="return checkFormEntity(this)">
+<input type="hidden" name="table" value="">
+<table class="form">	
+<tr>
+	<th nowrap>Имя модуля:</th>
+	<td><input type="text" name="module" style="width:300px;" value="<?= htmlspecialchars($component_name) ?>"></td>
+</tr>	
+<tr>
+	<th nowrap>&nbsp;</th>
+	<td><input type="submit" value="Создать объект"></td>
+</tr>	
+</table>
+</form>
+
+<script type="text/javascript">
+<!--
+function checkFormEntity(f) {
+	if (f.table.value=='') {
+		alert('Не указана таблица БД!');
+		return false;
+	}
+	if (f.module.value=='') {
+		alert('Не указано имя модуля!');
+		f.module.focus();
+		return false;
+	}
+}
+//-->
+</script>

@@ -1,0 +1,5 @@
+<td align="right">
+<?php foreach($right_buttons as $caption => $butt) { ?>
+<?= $this->tags->tag('button',(array)$butt,false) ?><?= preg_replace('{\s+}u',' ',CMS::lang($caption)) ?></button>
+<?php } ?>
+</td>

@@ -1,0 +1,47 @@
+<form method="post" name="form_admin" action="<?= $c->admin_controller_url() ?>" target="_blank" onSubmit="return checkFormAdmin(this)">
+<input type="hidden" name="table" value="">
+<table class="form">	
+<tr>
+	<th nowrap>Имя контроллера:</th>
+	<td><input type="text" name="module" style="width:300px;" value="<?= htmlspecialchars($component_name) ?>"></td>
+</tr>	
+<tr>
+	<th nowrap>Имя модуля бизнес-логики:</th>
+	<td><input type="text" name="emodule" style="width:300px;" value="<?= htmlspecialchars($component_name) ?>"></td>
+</tr>	
+<tr>
+	<th nowrap>Имя ORM-маппера:</th>
+	<td><input type="text" name="orm" style="width:300px;" value="<?= htmlspecialchars($component_name) ?>"></td>
+</tr>
+<tr>
+	<th nowrap>&nbsp;</th>
+	<td><input type="submit" value="Создать контроллер"></td>
+</tr>	
+</table>
+</form>
+
+<script type="text/javascript">
+<!--
+function checkFormAdmin(f) {
+	if (f.table.value=='') {
+		alert('Не указана таблица БД!');
+		return false;
+	}
+	if (f.module.value=='') {
+		alert('Не указано имя контроллера!');
+		f.module.focus();
+		return false;
+	}
+	if (f.emodule.value=='') {
+		alert('Не указано имя модуля бизнес-логики!');
+		f.emodule.focus();
+		return false;
+	}
+	if (f.orm.value=='') {
+		alert('Не указано имя ORM-маппера!');
+		f.orm.focus();
+		return false;
+	}
+}
+//-->
+</script>

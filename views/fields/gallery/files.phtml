@@ -1,0 +1,59 @@
+<?php
+
+//TODO: rewrite like documents field
+
+$container = $type_object->container($name, $data, $item)->fit($type_object->admin_size($data));
+$dir = $container->cached_path();
+$original_dir = $type_object->container($name, $data, $item)->dir();
+$files_data = $type_object->files_data($name, $data, $item);
+
+$item_size = explode('x', $type_object->admin_size($data));
+$h = $item_size[1]+23;
+$item_size_style = "width:{$item_size[0]}px; height: {$h}px;";
+
+$this->append_to('css', ".gallery-list-item { $item_size_style}");
+$save_url = CMS::$current_controller->field_action_url($name,'save',$item);
+
+
+if (is_dir($dir)) {
+	print "<ul class='gallery-list gallery-list-$name clearfix attaches-list-container' style='{$data["style"]}' data-save-url='{$save_url}' >" ;
+	foreach($type_object->filelist($dir, $name, $data, $item) as $k => $path):
+		$f = IO_FS::File($path);
+		$url = trim($path, '.') . "?rand=" .rand(0,1000);
+		$caption = isset($files_data['files'][$k]['caption']) ? $files_data['files'][$k]['caption'] : '';
+
+		$f_data = $files_data['files'][$k];
+		$parms = array();
+		if (count($f_data))
+			foreach ($f_data as $n => $v)
+				$parms[] = 'data-f-'. $n . '="' . htmlspecialchars($v) . '"';
+
+		list($width, $height) = getimagesize($path);
+		$size = (!empty($width) ? "width=$width " : '') . (!empty($height) ? "height=$height " : '');
+		?>
+		<li class="gallery-list-item field-attaches-row clearfix <?= $k == 0 ? 'first' : '' ?>" <?= implode(' ', $parms) ?>>
+			<div class="field-gallery-image-wrapper" style="<?php print "width:{$item_size[0]}px; height: {$item_size[1]}px;background-image: url('{$url}');" ?>">
+			<img rel='gallery-<?= $name ?>' style="display:none"  <?php print $size; ?>  src="<?= trim($path, '.') ?>?rand=<?= print rand(0,1000) ?>" >
+			</div>
+			<ul class="gallery-list-item-controls crearfix">
+				<li><a class="delete-attachment" href="<?= CMS::$current_controller->field_action_url($name,'delete',$item,array('code'=>$code,'file' => $f->name)) ?>"></a></li>
+				<li><a target="_blank" class="preview-gallery-image" href="<?= trim($original_dir, '.') . '/'. $f->name ?>"></a></li>
+				<li class="gallery-image-caption">
+					<input class="gallery-image-caption-value" id="<?= "gallery-$name-image-caption" ?>" type="hidden" value="<?= $caption ?>">
+					<a data-file-name="<?= $f->name ?>" class="gallery-image-caption-button attachment-icon-edit" href="<?= CMS::$current_controller->field_action_url($name,'caption',$item) ?>" id="<?= "gallery-$name-image-caption-button" ?>">
+					</a>
+				</li>
+				<li>
+					<a class="image-button image-button-left gallery-button-rotate" href="<?= CMS::$current_controller->field_action_url($name,'left',$item) ?>?filename=<?= urlencode($f->name) ?>" ></a>
+				</li>
+				<li>
+					<a class="image-button image-button-right gallery-button-rotate"  href="<?= CMS::$current_controller->field_action_url($name,'right',$item) ?>?filename=<?= urlencode($f->name) ?>" ></a>
+				</li>
+			</ul>
+			<?php print $this->partial($type_object->template($data, 'user_mods'), array('f' => $f)) ?>
+		</li>
+	<?php endforeach; ?>
+
+<?php print "</ul>" ?>
+
+<?php } ?>

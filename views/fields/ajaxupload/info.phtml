@@ -1,0 +1,19 @@
+<?php
+
+if ($file_path&&$m = Core_Regexps::match_with_results('{\.([^.]+)$}',$file_path)) {
+	$ext = strtoupper($m[1]);
+	$size = filesize($file_path);
+
+	
+	$ssize = "{$size}b";
+	if ($size>=1024) $ssize = ceil($size/1024).'kb';
+
+
+	$isz = getImageSize($file_path);
+
+}
+
+?>
+<a class="file" href="<?= $file_url ?>" target="_blank">Файл <?= $ext ?>, <?= $ssize ?></a>
+<div class="file-button file-button-del" id="file-button-del-<?= $name ?>">&nbsp;</div>
+

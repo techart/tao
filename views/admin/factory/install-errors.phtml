@@ -1,0 +1,17 @@
+<?php if (!CMS_Factory::$use_style) include('css.inc'); ?>
+<h1>Ошибка установки!</h1>
+<div class="documentation">
+  
+  <?php if (sizeof($class->errors)>0) { ?>
+  	<div class="errors"><ul>
+  		<?php foreach ($class->errors as $error) { ?>
+  		<li><?= $error ?></li>
+	  	<?php } ?>
+	</ul></div>  
+  <?php } ?>
+  
+  <?php include('form-install.phtml'); ?>
+
+
+</div>
+

@@ -1,0 +1,11 @@
+<?php
+$type = CMS_Fields::type($data);
+$type->view = $this;
+$tpl = $controller->template("list-filters-form-field-$field");
+if (is_file($tpl)) {
+	include($tpl);
+}
+else {
+	print $type->draw($field,$data);
+}
+?>

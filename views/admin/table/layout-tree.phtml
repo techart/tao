@@ -1,0 +1,45 @@
+<?php
+
+if (!function_exists('draw_admin_layout_element_tree')) {
+	function draw_admin_layout_element_tree($tree) {
+		if (!Core_Types::is_iterable($tree)) return;
+		foreach($tree as $title => $item) {
+			$cclass = $item['class']?' class="'.$item['class'].'"':'';
+			if ($item['url']) {
+				$c1 = '<a href="'.$item['url'].'"'.$cclass.'>';
+				$c2 = '</a>';
+			}
+
+			else {
+				$c1 = '<span'.$cclass.'>';
+				$c2 = '</span>';
+			}
+
+			?><li<?= ($item['open']?' class="open"':'') ?>><span<?= ($item['icon']?' class="'.$item['icon'].'"':'') ?>><?= $c1 ?><?= $title ?><?= $c2 ?></span><?php
+				if (Core_Types::is_iterable($item['sub'])) {
+					?><ul><?php draw_admin_layout_element_tree($item['sub']); ?></ul><?php
+				}
+			?></li><?php
+		}
+	}
+
+?>
+<script type="text/javascript">
+<!--
+	$(function() {
+		$(".layout-element-tree").treeview({collapsed: true, unique: true});
+	});
+
+//-->
+</script>
+<?php
+
+}
+
+?>
+
+
+<ul id="sidebar-navigation" class="layout-element-tree pagetree">
+  <?php draw_admin_layout_element_tree($tree); ?>
+</ul>
+

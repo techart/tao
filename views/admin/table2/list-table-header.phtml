@@ -1,0 +1,20 @@
+<?php include($controller->template('list-table-before-header')); ?>
+<tr class="header">
+	<?php
+
+		$template_table_header_th = $controller->template('list-table-header-th');
+
+		foreach($list_fields as $field => $data) {
+			include($template_table_header_th);
+		}
+
+		foreach($enabled_actions as $action => $_v) if ($_v) {
+			$args = array();
+			$args['id'] = "table-data-th-action-$action";
+			print $this->tags->content_tag('th','&nbsp;',$args);
+		}
+
+
+	?>
+</tr>
+<?php include($controller->template('list-table-after-header')); ?>

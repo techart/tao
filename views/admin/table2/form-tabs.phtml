@@ -1,0 +1,25 @@
+<?php
+    $this->use_styles(CMS::stdfile_url('styles/tabs.css'));
+    $this->use_scripts(CMS::stdfile_url('scripts/tabs.js'));
+    $key = md5(WS::env()->request->path);
+?>
+
+<ul class="tabs-nav">
+<?php foreach($form_tabs as $tab => $data) { ?>
+	<li><a href="#formtab-<?= $tab.$key ?>"><span><?= $data['caption'] ?></span></a></li>
+<?php } ?>
+</ul>
+
+<?php foreach($form_tabs as $tab => $data) { ?>
+	<div id="formtab-<?= $tab.$key ?>" class="tabs-container">
+		<?php include($controller->template('form-table')); ?>
+	</div>
+<?php } ?>
+
+<script type="text/javascript">
+<!--
+$(function(){
+	$('#admin-table-form-tabs-<?= $key ?>').tabs({fxAutoHeight:true});
+});
+//-->
+</script>

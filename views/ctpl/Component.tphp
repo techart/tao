@@ -1,0 +1,42 @@
+<?php
+
+
+class Component_%CNAME% implements Core_ModuleInterface {
+	const MODULE  = 'Component.%CNAME%';
+	const VERSION = '0.0.0';
+
+	static $config;
+
+	static function initialize($config=array()) {
+		self::$config = $config;
+		CMS::add_component('%CNAME%', new Component_%CNAME%_Mapper());
+		CMS_Admin::menu('%RNAME%',CMS::admin_path('%cname%'));
+	}
+
+}
+
+
+class Component_%CNAME%_Mapper extends CMS_Mapper {
+
+	protected $controllers = array(
+
+		'Controller'  => array(
+			'path' => '/%cname%/',
+			'rules' => array(
+				'{.*}' => array('{0}','action' => 'index'),
+			),
+		),
+
+		'AdminController' => array(
+			'path' => '/admin/%cname%/',
+			'table-admin' => true,
+		)
+
+	);
+
+	public function make_url() {
+		return '/%cname%/';
+	}
+
+}
+?>

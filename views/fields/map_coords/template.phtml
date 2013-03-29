@@ -1,0 +1,58 @@
+<div class="map-block">
+
+	<div class="map-controls">
+		<div class="map-coords">
+			<div class="map-coords-lat">
+				<div class="map-coords-label">
+					<?= CMS::lang()->_common->latitude ?>
+				</div>
+				<div class="map-coords-input">
+					<?= $this->forms->input($name, Core_Arrays::merge($tagparms, array('mapfield_type' => 'latitude'))) ?>
+				</div>
+			</div>
+			<div class="map-coords-lng">
+				<div class="map-coords-label">
+					<?= CMS::lang()->_common->longitude ?>
+				</div>
+				<div class="map-coords-input">
+					<?= $this->forms->input($name.'_add', Core_Arrays::merge($tagparms, array('mapfield_type' => 'longitude'))) ?>
+				</div>
+			</div>
+			<?php if ($use_zoom) { ?>
+				<?php if ($show_zoom) { ?>
+					<div class="map-coords-zoom">
+						<div class="map-coords-label">
+							<?= CMS::lang()->_common->zoom ?>
+						</div>
+						<div class="map-coords-input">
+							<?= $this->forms->input($name.'_zoom', Core_Arrays::merge($tagparms, array('mapfield_type' => 'zoom', 'value' => $options['properties']['zoom']))) ?>
+						</div>
+					</div>
+				<?php } 
+					else { ?>
+					<?= $this->forms->input($name.'_zoom',array('type' => 'hidden', 'mapfield_type' => 'zoom', 'value' => $options['properties']['zoom'])) ?>
+				<?php } ?>
+			<?php } ?>
+		</div>
+		<div class="map-settings">
+			<div class="map-coords-format">
+				<div class="map-coords-format-decimal">
+					<input type="radio" value="decimal" name="<?= $name ?>-coords-format" <?= ($format=='decimal') ? 'checked': ''; ?>>
+					<?= CMS::lang()->_common->decimal ?>
+				</div>
+				<div class="map-coords-format-degrees">
+					<input type="radio" value="degrees" name="<?= $name ?>-coords-format" <?= ($format=='degrees') ? 'checked': ''; ?>>
+					<?= CMS::lang()->_common->degree ?>
+				</div>
+			</div>
+			<div class="map-to-marker">
+				<button type="button" class="map-button-to-marker">&nbsp;<?= CMS::lang()->_common->to_marker ?>&nbsp;</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="map-view">
+		<?= $this->maps->map($service, $name.'_id', $name, $options) ?>
+	</div>
+
+</div>

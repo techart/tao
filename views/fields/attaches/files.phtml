@@ -1,0 +1,27 @@
+<?php
+$code = $type_object->temp_code();
+$dir = $type_object->dir_path($item,$code,$name,$data);
+if (is_dir($dir)) {
+	$cnt = 0;
+	foreach(IO_FS::Dir($dir) as $f)	{
+		if ($cnt==0) {
+			?><table class="attaches-list"><?php
+		}
+		$cnt++;
+		$filename = $f->name;
+		?>
+		<tr>
+			<td class="file"><a href="<?= CMS::$current_controller->field_action_url($name,'download',$item,array('code'=>$code,'file' => $f->name)) ?>"><?= $filename ?></a></td>
+			<td class="delete"><div class="delete-attachment" href="<?= CMS::$current_controller->field_action_url($name,'delete',$item,array('code'=>$code,'file' => $f->name)) ?>">&nbsp;</div></td>
+		</tr>
+
+		<?php
+	}
+
+	if ($cnt>0) {
+		?></table><?php
+	}
+
+
+}
+

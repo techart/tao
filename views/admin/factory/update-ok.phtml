@@ -1,0 +1,75 @@
+<?php if (!CMS_Factory::$use_style) include('css.inc'); ?>
+<div class="documentation">
+  
+  <?php if (sizeof($class->install_errors)>0) { ?>
+  <h1>Обновление прошло неудачно</h1>
+  <div class="errors"><ul>
+	<?php foreach($class->install_errors as $q) { ?>
+	<li><?= $q ?>;</li>
+	<?php } ?>
+  </ul></div>
+  <?php } else { ?>
+  <h1>Обновление компонента завершено</h1>
+  <?php } ?>
+  
+  <?php if ($class->component_dir&&file_exists("../app/components/$class->component_dir/.info")) { ?>
+    <p>
+    	В каталоге <b>app/components/<?= $class->component_dir ?></b> сохранен файл <b>.info</b>, содержащий информацию об установленной версии компонента, и его файлах.
+    	Не удаляйте этот файл и не редактируйте его если хотите, чтобы у вас осталась возможность обновлять версии компонента.
+    </p>
+  <?php } ?>
+  
+  
+  <?php if (sizeof($class->queries_log)>0) { ?>
+  <h2>Была произведена модификация БД:</h2>
+  <div class="sql"><pre>
+	<?php foreach($class->queries_log as $q) echo "\n$q;\n"; ?>
+  </pre></div>
+  <?php } ?>
+  
+  <?php if (Core_Types::is_iterable($class->dumps_log)&&sizeof($class->dumps_log)>0) { ?>
+  <h2>Были загружены дампы:</h2>
+  <ul class="dumps">
+	<?php foreach($class->dumps_log as $q) {
+		$sq = $q;
+		if ($m = Core_Regexps::match_with_results('{/([^/]+)$}',$sq)) $sq = $m[1];
+		echo "<li><a href='".$c->admin_download_url($q)."'>$sq</a></li>\n";
+	} ?>
+  </ul>
+  <?php } ?>
+  
+  <?php if (Core_Types::is_iterable($class->ufiles_log)&&sizeof($class->ufiles_log)>0) { ?>
+  <h2>Были скопированы файлы:</h2>
+  <ul class="ufiles">
+  	<?php foreach($class->ufiles_log as $file) echo "<li>$file"; ?>
+  </ul>
+  <?php } ?>
+  
+  <?php if (Core_Types::is_iterable($class->unfiles_log)&&sizeof($class->unfiles_log)>0) { ?>
+  <h2>Не удалось скопировать файлы:</h2>
+  Данные файлы обновлены в новой версии, однако в установленной версии в них были внесены изменения, которые могут быть важными.
+  Поэтому файлы не были перезаписаны, а сохранены с расширением ".upd".
+  <ul class="unfiles">
+  	<?php foreach($class->unfiles_log as $file) echo "<li>$file"; ?>
+  </ul>
+  <?php } ?>
+  
+  
+</div>
+
+<?php
+$this->use_scripts(CMS_Admin::$jquery);
+print CMS::stdstyle('tree.css');
+print CMS::stdscript('tree.js');
+?>
+<script type="text/javascript">
+<!--
+$(function() {        
+        $("#copiedfiles").treeview({
+                collapsed: false,
+                unique: false
+        });
+});        
+
+//-->
+</script>

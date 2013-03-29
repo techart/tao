@@ -1,0 +1,11 @@
+<?php if (count($errors)>0) { ?>
+	<div class="form-errors form-errors-<?= $form->name ?>" data-form-name="<?= $form->name ?>">
+		<ul class="form-errors form-errors-<?= $form->name ?>">
+			<?php foreach($errors as $_field => $_error) { ?>
+			<li class="form-error-message form-error-message-<?= $form->name ?> form-error-message-<?= $form->name ?>-<?= $_field?>" data-form-name="<?= $form->name ?>" data-field-name="<?= $_field ?>">
+				<?= $_error ?>
+			</li>
+			<?php } ?>
+		</ul>
+	</div>
+<?php } ?>

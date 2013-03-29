@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+	<?= CMS::stdstyle('admin-layout.css') ?>
+	<?= CMS::stdstyle('admin-controls.css') ?>
+</head>
+<body style="padding:5px;">
+<?php 
+$this->no_layout(); 
+if (!$dir) echo CMS::lang()->_common->a_dir_undef;
+else {
+	$action = $c->admin_url('addattache',$item_id);
+?>
+
+<script type="text/javascript">
+<!--
+	function delCnfrm() {
+		return confirm("Вы действительно хотите удалить этот файл?");
+	}
+//-->
+</script>
+
+<form method="post" action="<?= $action ?>" enctype="multipart/form-data">
+<b><?= CMS::lang()->_common->ta_addfile ?>:</b> <input type="file" name="up"> <input type="submit" value="<?= CMS::lang()->_common->ta_upload ?>">
+</form>
+<hr />
+<?php if (sizeof($attaches)==0) { ?>
+    <?= CMS::lang()->_common->no_attachements ?>
+<?php } else {
+	$filters = $c->filters_string();
+	if ($filters!='') $filters = "&$filters";
+	foreach($attaches as $attach) {
+?>
+
+	<div class="attach">
+		<table class="attach"><tr>
+			<td><a href="/<?= $attach['path'] ?>" target="_blank"><?= $attach['name'] ?></a>&nbsp;</td>
+			<th><a class="del12" href="<?= $c->admin_url('delattache',$item_id,'file='.$attach['name']) ?><?= $filters ?>" onClick="return delCnfrm();"></a></th>
+		</tr></table>
+	</div>
+	
+
+<?php	
+	}
+
+} ?>
+
+<?php } ?>
+</body>
+</html>

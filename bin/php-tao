@@ -1,0 +1,4 @@
+#!/bin/sh
+export TAO_HOME=${TAO_HOME:-.}
+export TAO_PATH=${TAO_PATH:-'-Test:test/lib;*:lib'}
+exec /usr/bin/env php --define auto_prepend_file=$TAO_HOME/etc/init.php $@

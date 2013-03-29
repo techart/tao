@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php
+$bin_dir = __DIR__;
+$tao_home = realpath($bin_dir . '/' . '..');
+putenv("TAO_HOME=$tao_home");
+if (!getenv('TAO_PATH'))
+	putenv('TAO_PATH=-Test:test/lib;*:lib');
+if (preg_match('{^--path=(.*)}', $argv[1], $m)) {
+	unset($argv[1]);
+	putenv("TAO_PATH={$m[1]}");
+}
+include($tao_home . '/etc/init.php');
+Core::load('CLI');
+Core_Arrays::shift($argv);
+CLI::run_module($argv); 
+?>

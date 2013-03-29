@@ -1,0 +1,10 @@
+<?php if ($item_id>0) {
+	$parms['src'] = $c->admin_url('attaches',$item_id);
+	$parms['class'] = 'input';
+	$parms['frameborder'] = '0';
+	print $this->tags->tag('iframe',$parms); 
+	print '</iframe>';
+} else { 	
+	?>Прикрепление файлов возможно только к уже существующей записи<?php
+} 
+?>	

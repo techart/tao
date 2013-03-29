@@ -1,0 +1,41 @@
+<ul id="sidebar-navigation" class="pagetree">
+  <?php draw_admin_sidebar_tree($sidebar_tree); ?>
+</ul>
+
+
+
+<?php 
+
+print CMS::stdscript('tree.js');
+print CMS::stdstyle('tree.css');
+
+function draw_admin_sidebar_tree($tree) {
+	foreach($tree as $title => $item) {
+		$cclass = $item['class']?' class="'.$item['class'].'"':''; 
+		if ($item['url']) {
+			$c1 = '<a href="'.$item['url'].'"'.$cclass.'>';
+			$c2 = '</a>';
+		}
+		
+		else {
+			$c1 = '<span'.$cclass.'>';
+			$c2 = '</span>';
+		}
+		
+		?><li<?= ($item['open']?' class="open"':'') ?>><span<?= ($item['icon']?' class="'.$item['icon'].'"':'') ?>><?= $c1 ?><?= $title ?><?= $c2 ?></span><?php 
+			if (Core_Types::is_iterable($item['sub'])) {
+				?><ul><?php draw_admin_sidebar_tree($item['sub']); ?></ul><?php
+			}	 
+		?></li><?php 
+	}
+}
+
+?>
+
+
+<script type="text/javascript">
+<!--
+	$("#sidebar-navigation").treeview({<?= $sidebar_tree_parms ?>});
+	
+//-->
+</script>

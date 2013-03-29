@@ -1,0 +1,19 @@
+<?php if ($page_navigator) { ?>
+
+	<div class="table-admin-page-navigator-bottom" nowrap>
+		<span><?= CMS::lang()->_common->pages ?>:</span> <?= $page_navigator ?>
+	</div>
+
+<?php } ?>
+
+<?php if ($massupdate_form) { ?>
+
+	<div class="table-admin-massupdate-submit">
+		<input type="submit" class="submit-button" value="<?= CMS::lang($massupdate_submit_text) ?>">
+	</div>
+
+<?php } ?>
+
+
+
+<div class="clear"></div>

@@ -1,0 +1,16 @@
+<div class="youtube-field" id="youtube-field-<?= $name ?>">
+<?php
+	$value = trim($form[$name]);
+	$preview_url = false;
+	if ($value != '') {
+		$preview_url = $item->field($name)->admin_preview_url($data);
+		if($preview_url) {
+?>
+	<div class="youtube-preview" id="youtube-preview-<?= $name ?>"><?= $this->tag('img', array('src' => $preview_url)) ?></div>
+<?php
+		}
+	}
+?>
+
+<?= $this->forms->input($_name,$tagparms) ?>
+</div>

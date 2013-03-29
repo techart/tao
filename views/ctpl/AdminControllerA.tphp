@@ -1,0 +1,27 @@
+<?php
+
+Core::load('CMS.Controller.AdminTable');
+Core::load('%EMODULE%');
+
+class %CLASS% extends CMS_Controller_AdminTable {
+	
+	const MODULE  = '%MODULE%';
+	const VERSION = '0.0.0';
+	
+	protected $orm_name	= '%ORM%';
+	protected $title_list	= 'Список';
+	protected $title_edit	= 'Редактирование';
+	protected $title_add	= 'Добавление';
+	protected $norows	= 'Записи отсутствуют';
+	
+	protected $button_add	= 'Добавить запись';
+	
+	protected $form_fields	= array(%FORMFIELDS%
+	);
+	
+	protected $list_fields = array(%LISTFIELDS%
+	);
+	
+}
+
+?>

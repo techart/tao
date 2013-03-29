@@ -1,0 +1,17 @@
+<?php
+	$id = $form->name.'_'.$name;
+	Core::load('CMS.Protect');
+	$code = $type_object->code($name);
+	$key = trim(CMS_Protect::key($code));
+?>
+<?= $this->forms->hidden($type_object->field_code($name)) ?>
+<?= $this->forms->hidden($name,$tagparms) ?>
+<script type="text/javascript">
+<!--
+$(function() {
+	var v = '';
+	<?php if ($key!='') for($i=0;$i<strlen($key);$i++) { $_s = $key[$i]; ?>v = v.concat(<?= $type_object->digit_expr($_s) ?>);<?php } ?>
+	$('#<?= $id ?>').attr('value',v);
+});
+//-->
+</script>

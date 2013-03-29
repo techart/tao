@@ -1,0 +1,40 @@
+.field-multivalue {
+clear:both;
+height: 100%;
+overflow: hidden;
+border-top: 1px dotted #AAA;
+border-bottom: 1px dotted #AAA;
+padding: 5px 0;
+}
+
+.field-multivalue-items {
+margin: 0 0;
+padding:0;
+height: 100%;
+overflow: hidden;
+}
+
+.field-multivalue-item {
+list-style-type: none;
+clear:both;
+height: 100%;
+overflow: hidden;
+margin-bottom: 5px;
+}
+
+.field-multivalue-item-content {
+float:left;
+}
+
+.field-multivalue-item-actions {
+margin-left: 5px;
+float: left;
+}
+
+.field-multivalue-item-actions .delete-item {
+	background: url(/files/_assets/images/del.png) 0 0 no-repeat;
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+	margin-top: 3px;
+}

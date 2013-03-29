@@ -1,0 +1,63 @@
+div.image-field {
+	position: relative;
+	overflow: hidden;
+	height: 100%;
+}
+
+	div.image-field div.upload-image {
+		cursor: pointer;
+		text-decoration: underline;
+		color: #4A7C88;
+		display: none;
+	}
+
+
+	div.image-field div.image-load-indicator {
+		width: 214px;
+		height: 15px;
+		background-image: url(/files/_assets/images/hloading.gif);
+		background-repeat: no-repeat;
+		display: none;
+	}
+
+	div.image-field div.image-preview {
+		padding: 5px;
+		border: 1px solid #eee;
+		width: 100px;
+		height: 100px;
+		display: none;
+		background-repeat: no-repeat;
+		background-position: center;
+		float: left;
+	}
+
+	div.image-field div.image-info {
+		float: left;
+		padding: 20px 0 0 5px;
+		display: none;
+		position: relative;
+	}
+
+		div.image-field div.image-info div.image-button {
+			position: absolute;
+			width: 16px;
+			height: 16px;
+			background-repeat: no-repeat;
+			cursor: pointer;
+			top: 40px;
+		}
+
+			div.image-field div.image-info div.image-button-del {
+				background-image: url(/files/_assets/images/del.png);
+				left: 5px;
+			}
+
+			div.image-field div.image-info div.image-button-left {
+				background-image: url(/files/_assets/images/turn-left.png);
+				left: 30px;
+			}
+
+			div.image-field .image-info .image-button-right {
+				background-image: url(/files/_assets/images/turn-right.png);
+				left: 50px;
+			}

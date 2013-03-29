@@ -1,0 +1,16 @@
+<?php
+
+if ((int)$item_id==0) print CMS::lang()->_common->unable_in_add;
+
+else {
+?>
+
+<?= $this->forms->hidden($name,$tagparms) ?>
+
+<div class="attaches-list" id="attaches-list-<?= $name ?>">
+<?php print $this->partial($type_object->template($data, 'files')); ?>
+</div>
+
+<?php print $this->partial($type_object->template($data, 'upload')); ?>
+
+<?php } ?>

@@ -1,0 +1,20 @@
+<?php
+
+if (!isset($tagparms['style'])) {
+	$tagparms['style'] = 'width:80px';
+	if (isset($data['with_time'])&&$data['with_time']) $tagparms['style'] = 'width:120px';
+	if (isset($data['with_seconds'])&&$data['with_seconds']) $tagparms['style'] = 'width:140px';
+	
+}
+
+if (isset($data['datepicker'])&&$data['datepicker']) {
+	$this->use_scripts(CMS::stdfile_url('scripts/date.js'));
+	$this->use_scripts(CMS::stdfile_url('scripts/datepicker.js'));
+	$this->use_scripts(CMS::stdfile_url('scripts/datepick.js'));
+	$this->use_styles(CMS::stdfile_url('styles/datepicker.css'));
+	$tagparms['class'] = 'date-pick dp-applied';
+}
+
+
+?>
+<?= $this->forms->input($name,$tagparms) ?>

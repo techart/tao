@@ -1,0 +1,17 @@
+<?php
+
+class Component_%CNAME%_Controller extends CMS_Controller implements Core_ModuleInterface {
+	
+	const MODULE  = 'Component.%CNAME%.Controller';
+	const VERSION = '0.0.0';
+	
+	public function index($path) {
+		return $this->render('index',array(
+		    'path' => $path,
+		));
+	}
+	
+	
+}
+
+?>

@@ -1,0 +1,10 @@
+<div class="admin-table-right-buttons">
+	<?php Events::call("$mnemocode.rightbuttons"); ?>
+	<?php if (isset($list_url)&&isset($list_button_caption)&&$list_url!=''&&$list_button_caption!='') { ?>
+	<a href="<?= $list_url ?>"><?= CMS::lang($list_button_caption) ?></a>
+	<?php } ?>
+	<?php if (isset($can_add)&&$can_add) { ?>
+	<a href="<?= $add_url ?>"><?= CMS::lang($add_button_caption) ?></a>
+	<?php } ?>
+</div>
+<h1><?= $title ?></h1>

@@ -1,0 +1,7 @@
+<?php
+	CMS::use_styles('/files/_assets/styles/embedded_admin_menu.css');
+	CMS::use_scripts('/files/_assets/scripts/embedded-admin-menu.js');
+?>
+<script type="text/javascript">
+	var embedded_admin_menu = '<?= addcslashes($menu->draw('embedded-admin-menu'), "'") ?>';
+</script>

@@ -1,0 +1,10 @@
+<div id="subsites">
+  <select name="subsites" onChange="location.href = '/cms-actions/subsite/'+this.value;">
+    <?php if (!isset(CMS::$sites[CMS::$defsite])) { ?>
+    <option value="<?= CMS::$defsite ?>"><?= CMS::$defsite_title ?></option>
+    <?php } ?>
+    <?php foreach(CMS::$sites as $site => $data) if (!isset(CMS::$globals['admin_sites'])||isset(CMS::$globals['admin_sites'][$site])) { ?>
+    <option value="<?= $site ?>" <?= (CMS_Admin::$site==$site?'selected':'') ?>><?= $data['title'] ?></option>
+    <?php } ?>
+  </select>
+</div>

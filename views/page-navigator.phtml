@@ -1,0 +1,12 @@
+<?php
+	$p1 = $page-3; if ($p1<1) $p1 = 1;
+	$p2 = $page+3; if ($p2>$numpages) $p2 = $numpages;
+	
+	$l1 = $numpages-1;
+	$l2 = $numpages;
+?>
+<?php if ($page>1) echo self::link($page-1,'<'); ?> <?php if ($p1>1) echo self::link(1); ?>
+<?php if ($p1>1) echo ' ... '; ?>
+<?php for($i=$p1;$i<=$p2;$i++) { ?> <?= self::link($i) ?> <?php } ?>
+<?php if ($p2<$l1-1) echo ' ... '; ?>
+<?php if ($p2<$l1) echo self::link($l1); ?> <?php if ($p2<$l2) echo self::link($l2); ?> <?php if ($page<$numpages) echo self::link($page+1,'>'); ?>

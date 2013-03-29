@@ -1,0 +1,37 @@
+.field-documents-grid-root .mousepointer {
+	cursor: pointer !important;
+}
+
+.field-documents-grid-root .x-grid-view {
+	min-height: 60px;
+}
+
+.documents-frid-editor .x-panel-body,
+.documents-frid-editor .x-grid-row-editor-buttons
+ {
+	background: #8ADCE8 !important; 
+	border: none !important;
+}
+
+.documents-frid-editor .x-grid-row-editor-buttons-bl,
+.documents-frid-editor .x-grid-row-editor-buttons-br {
+	background: transparent !important; 
+	border-bottom: 1px solid #BCB0B0;
+}
+
+.documents-frid-editor .x-grid-row-editor-buttons-br {
+	border-right: 1px solid #BCB0B0;
+}
+
+.documents-frid-editor .x-grid-row-editor-buttons-bl {
+	border-left: 1px solid #BCB0B0;
+}
+
+.documents-frid-editor .x-box-item {
+	//margin-left: 5px !important;
+}
+
+.documents-frid-editor .x-grid-row-editor-buttons {
+	//width: 220px !important;
+	padding: 0 10px 0 10px !important;
+}

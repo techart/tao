@@ -1,0 +1,9 @@
+<?php foreach($list_fields as $fname): ?>
+	<?php if ($fname == 'name' || $fname == 'caption'):
+		$filecap = !empty($file_data[$fname]) ? $file_data[$fname] : $filename;
+	?>
+	<td class="file <?=$fname?>"><a href="<?= CMS::$current_controller->field_action_url($name,'download',$item,array('code'=>$code,'file' => $filename)) ?>"><?= $filecap ?></a></td>
+	<?php else: ?>
+	<td class="<?= $fname ?>"> <?= $file_data[$fname] ?> </td>
+	<?php endif; ?>
+<?php endforeach; ?>

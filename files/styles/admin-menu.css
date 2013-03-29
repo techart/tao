@@ -1,0 +1,161 @@
+#topmenu {
+	height: 42px;
+	background-color: #48525B;
+	background-image: url(/files/_assets/images/top-menu-bg.gif);
+	background-repeat: repeat-x;
+	z-index: 10;
+}		
+
+	#topmenu ul.level1 {
+		display: block;
+		padding: 0 0 0 26px;
+		z-index: 11;
+	}
+
+
+		#topmenu ul.level1 li {
+			display: block;
+			float: left;
+			margin: 7px 0 0 0;
+			padding: 0 0 0 4px;
+			border-bottom:5px solid #8ADCE8; 
+			z-index: 12;
+		}
+
+			#topmenu ul.level1 li.first {
+				padding: 0;
+			}
+
+
+			#topmenu ul.level1 li a {
+				display: block;
+				background-color: #8B8C8E;
+				background-image: url(/files/_assets/images/corner-left.gif);
+				background-position: left top;
+				background-repeat: no-repeat;
+				text-decoration: none;
+				color: #fff;
+			}
+				#topmenu ul.level1 li.current a {
+					background-color: #FFF;
+					color: #000;
+				}	
+
+				#topmenu ul.level1 li.hovered a {
+					background-color: #8ADCE8;
+					color: #000;
+				}	
+
+				#topmenu ul.level1 li a span {
+					display: block;
+					padding: 8px 12px 7px 12px;
+					background-image: url(/files/_assets/images/corner-right.gif);
+					background-position: right top;
+					background-repeat: no-repeat;
+				}
+
+			#topmenu ul.level2 {
+				position: absolute;
+				top: 35px;
+				left: 0px;
+				background-color: #8ADCE8;
+				padding: 0;
+				margin: 0;
+				display: none;
+				z-index: 20;
+			}
+
+				#topmenu ul.level2 li {
+					position: relative;
+					display: block;
+					background-color: #8FE3F0;
+					padding: 0 0 1px 0;
+					margin: 0;
+					float: none;
+					border: none;
+				}
+					#topmenu ul.level2 li a {
+						white-space: nowrap;
+						position: relative;
+						display: block;
+						background-color: #8ADCE8;
+						background-image: none;
+						padding: 4px 15px 4px 15px;
+						margin: 0;
+					}
+						#topmenu ul.level2 li a:hover {
+							background-color: #47BCCD;
+							color: #FFF;
+						}
+
+#admin_menu_button {
+	position: absolute;
+	top: 87px;
+	right: 10px;
+	display: block;
+	background-color: #FFC480;
+	text-decoration: none;
+	background-image: url(/files/_assets/images/corner-left.gif);
+	background-position: left top;
+	background-repeat: no-repeat;
+}	
+
+	#admin_menu_button span {
+		display: block;
+		color: #000;
+		padding: 10px 20px 9px 20px;
+		font-size: 14px;
+		background-image: url(/files/_assets/images/corner-right.gif);
+		background-position: right top;
+		background-repeat: no-repeat;
+	}	
+
+#admin_menu {
+	display: none;
+	position: absolute;
+	top: 122px;
+	right: 10px;
+	background-color: #FFC480;
+	margin: 0;
+	padding: 10px 0 0 0px;
+	list-style: none;
+	z-index: 31;
+}
+	
+	#admin_menu a {
+		text-decoration: none;
+		color: #444;
+	}
+		#admin_menu a:hover {
+			text-decoration: underline;
+		}
+
+		#admin_menu a nobr {
+			font-size: 12px;
+		}
+
+	#admin_menu li {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	
+		#admin_menu li.component {
+			background-image: url(/files/_assets/images/components/default.gif);
+			background-position: 10px 2px;
+			background-repeat: no-repeat;
+			padding: 5px 5px 5px 30px;
+			border-bottom: 1px solid #FFD19D;
+		}
+
+		#admin_menu ul.component_menu li {
+			background-image: url(/files/_assets/images/admin-subitem.gif);
+			background-position: 1px 6px;
+			background-repeat: no-repeat;
+			padding-left: 10px;
+		}
+
+			#admin_menu ul.component_menu li a nobr {
+				font-size: 10px;
+			}
+

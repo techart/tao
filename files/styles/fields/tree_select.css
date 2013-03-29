@@ -1,0 +1,212 @@
+/*  Стандартный стиль оформления  */
+.tree_select {
+	position: relative;
+}
+
+.tree_select .tree_select_top {
+	position: relative;
+	overflow: hidden;
+	background-color: #fff;
+}
+.tree_select .top_caption {
+	float: left;
+	overflow: hidden;
+	width: 180px;
+	border: 1px solid #000;
+	padding: 2px 0 2px 2px;
+	white-space: nowrap;
+	height: 17px;
+	cursor: pointer;
+}
+		
+.tree_select .top_arrow {
+	float: left;
+	width: 17px;
+	border: none;
+	height: 22px;
+	background: url(/files/_assets/images/extjs/form/trigger.gif) no-repeat;
+	cursor: pointer;
+	border-bottom: 1px solid #B5B8C8;
+}
+	.tree_select .top_arrow:hover {
+		background-position: -17px 0;
+	}
+	.tree_select .top_arrow:active {
+		background-position: -34px 0;
+	}
+	
+.tree_select .tree_select_selectioner {
+	display: none;
+	position: absolute;
+	width: 180px;
+	border: 1px solid #000;
+	background-color: #fff;
+	margin-top: 2px;
+	overflow: auto;
+	padding-left: 2px;
+	max-height: 400px;
+	cursor: pointer;
+	z-index: 10;
+}
+
+.tree_width_fixer {
+	display: inline-block;
+}
+
+.tree_select_sub {
+	display: none;
+	sheight: 100%;
+	soverflow: hidden;
+	border-left: 1px dashed #ccc;
+	background-color: #fff;
+	margin-left: 13px;
+}
+
+.tree_item_last > .tree_select_sub { 
+	border-left: none;
+}
+
+.tree_select_sub .tree_select_sub { 
+	margin-left: 16px;
+}
+
+.tree_select_array {
+	clear: both;
+	float: left;
+	background-color: #fff;
+	margin-top: 2px;
+}
+
+.tree_select_one {
+	clear: both;
+	background-color: #fff;
+	border-left: 1px dashed #ccc;
+	margin-top: 2px;
+	margin-left: 13px;
+	padding-left: 3px;
+}
+
+.tree_select_sub > .tree_select_one {
+	margin-left: 15px;
+}
+
+.tree_select_node {
+	display: inline-block;
+}
+
+.tree_select_node_disabled .tree_select_caption {
+	color: #aaa;
+}
+.tree_select_node_disabled .tree_select_caption:hover {
+	color: #aaa;
+}
+
+.tree_select_array > .tree_select_node {
+	font-weight: bold; 
+}
+
+.tree_select .tree_select_branch {
+	width: 7px;
+	height: 10px;
+	float: left;
+	margin-left: -3px;
+	border-bottom: 1px dashed #ccc;
+}
+
+.tree_select_sub .tree_select_branch {
+	border-bottom: 1px dashed #ccc;
+}
+
+.tree_item_last > .tree_select_branch {
+	border-left: 1px dashed #ccc;
+}
+
+.tree_item_first > .tree_select_branch {
+	margin-top: 10px;
+	border-bottom: none;
+	border-top: 1px dashed #ccc;
+	border-left: 1px dashed #ccc;
+}
+
+.tree_select_sub .tree_item_first > .tree_select_branch {
+	margin-top: 0px;
+	border: none;
+	border-bottom: 1px dashed #ccc;
+}
+
+.tree_select_icon {
+	float: left;
+	background-repeat: no-repeat;
+	background-position: center;
+	width: 20px;
+	height: 20px;
+	margin: -1px 3px 0;
+}
+
+.tree_select_elbow_icon {
+	background-image: url(/files/_assets/images/extjs/tree/elbow-plus.gif);
+	margin-right: -2px;
+}
+
+.tree_select_sub .tree_select_elbow_icon { 
+	margin-left: 5px;
+}
+
+.tree_select_elbow_open_icon {
+	background-image: url(/files/_assets/images/extjs/tree/elbow-minus.gif);	
+}
+
+.tree_select_caption {
+	float: left;
+}
+
+.tree_select_caption_one {
+	padding-left: 20px;
+	background: url(/files/_assets/images/extjs/tree/leaf.gif) 0 -2px no-repeat;
+}
+
+.tree_select_caption_array {
+	padding-left: 20px;
+	background: url(/files/_assets/images/extjs/tree/folder.gif) 0 -2px no-repeat;
+}
+
+.tree_select_caption_array_open {
+	background: url(/files/_assets/images/extjs/tree/folder-open.gif) 0 -2px no-repeat;
+}
+
+.tree_select_caption:hover,
+.tree_select_caption_active {
+	color: #f00;
+}
+
+.tree_select_array > .tree_select_node > .tree_select_caption,
+.tree_select_one > .tree_select_node > .tree_select_caption {
+	margin-top: 3px;
+}
+
+.tree_item_last, .tree_item_first {
+	border-left: none;
+}
+
+.tree_select_sub > .tree_select_one.tree_item_first {
+	border-left: 1px dashed #ccc;
+}
+
+.tree_select_sub > .tree_select_one.tree_item_first.tree_item_last {
+	border-left: none;
+}
+
+.tree_select_sub > .tree_select_one.tree_item_first.tree_item_last > .tree_select_branch {
+	border-left: 1px dashed #ccc;
+}
+
+.text-wrap_none_caption {
+	white-space: nowrap;
+}
+
+.text-wrap_ellipsis_caption {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+/*  !Стандартный стиль оформления  */

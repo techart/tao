@@ -1,0 +1,31 @@
+<ul class="level1">
+<?php $links = !isset($links) ? $this->links : $links; ?>
+<?php $f1 = true; foreach($links as $link1) { $classes1 = array(); if ($f1) $classes1[] = 'first'; if ($link1->selected) $classes1[] = 'current'; ?>
+  <li class="<?= implode(' ',$classes1) ?>"><a href="<?= $link1->url ?>"><span><?= CMS::lang($link1->title) ?></span></a><?php if ($link1->sublinks) { ?><ul class="level2">
+    <?php foreach($link1->sublinks as $link2) { ?>
+      <li><a href="<?= $link2->url ?>"><nobr><?= preg_replace('{\s+}u','&nbsp;',CMS::lang($link2->title)) ?></nobr></a></li>
+    <?php } ?>
+  </ul><?php } ?></li>
+<?php $f1 = false; } ?>
+</ul>
+
+<script type="text/javascript">
+<!--
+	$(function(){
+		$('ul.level1 > li')
+			.bind('mouseenter',function(){
+				var a = $('a',this);
+				var x = a.offset().left;
+				var y = a.offset().top;
+				var h = a.height()+4;
+				$(this).addClass('hovered');
+				$('ul',this).css('display','block').css('top',y+h+'px').css('left',x+'px');
+			})
+			.bind('mouseleave',function(){
+				$(this).removeClass('hovered');
+				$('ul',this).css('display','none');
+			})
+		;
+	});
+//-->
+</script>

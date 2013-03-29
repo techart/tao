@@ -1,0 +1,9 @@
+<h1>Фабрика</h1>
+<p>Схема для компонента <b><?= $name ?></b> создан.
+Для использования достаточно в <?=$name?>::initialize добавить</p>
+<p>
+Core::load('DB.Schema');<br>
+DB_Schema::process_file(__DIR__ . '/../config/schema.php'); //путь к файлу может быть другим
+</p>
+<hr />
+<a href="<?= $c->index_url() ?>">Вернуться</a>

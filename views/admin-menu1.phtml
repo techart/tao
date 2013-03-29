@@ -1,0 +1,19 @@
+<div id="admin_menu_button">Управление компонентами</div>
+
+<div id="admin_menu">
+  <ul>
+    <?php foreach(CMS_Admin::$admin_menu as $title => $item) { ?>
+    <li><a href=""><?= $title ?></a></li>
+    <?php } ?>
+  </ul>
+  <div class="footer">Управление компонентами</div>
+</div>
+
+<script type="text/javascript">
+<!--
+$(function(){
+	$('#admin_menu_button').mouseover(function(){$('#admin_menu').css('display','block');})
+	$('#admin_menu').mouseover(function(){$(this).css('display','block');}).mouseout(function(){$(this).css('display','none');})
+});
+//-->
+</script>

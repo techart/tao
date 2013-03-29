@@ -1,0 +1,18 @@
+<ul class="field-render field-render-documents field-render-document-<?php $container->name ?>">
+<?php foreach(!empty($files_data['files']) ? $files_data['files'] : array() as $k => $fdata): ?>
+	<?php
+		if (empty($fdata['name'])) continue;
+		$fname = isset($fdata['caption']) ? $fdata['caption'] : $fdata['name'];
+		$fpath = trim($files[$k],' .');
+		unset($fdata['name']);
+		unset($fdata['caption'])
+	?>
+	<li class="field-render-documents-item">
+		<div class="field-render-documents-subitem field-render-documents-subitem-download"><a href="<?= $fpath ?>" target="_blank"><?= $fname ?></a></div>
+		<?php foreach($fdata as $fdname => $fdvalue): ?>
+			<?php if (in_array($fdname, $exclude_fields)) continue; ?>
+			<div class=" field-render-documents-subitem field-render-documents-subitem-<?=$fdname?>"><?=$fdvalue?></div>
+		<?php endforeach; ?>
+	</li>
+<?php endforeach; ?>
+</ul>

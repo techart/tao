@@ -1,0 +1,96 @@
+
+	/* Форма */
+	div.embedded_admin_menu_icon {
+		display: block;
+		width: 32px;
+		height: 32px;
+		position: fixed;
+		padding: 2px;
+		background-repeat: no-repeat;
+		background-position: center;
+	}
+
+	div.embedded_admin_menu_popup {
+		display: block;
+		width: 300px;
+		position: fixed;
+		background-repeat: no-repeat;
+		background-position: 2px 2px;
+		display: none;
+	}
+
+		div.embedded_admin_menu_popup a {
+			display: block;
+			text-decoration: none;
+			font-size: 14px;
+			padding: 10px 20px 10px 20px;
+		}
+
+		div.embedded_admin_menu_popup ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+			div.embedded_admin_menu_popup li {
+				position: relative;
+				width: 100%;
+				border-top: 1px solid #444;
+			}
+			
+				div.embedded_admin_menu_popup li > ul {
+					display: none;
+					position: absolute;
+					border-left: 1px solid #444;
+					border-bottom: 2px solid #888;
+					border-top: none;
+				}
+
+
+	/* Расположение */
+	div.embedded_admin_menu_icon {
+		bottom: 0;
+		left: 0;
+	}
+
+	div.embedded_admin_menu_popup {
+		bottom: 0;
+		left: 0;
+		padding: 0 0 0 37px;
+	}
+
+		div.embedded_admin_menu_popup li > ul {
+			right: 0;
+			top: 0;
+		}
+
+
+	/* Цвета/картинки */
+	div.embedded_admin_menu_icon {
+		background-color: #ddd;
+		background-image: url(/files/_assets/images/admin.gif);
+		filter: alpha(opacity=50);
+		-webkit-opacity: 0.5;
+		opacity: 0.5;
+		border: 1px solid #888;
+	}
+
+	div.embedded_admin_menu_popup {
+		border: 1px solid #888;
+		background-image: url(/files/_assets/images/admin.gif);
+		background-color: #eee;
+	}
+
+		div.embedded_admin_menu_popup li.parent > a {
+			background: url(/files/_assets/images/bullet-arrow-right.png) #333 no-repeat right center;
+		}
+
+		div.embedded_admin_menu_popup li.active > a	{
+			background-color: #555;
+		}
+
+		div.embedded_admin_menu_popup a {
+			background-color: #333;
+			color: #aaf;
+		}
+

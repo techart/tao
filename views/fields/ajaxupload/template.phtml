@@ -1,0 +1,113 @@
+<?php
+
+	$c = CMS::$current_controller;
+	$lang = CMS::lang()->_common;
+	$this->use_styles(CMS::stdfile_url('styles/fields/ajaxupload.css'));
+	$this->use_scripts(CMS::stdfile_url('scripts/ajaxupload.js'));
+
+	$vname = preg_replace('{[^a-z0-9_]+}','',$name);
+
+	$value = trim($form[$name]);
+	$file_path = false;
+	if ($value!='') {
+
+		if ($value[0]=='#') {
+			$_value = substr($value,1);
+			$file_path = CMS::temp_dir().'/'.$_value;
+			$file_url = Net_HTTP::Request($c->field_action_url($name,'temp',$item))->parameters(array('filename' => $_value))->uri;
+		}
+
+		else {
+			$file_path = $type_object->value_to_path($value);
+			$file_url = $type_object->value_to_url($value);
+		}
+	}
+
+	$ffid = "{$form->name}_{$name}";
+
+?>
+
+<?= $this->forms->hidden($name,$tagparms) ?>
+
+<div class="file-field" id="file-field-<?= $name ?>">
+	<div class="upload-file" id="upload-file-<?= $name ?>"><?= $lang->ta_browse ?></div>
+	<div class="file-load-indicator" id="file-load-indicator-<?= $name ?>">&nbsp;</div>
+	<div class="file-info" id="file-info-<?= $name ?>"><?php include('info.phtml'); ?></div>
+</div>
+
+<?php $this->begin('js') ?>
+
+<!--
+
+	var _<?= $vname ?>TempFile = 'none';
+	
+	function build_url(url, query) {
+		if (url.indexOf("?") != -1)
+			return url + '&' + query;
+		else
+			return url + '?' + query;
+	}
+
+	function _<?= $vname ?>BindInfoButtons() {
+		$("#file-button-del-<?= $name ?>").unbind().click(function() {
+			if (confirm('<?= $lang->ta_dfconfirm ?>')) {
+				var del_url = build_url('<?= $c->field_action_url($name,'delete',$item) ?>','filename='+_<?= $vname ?>TempFile);
+				$.get(del_url,{},function(rc) {
+					$("#file-info-<?= $name ?>").empty().hide();
+					$("#<?= $ffid ?>").attr('value','#');
+					$("#upload-file-<?= $name ?>").show();
+				});
+			}
+		});
+	}
+
+	function _<?= $vname ?>LoadInfo() {
+		$("#file-info-<?= $name ?>").load(build_url('<?= $c->field_action_url($name,'info',$item) ?>', 'filename='+_<?= $vname ?>TempFile),{},function() {
+			$("#file-info-<?= $name ?>").show();
+			_<?= $vname ?>BindInfoButtons();
+		});
+	}
+
+	function _<?= $vname ?>Reload(filename) {
+		$("#<?= $ffid ?>").attr('value','#'+filename);
+		_<?= $vname ?>TempFile = filename;
+		_<?= $vname ?>LoadInfo();
+	}
+
+
+	$(function() {
+		<?php if ($value!=''&&$file_url) { ?>
+		$("#file-info-<?= $name ?>").show();
+		_<?= $vname ?>BindInfoButtons();
+		<?php } else { ?>
+		$("#upload-file-<?= $name ?>").show();
+		<?php } ?>
+
+		new AjaxUpload("upload-file-<?= $name ?>", {
+			action: '<?= $c->field_action_url($name,'upload',$item,array('code'=>$type_object->temp_code())) ?>',
+			name: 'attachement',
+			autoSubmit: true,
+			responseType: false,
+			onSubmit: function(file, extension){
+				$("#upload-file-<?= $name ?>").hide();
+				$("#file-load-indicator-<?= $name ?>").show();
+			},
+			onComplete: function(file, resp){
+				$("#file-load-indicator-<?= $name ?>").hide();
+				if (resp.charAt(0)!='!') {
+					$("#upload-file-<?= $name ?>").show();
+					alert(resp);
+				}
+
+				else {
+					var filename = resp.substr(1);
+					_<?= $vname ?>Reload(filename);
+				}
+			}
+		});
+	});
+
+//-->
+
+<?php $this->end('js') ?>
+

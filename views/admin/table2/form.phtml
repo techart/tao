@@ -1,0 +1,35 @@
+<?php include('form-errors.phtml'); ?>
+
+<?php $key = md5(WS::env()->request->path); ?>
+
+<?= $this->forms->begin_form($form) ?>
+
+<?php if (count($form_tabs)>0) { ?>
+
+	<div class="admin-table-form-tabs" id="admin-table-form-tabs-<?= $key ?>">
+	<?php include($controller->template('form-tabs')); ?>
+	</div>
+	<input type="submit" value="<?= CMS::lang($submit_text) ?>" class="submit-button">
+	<?php if (isset($with_save_button)&&$with_save_button) { ?>
+	<input type="hidden" name="__save_and_stay" value="0" id="__<?= $form->name.'_save_and_stay_field' ?>">
+	<input type="submit" value="<?= CMS::lang($save_button_text) ?>" id="<?= '__'.$form->name.'_save_and_stay_button' ?>" class="submit-button save-and-stay-button">
+	<script type="text/javascript">
+		$(function() {
+			$('#<?= '__'.$form->name.'_save_and_stay_button' ?>').click(function() {
+				$('#__<?= $form->name ?>_save_and_stay_field').val('<?= WS::env()->request->uri ?>');
+				return true;
+			});
+		});
+	</script>
+	<?php } ?>
+
+<?php } else { ?>
+
+	<div class="admin-table-form-no-tabs">
+	<?php $tab = false; include($controller->template('form-table')); ?>
+	</div>
+
+<?php } ?>
+
+<?= $this->forms->end_form($form) ?>
+

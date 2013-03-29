@@ -1,0 +1,7 @@
+<?php foreach($messages_for_get_parms as $parm => $message) if (isset($_GET[$parm])) { ?>
+<script type="text/javascript">
+<!--
+	alert("<?= htmlspecialchars($message) ?>");
+//->
+</script>
+<?php } ?>

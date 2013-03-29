@@ -1,0 +1,19 @@
+<?php
+	$chunks = array();
+	for($i=0; $i<strlen($keystring); $i++) {
+		$c = (int)$keystring[$i];
+		$n = rand(11,99);
+		$k = $c+$n;
+		$chunks[] = "$k-$n";
+	}
+?>
+<script type="text/javascript">
+<!--	
+	document.write('<input type="hidden" name="');
+	document.write('<?= $field ?>');
+	document.write('" value="');
+	document.write(<?= join(',',$chunks) ?>);
+	document.write('">');
+//-->	
+</script>
+

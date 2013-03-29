@@ -1,0 +1,40 @@
+<a href="#" class="header" id="admin_menu_button"><span><?= CMS::lang()->_common->components ?></span></a>
+
+<ul id="admin_menu">
+  <?php foreach(CMS_Admin::get_menu() as $item) { ?>
+    <?php 
+      $url = $item['u'];
+      $title = $item['t'];
+      $sub = $item['s'];
+      $icon = $item['i'];
+    ?>
+    <li class="component" style="background-image:url(<?= $icon ?>)"><a href="<?= $url ?>"><nobr><?= CMS::lang($title) ?></nobr></a><?php if ($sub) { ?>
+      <ul class="component_menu">
+        <?php foreach($sub as $title => $url) { ?>
+          <li><a href="<?= $url ?>"><nobr><?= CMS::lang($title) ?></nobr></a></li>
+        <?php } ?>
+      </ul>
+    <?php } ?></li>
+  <?php } ?>
+    <li class="component" style="background-image: url(/files/_assets/images/components/broom.png)"><a href="<?= CMS::admin_path() ?>flush_caches"><nobr><?= CMS::lang()->_common->flush_caches ?></nobr></a></li>
+</ul>
+
+<script type="text/javascript">
+<!--
+
+function admin_menu_on() {
+	$('#admin_menu').css('display','block');
+}
+
+function admin_menu_off() {
+	$('#admin_menu').css('display','none');
+}
+
+$(function(){
+	$('#admin_menu_button').bind('mouseenter',admin_menu_on).bind('mouseleave',admin_menu_off);
+	$('#admin_menu').bind('mouseenter',admin_menu_on).bind('mouseleave',admin_menu_off);
+});
+
+//-->
+</script>
+

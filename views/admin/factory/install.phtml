@@ -1,0 +1,32 @@
+<?php if (!CMS_Factory::$use_style) include('css.inc'); ?>
+<h1><?= $class->title ?></h1>
+<div class="documentation">
+<?= $class->full_description() ?>
+
+<?php if ($can_update) { ?>
+<h2>Обновление</h2>
+Обнаружена ранее установленная версия <?= $class->installed->version ?> данного компонента.
+Имеется возможность обновить компонент до версии <?= $class->version ?>.
+Если вы хотите это сделать, нажмите кнопку.
+
+<form method="post" action="<?= $update_url ?>"><input type="submit" value="Обновить компонент"></form>
+<?php } ?>
+
+<?php if (!$can_update&&sizeof($class->errors)==0) { ?>
+<h2>Установка</h2>
+  <?php if ($class->installed_version&&$class->installed_id) { ?>
+  	Уже установлена версия <?= $class->installed_version ?> данного компонента. Обновление не требуется.
+  <?php } else if (sizeof($class->errors)>0) { ?>
+  	<div class="errors"><ul>
+  		<?php foreach ($class->errors as $error) { ?>
+  		<li><?= $error ?></li>
+	  	<?php } ?>
+	</ul></div>  
+  <?php } else { ?>
+  	<?php include('form-install.phtml'); ?>
+  <?php } ?>
+<?php } ?>
+
+
+</div>
+

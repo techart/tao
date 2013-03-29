@@ -1,0 +1,19 @@
+<?php if (!empty($data['user_mods'])): ?>
+<?php $mods_info = $type_object->load_mods_info($type_object->container($name,$data,$item)->dir()) ?>
+<div class="gallery-user-mods clearfix" id="gallery-user-mods-<?= $name ?>-<?= $f->name ?>">
+	<table>
+	<?php foreach ($data['user_mods'] as $mod => $title): ?>
+		<tr class="gallery-user-mods-item">
+			<td width="100%"><a class="user-mod-upload" href="#" data-href="<?= CMS::$current_controller->field_action_url($name,'user_mod_upload', $item,
+				array('code'=>$type_object->temp_code(), 'mod' => $mod, 'file_name' => $f->name)) ?>" ><?= $title ?></a></td>
+			<td>
+			<?php if ($mods_info[$f->name][$mod]): ?>
+			<a class="user-mod-delete" href="#" data-href="<?= CMS::$current_controller->field_action_url($name,'user_mod_delete', $item,
+				array('code'=>$type_object->temp_code(), 'mod' => $mod, 'file_name' => $f->name)) ?>">&nbsp;</a>
+			<?php endif; ?>
+			</td>
+		</tr>
+	<?php endforeach; ?>
+	</table>
+</div>
+<?php endif; ?>

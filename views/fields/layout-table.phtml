@@ -1,0 +1,53 @@
+<tr class="field field-<?= $name ?> <?= $url_class ?>">
+	<th class="caption" nowrap><?= $ccont ?></th>
+	<td width="100%">
+		<?php
+			if ($langs = $type_object->data_langs($data)) {
+				print "<div class='field-lang-caption'>";
+				$this->use_scripts(CMS::stdfile_url('scripts/multilang-fields.js'));
+				$this->append_to('js', "\n\n$(function(){TAO.fields.__lang_switcher('.field-$name')});");
+				$this->use_scripts(CMS::stdfile_url('scripts/cookie.js'));
+				$lang_fields_render = array();
+				foreach($langs as $lang => $ldata) {
+					$_name = $type_object->name_lang($name,$lang);
+					$lang_fields_render[$lang] = $this->partial($template, array('_name' => $_name, 'lang' => $lang));
+					$lcap = isset($ldata['short_caption'])?$ldata['short_caption']:$ldata['caption'];
+					?><span rel="<?= $lang ?>" class="field-lang-switcher field-lang-switcher-<?= $lang ?><?= ($lang==$current_lang?' field-lang-switcher-current':'') ?>"><?= CMS::lang($lcap) ?></span>
+					<?php
+				}
+				foreach ($langs as $lang => $ldata) { ?>
+				<div class="field-lang-panel field-lang-panel-<?= $lang ?> <?= ($lang==$current_lang?' field-lang-panel-current':'') ?>">
+					<?php print $this["{$name}_lang_panel"]; ?>
+				</div>
+				<?php } ?>
+				</div>
+				<?php
+				foreach($langs as $lang => $ldata) {
+					?><div class="field-lang field-lang-<?= $lang ?><?= ($lang==$current_lang?' field-lang-visible':'') ?>"><?= $lang_fields_render[$lang] ?></div><?php
+				}
+			}
+
+			else {
+				if ($type_object->validator_tagparms($name,$data,$tagparms)) {
+					$this->use_scripts(CMS::stdfile_url('scripts/validation.js'));
+				}
+				$_name = $name;
+				print $this->partial($template, array('_name' => $_name, 'tagparms' => $tagparms));
+			}
+		?>
+
+		<?php if ($rcaption!='') { ?>
+		<span class="field-rcaption"><?= $rcaption ?></span>
+		<?php } ?>
+		
+<?php if (!empty($selected_formats)):?>
+  <div class="input-formats input-formats-<?php print $_name ?>">
+    <?= $this->forms->select_tag($type_object->input_formats_name($name, $data), $selected_formats, $data['default input format']); ?>
+  </div>
+<?php endif; ?>
+
+		<?php if (isset($data['comment'])) { ?>
+		<div class="field-comment"><?= CMS::lang($data['comment']) ?></div>
+		<?php } ?>
+	</td>
+</tr>

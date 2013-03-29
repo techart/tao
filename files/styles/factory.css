@@ -1,0 +1,40 @@
+#leftnavigation {
+	background-color: #F0F0F0;
+	padding: 10px 0 10px 0;
+}	
+
+	#leftnavigation h4 {
+		font-weight: bold;
+		padding: 2px 0 8px 13px;
+		border-bottom: 1px dotted #e0e0e0;
+	}
+
+
+div.formtab-form {
+	background-color: #F0F0F0;
+	padding: 10px;
+}	
+
+#tablesnavigation {
+	list-style: none;
+}
+
+	#tablesnavigation li {
+	  display: block;
+	}
+
+		#tablesnavigation li a {
+	  		display: block;
+	  		width: 200px;
+	  		text-decoration: none;
+	  		padding: 1px 15px 1px 15px;
+		}
+
+			#tablesnavigation li a:hover {
+				background-color: #e8e8e8;
+			}
+
+			#tablesnavigation li a.selected {
+				background-color: #8ADCE8;
+			}
+	

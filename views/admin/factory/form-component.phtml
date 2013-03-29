@@ -1,0 +1,44 @@
+<?php
+	if (!isset($component_name)) $component_name = '';
+?>
+<form method="post" name="form_component" action="<?= $c->component_url() ?>" onSubmit="return checkFormComponent(this)">
+<input type="hidden" name="table" value="">
+<table class="form">	
+<tr>
+	<th nowrap>Название компонента:</th>
+	<td><input type="text" name="component" style="width:300px;" value="<?= htmlspecialchars($component_name) ?>"></td>
+</tr>	
+<tr>
+	<th nowrap>&nbsp;</th>
+	<td><input type="submit" value="Создать компонент"></td>
+</tr>	
+</table>
+</form>
+
+<script type="text/javascript">
+<!--
+function checkFormComponent(f) {
+	if (f.table.value=='') {
+		alert('Не указана таблица БД!');
+		return false;
+	}
+	if (f.component.value=='') {
+		alert('Не указано имя компонента!');
+		f.component.focus();
+		return false;
+	}
+	
+	var name = f.component.value.toLowerCase();
+	<?php 
+		$cif = array();
+		foreach($components as $cname) $cif[] = "name=='$cname'";
+	?>
+	if (<?= join('||',$cif) ?>) {
+		alert('Компонент с таким именем уже существует!');
+		f.component.focus();
+		return false;
+	}
+	
+}
+//-->
+</script>

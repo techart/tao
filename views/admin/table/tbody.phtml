@@ -1,0 +1,71 @@
+<tr class="tr<?= (isset($tr_class)&&$tr_class==1? $tr_class=2 : $tr_class=1) ?>">
+<?php 
+
+foreach($list_fields as $name => $field) { 
+	$td_parms = isset($field['td'])? (array)$field['td'] : array();
+	if (isset($row[':td-all'])&&is_array($row[':td-all'])) {
+		foreach($row[':td-all'] as $_key => $_val) $td_parms[$_key] = $_val;
+	}
+	if (isset($row[":td-$name"])&&is_array($row[":td-$name"])) {
+		foreach($row[":td-$name"] as $_key => $_val) $td_parms[$_key] = $_val;
+	}
+        echo $this->tags->tag('td',$td_parms,false);
+	if (isset($field['edit'])) { 
+		$mass_edit = true;
+		$parms = $field['edit'];
+		if (is_string($parms)) $parms = array('type'=>$parms);
+		$parms = (array)$parms;
+		$edit_type = isset($parms['type']) ? $parms['type'] : null;;
+		unset($parms['type']);
+		$parms['name'] = $name.'['.$row[':id'].']';
+		switch($edit_type) {
+			case 'checkbox':
+				$parms['type'] = 'checkbox';
+				if (!isset($parms['value'])) $parms['value'] = 1;
+				if ($parms['value']==$row->$name) $parms['checked'] = true;
+				echo $this->tags->tag('input',$parms);
+				break;
+			case 'select':
+				print $this->tags->tag('select',$parms);
+				$sitems = isset($parms['items'])?$parms['items']:array();
+				$sitems = CMS::items_for_select($sitems);
+				foreach($sitems as $_k => $_v) {
+					$iparms = array('value' => $_k);
+					if ($_k==$row->$name) $iparms['selected'] = true;
+					print $this->tags->tag('option',$iparms);
+					print htmlspecialchars($_v);
+					print '</option>';
+
+				}
+				echo '</select>';
+				break;
+			default:
+				$parms['type'] = 'text';
+				$parms['value'] = $row[$name];
+				echo $this->tags->tag('input',$parms);
+		}
+
+	}
+	
+	else {
+		echo $row[$name];
+	}
+	
+	echo '</td>';
+}	
+?>
+
+
+
+
+<?php if ($can_edit) { ?>
+	<td align="right" class="button"><a href="<?= $row[':edit'] ?>" class="edit">&nbsp;</a></td>
+<?php } ?>
+<?php if ($can_delete) { ?>
+	<td align="right" class="button"><a href="<?= $row[':del'] ?>" class="del" onClick="return delCnfrm();">&nbsp;</a></td>
+<?php } ?>
+<?php if ($can_copy) { ?>
+	<td align="right" class="button"><a href="<?= $row[':copy'] ?>" class="copy" onClick="return copyCnfrm();">&nbsp;</a></td>
+<?php } ?>
+</tr>
+

@@ -1,0 +1,136 @@
+<div class="brdr" style="margin-top:5px;padding:3px;">
+<?php if (sizeof($rows)==0) { ?>
+<?= CMS::lang()->_vars->no_vars ?>
+<?php } else { ?>
+
+<script type="text/javascript">
+<!--
+	function delCnfrm() {
+		return confirm("<?= htmlspecialchars(CMS::lang()->_vars->confirm_delete_var) ?>");
+	}
+//-->
+</script>
+
+
+<table width="100%" cellspacing="1" cellpadding="0" class="datatbl">
+<?php foreach($rows as $row) { ?>
+<tr class="tr1 varstr">
+	<td>
+	  <?php if ($row->vartype=='dir') { 
+	  	
+	  	if ($row->full) {
+			?><em class="folder-lock">&nbsp;</em><?php	  		
+	  	}
+		else {
+	  		?><em class="folder">&nbsp;</em><?php	  		
+		}	
+	  	
+	  } else { 
+
+	  	if ($row->full) {
+			?><em class="var-lock">&nbsp;</em><?php	  		
+	  	}
+		else {
+	  		?><em class="var">&nbsp;</em><?php	  		
+		}	
+	  	
+	  } ?>
+	</td>
+	<td nowrap><a href="<?= $row[':edit'] ?>" class="varslink"><?= $row->code ?>:&nbsp;</a></td>
+	<td nowrap><a href="<?= $row[':edit'] ?>" class="varslink"><?= $row->title ?>&nbsp;&nbsp;</a></td>
+	<td nowrap width="100%"><a href="<?= $row[':edit'] ?>" class="varslink"><?= htmlspecialchars($row->list_value) ?>&nbsp;</a></td>
+	<?php if (CMS::$globals['full']) { ?>
+	<td><a class="edit" href="<?= $row[':parms'] ?>">&nbsp;</a></td>
+	<td><a class="del" href="<?= $row[':del'] ?>" onClick="return delCnfrm();">&nbsp;</a></td>
+	<?php } ?>
+</tr>
+<?php } ?>
+</table>
+
+<script type="text/javascript">
+<!--
+
+$(function(){
+	$('tr.varstr')
+		//.mouseover(function(){$(this).removeClass('tr1').addClass('tr-hover');})
+		//.mouseout(function(){$(this).removeClass('tr-hover').addClass('tr1');})
+		.mouseover(function(){$(this).addClass('hovered');})
+		.mouseout(function(){$(this).removeClass('hovered');})
+	;
+});
+
+//-->
+</script>
+
+<?php } ?>
+</div>
+
+<?php if (CMS::$globals['full']) { ?>
+
+<?= CMS::stdstyle('round.css') ?>
+<?= CMS::stdscript('round.js') ?>
+
+<br />
+<table><tr>
+  <td width="50%" valign="top" class="roundbar">
+    <h2 class="create-new"><?= CMS::lang()->_vars->creation ?></h2>	
+
+    <form name="addvarform" action="<?= $_add ?>" method="post">
+      <table class="form" width="100%">
+        
+        <tr>
+          <th style="width:100px;"><b><?= CMS::lang()->_vars->type ?>:</b></th>
+          <td><select name="vartype"><?php foreach(CMS::vars()->types() as $type) {
+             ?><option value="<?= $type->type() ?>"><?= $type->title() ?></option><?php
+          }?></select></td>
+        </tr>
+        
+        <tr>
+          <th style="width:100px;"><b><?= CMS::lang()->_vars->identifier ?>:</b></th>
+          <td><input type="text" name="code" style="width:200px;"></td>
+        </tr>
+        
+        <tr>
+          <th style="width:100px;"><b><?= CMS::lang()->_vars->comment ?>:</b></th>
+          <td><input type="text" name="title" style="width:98%;"></td>
+        </tr>
+        
+        <tr>
+          <th>&nbsp;</th>
+          <td><input type="checkbox" name="full" value="1"> <?= CMS::lang()->_vars->restricted ?></td>
+        </tr>
+        
+        <tr>
+          <th>&nbsp;</th>
+          <td><input type="submit" value="<?= htmlspecialchars(CMS::lang()->_vars->submit_create) ?>"></td>
+        </tr>
+
+      </table>	
+    </form>
+
+  </td>
+	
+  <?php if ($id==0) { ?>
+  	<th>&nbsp;</th>
+  
+    <td width="50%" valign="top" class="roundbar">
+      <h2 class="gen-dump"><?= CMS::lang()->_vars->dump_gen ?></h2>
+      <?= CMS::lang()->_vars->dump_about ?>
+      <br /><a href="<?= $c->dump_url($component) ?>"><?= CMS::lang()->_vars->dump_get ?></a>
+
+      <h2 class="load-dump"><?= CMS::lang()->_vars->dump_uploading ?></h2>
+      <?= CMS::lang()->_vars->dump_upload ?>:
+      <form method="post" enctype="multipart/form-data" action="<?= $c->loaddump_url() ?>">
+        <input type="file" name="dump" />
+        <br /><input type="submit" value="<?= htmlspecialchars(CMS::lang()->_vars->submit_upload) ?>">
+      </form>
+
+    </td>
+  <?php } ?>
+
+</table>
+
+
+
+
+<?php } ?>

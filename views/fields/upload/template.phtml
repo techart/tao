@@ -1,0 +1,36 @@
+<?php
+	$c = CMS::$current_controller;
+	$lang = CMS::lang()->_common;
+?>
+<?= $this->forms->upload($name,$tagparms) ?>
+<?php if (isset($item)&&$item_id>0&&isset($item->$name)&&trim($item->$name)!=''&&method_exists($c,'field_action_url')) { ?>
+	&nbsp; <a id="field-upload-download-link-<?= $name ?>" href="<?= $c->field_action_url($name,'download',$item) ?>"><?= $lang->ta_download ?></a>
+	&nbsp; <a id="field-upload-delete-link-<?= $name ?>" rel="<?= $c->field_action_url($name,'delete',$item) ?>"><?= $lang->ta_delfile ?></a>
+
+<?php $this->begin('js') ?>
+	<!--
+		$(function() {
+			$('#field-upload-delete-link-<?= $name ?>').each(function() {
+				var self = $(this);
+				var url = self.attr('rel');
+				self.attr('href',url).click(function() {
+					if (!confirm("<?= $lang->ta_dfconfirm ?>")) return false;
+					$.get(url,{},function(resp) {
+						if (resp=='ok') {
+							$('#field-upload-download-link-<?= $name ?>').remove();
+							$('#field-upload-delete-link-<?= $name ?>').remove();
+						}
+
+						else {
+							alert(resp);
+						}
+					});
+					return false;
+				});
+			});
+		});
+
+	//-->
+<?php $this->end('js') ?>
+<?php } ?>
+

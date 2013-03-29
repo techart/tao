@@ -1,0 +1,45 @@
+div.file-field {
+	position: relative;
+	overflow: hidden;
+	height: 100%;
+}
+
+	div.file-field div.upload-file {
+		cursor: pointer;
+		text-decoration: underline;
+		color: #4A7C88;
+		display: none;
+	}
+
+
+	div.file-field div.file-load-indicator {
+		width: 214px;
+		height: 15px;
+		background-image: url(/files/_assets/images/hloading.gif);
+		background-repeat: no-repeat;
+		display: none;
+	}
+
+	div.file-field div.file-info {
+		padding: 0 0 0 5px;
+		display: none;
+		position: relative;
+	}
+        
+        div.file-field div.file-info a {
+                float: left;
+        }
+
+		div.file-field div.file-info div.file-button {
+			width: 16px;
+			height: 16px;
+			background-repeat: no-repeat;
+			cursor: pointer;
+                        float: left;
+                        margin-left: 5px;
+		}
+
+			div.file-field div.file-info div.file-button-del {
+				background-image: url(/files/_assets/images/del.png);
+				left: 5px;
+			}

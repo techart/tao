@@ -1,0 +1,32 @@
+<?php 
+	$item_data = $type_object->get_item_data($name, $data);
+	$iitem[$item_name] = $iitem['__data'];
+	$item_data['__item'] = $iitem;
+	$item_type = CMS_Fields::type($item_data);
+	$item_type->view($this);
+?>
+
+<li class="field-multivalue-item" data-item-name="<?php print $item_name ?>">
+
+<div class="field-multivalue-item-order">
+<?php //print 'sort' ?>
+</div>
+
+<div class="field-multivalue-item-content">
+<?php print $item_type->render_in_layout($item_name, $item_data, 'empty') ?>
+</div>
+
+<div class="field-multivalue-item-actions">
+<?php
+	$info = array('item_name' => $item_name,'item_data' => $iitem['__data'], 'item_id' => $iitem['id']); 
+	$query = array();
+	foreach ($info as $k => $v) $query[] = urlencode($k) . '=' .urlencode($v);
+	$query = implode('&', $query);
+	$url = CMS::$current_controller->field_action_url($name, 'delete', $item);
+    $url .= (Core_Strings::contains($url, '?') ? '&' : '?') . $query; 
+?>
+	<div class="delete-item" data-href="<?php print $url ?>"></div>
+
+</div>
+
+</li>

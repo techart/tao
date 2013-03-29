@@ -1,0 +1,26 @@
+<?php 
+	if (empty($item[$name])&&!is_null($empty_value)) {
+		$item[$name] = $empty_value;
+		$tagparms['value'] = $empty_value;
+	}
+	$id = $item[$name];
+?>
+
+<div class="tree_select name_<?= $name ?>" >
+	<?php $top_caption = ($flat_items[$id]) ? $flat_items[$id]  : "&nbsp;";?>
+	<div class="tree_select_top">
+		<div class="top_caption" style="<?= isset($tagparms['style']) ? $tagparms['style'].';' : '' ; ?>">
+			<?= $top_caption = CMS::lang($top_caption) ?>
+		</div>
+		<div class="top_arrow">&nbsp;</div>
+	</div>
+	<div class="tree_select_selectioner <?= $selectioner_wrap_class ?>" style="<?= isset($tagparms['style']) ? $tagparms['style'].';' : '' ; ?><?= $container_style ?>">
+		<div class="tree_width_fixer">
+		<?php
+			$current_level = 0;
+			print $type_object->node_template($name, $data, $items, $node_wrap_class, $caption_wrap_class, $level_up, $current_level, $top_caption);
+		?>
+		</div>
+	</div>
+	<?= $this->forms->hidden($_name,$tagparms) ?>
+</div>

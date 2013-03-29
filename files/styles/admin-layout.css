@@ -1,0 +1,97 @@
+body { 
+	font-size:13px;
+	font-family: arial,helvetica,sans-serif;
+	color: #2B343B; 
+	margin: 0; 
+	padding: 0; 
+}
+
+body * {
+	font-size:13px;
+	font-family: arial,helvetica,sans-serif;
+	color: #2B343B; 
+	margin: 0; 
+	padding: 0; 
+}
+
+body { 
+	background-color: white; 
+}
+
+p { 
+	margin-bottom: 10px; 
+}
+
+hr { 
+	display: block; 
+	margin: 5px 0 5px 0; 
+	background-color: #060; 
+	color: #060; 
+	border: none; 
+	height: 1px; 
+}
+
+body h1, body h2 { 
+	padding: 10px 0 10px 0; 
+	font-weight: bold; 
+}
+
+body h1 { 
+	font-size: 16px; 
+}
+
+table.h1container td h1 { 
+	font-size: 16px !important; 
+}
+
+body h2 { 
+	font-size: 14px; 
+}
+
+img { 
+	border: none; 
+}
+
+
+#topbar { 
+	padding: 22px 0 0 140px;
+	height: 58px;
+	box-sizing: content-box;
+	-moz-box-sizing: content-box;
+	-ms-box-sizing: content-box;
+	-webkit-box-sizing: content-box;
+} 
+	#topbar a {
+		display: block; 
+		border-left: 3px solid #8ADCE8;
+		padding: 10px 0 10px 15px; 
+		font-size: 12px; 
+		font-family: verdana, arial, helvetica, sans-serif; 
+		font-weight: bold; 
+		color: #8B8C8E; 
+		text-decoration: none;
+	}
+		#topbar a img {
+			display: block;
+		}	 
+	
+	#toplogo { 
+		position: absolute; 
+		top: 0; 
+		left: 0;
+	}	
+	
+	#subsites { 
+		position: absolute; 
+		top: 30px; 
+		right: 10px;
+	}
+	
+#content { 
+	position: relative; 
+	clear: both; 
+	float: none; 
+	padding: 0 10px 30px 10px; 
+	z-index: 1; 
+}
+

@@ -1,0 +1,55 @@
+<?php
+
+$item_id = $controller->item_id($row);
+
+
+include($template_table_before_row);
+if (!isset($tr_class)) $tr_class = 'even';
+$tr_class = $tr_class=='odd'? 'even' : 'odd';
+
+?>
+
+<tr class="row <?= $tr_class ?>" id="table-data-row-<?= $item_id ?>">
+	<?php
+
+		$template_table_row_td = $controller->template('list-table-row-td');
+		
+		foreach($list_fields as $field => $data) {
+			if ($td_tpl = $list_fields_templates_tds[$field]) {
+				include($td_tpl);
+			} else {
+				include($template_table_row_td);
+			}
+		}
+
+		foreach($enabled_actions as $action => $_v) if ($_v) {
+
+			$a = '&nbsp;';
+
+			if ($rows_enabled_actions[$item_id][$action]) {
+
+				$args = array(
+					'rel' => $controller->action_url($action,$row),
+					'class' => "action-button action-button-$action",
+				);
+
+				$a = $this->tags->content_tag('a','&nbsp;',$args);
+			}
+
+			$args = array(
+				'class' => "action-button",
+			);
+
+			print $this->tags->content_tag('td',$a,$args);
+
+		}
+
+
+	?>
+</tr>
+
+<?php
+
+include($template_table_after_row);
+
+?>

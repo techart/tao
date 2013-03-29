@@ -1,0 +1,17 @@
+<div class="field-multilink field-multilink-<?= $name ?>" <?= $this->attributes($tagparms) ?>>
+<?php foreach($items as $k => $v) {
+
+		if (!($v instanceof DB_ORM_Entity) && Core_Types::is_iterable($v)) {
+			print "<h2>$k</h2>";
+			foreach($v as $_k => $_v) {
+				print $this->forms->checkbox($name.$_k);
+				print " $_v <br />";
+			}
+		}
+
+		else {
+			print $this->forms->checkbox($name.$k);
+			print " $v <br />";
+		}
+} ?>
+</div>

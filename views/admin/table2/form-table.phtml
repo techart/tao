@@ -1,0 +1,14 @@
+<table class="admin-table-form" width="100%">
+<?php 
+	foreach($form_fields as $field => $data) {
+		include($controller->template('form-field'));
+	}
+?>
+	<?php if (!$tab) { ?>
+	<tr class="submit-row">
+		<th>&nbsp;</th>
+		<td><input type="submit" value="<?= CMS::lang($submit_text) ?>" class="submit-button"></td>
+	</tr>
+	<?php } ?>
+
+</table>

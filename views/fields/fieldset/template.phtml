@@ -1,0 +1,26 @@
+<table class="fieldset fieldset-<?= $name ?>"><tr><?php
+if (isset($data['fields'])) {
+	foreach($data['fields'] as $field => $fdata) {
+		if (isset($fdata['caption'])) {
+			$caption = trim($fdata['caption']);
+			print "<th class=\"caption caption-{$field}\">{$caption}</th>";
+		}
+		
+		$ftype = CMS_Fields::type($fdata);
+		
+		$_t = array();
+		if ($ftype->validator_tagparms($field,$fdata,$_t)) {
+			$this->use_scripts(CMS::stdfile_url('scripts/validation.js'));
+		}
+		
+		print '<td>';
+		print $ftype->draw($field,$fdata);
+		print '</td>';
+		
+		if (isset($fdata['rcaption'])) {
+			$rcaption = trim($fdata['rcaption']);
+			print "<th class=\"rcaption rcaption-{$field}\">{$rcaption}</th>";
+		}
+	}
+}
+?></tr></table>

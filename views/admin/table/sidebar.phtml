@@ -1,0 +1,24 @@
+<?php
+	$sidebar_tree = $c->sidebar_tree(); 
+	$draw_sidebar = (isset($sidebar)&&$sidebar) || (isset($sidebar_tree)&&$sidebar_tree) || (isset($sidebar_list)&&$sidebar_list);
+?>
+
+<?php if ($draw_sidebar) { ?>
+  <td valign="top" class="roundbar">
+    <?= CMS::stdstyle('round.css') ?>
+    <?= CMS::stdscript('round.js') ?>
+    <div id="sidebar-div" style="width: <?= $sidebar_width ?>px;">
+<?php } ?>  
+
+<?php if ($sidebar_tree) include('sidebar-tree.phtml'); ?>
+<?php if ($sidebar) include($c->template_path($sidebar)); ?>
+
+
+<?php if ($draw_sidebar) { ?>
+    </div>
+  </td>
+  
+  <td>&nbsp;</td>
+<?php } ?>  
+
+

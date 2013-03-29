@@ -1,0 +1,27 @@
+<?php
+
+	$ws = false;
+	if ($type=='html'||(isset($parms['html'])&&$parms['html'])) {
+		$parms['class'] = 'mce-advanced tinymce';
+		$ws = CMS::check_yes(CMS::$cfg->admin->tinymce_switch);
+		if ($ws) $parms['class'] .= ' mce-switched';
+		$mce_include = true;
+		unset($parms['html']);
+		unset($parms['use-tab-key']);
+	}	
+	if (!isset($parms['style'])) $parms['style'] = 'width:100%;height:100px';
+	
+	print $this->forms->textarea($name,$parms);
+	if ($ws&&($type=='html'||$parms['html'])) {
+
+		$wson = true;
+		if (isset($_COOKIE['tiny_mce_enabled'])&&$_COOKIE['tiny_mce_enabled']=='false') $wson = false;
+
+		?>
+		<div style="padding: 5px 0 0 0;">
+			<input type="checkbox" name="mce_switcher" id="mce_switcher_<?= $name ?>" value="1" class="mce_switcher" <?= $wson ? 'checked' : ''?>/>
+			<label for ="mce_switcher_<?= $name ?>"><?= CMS::lang()->_common->ta_WYSIWYG ?></label>
+		</div>
+		<?php
+	}
+?>	

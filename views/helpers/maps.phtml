@@ -1,0 +1,8 @@
+<?php
+	if ($name=="") $name = "_";
+	$name = preg_replace('/(\.)/i','_',$name);
+	$this->begin('js');
+	print("\n".';TaoMaps_prepare_options("'.$map.'", "'.$map_id.'", "'.$name.'", '.$json_string.');'. "\n");
+	$this->end('js');
+?>
+<div id="<?= $map.'_'.$map_id ?>" class="tao-map" type="<?= $map ?>"></div>

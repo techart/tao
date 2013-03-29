@@ -1,0 +1,15 @@
+<?php if (count($filters_form_fields)>0) { ?>
+	<div class="table-admin-filters-form"><?= $this->forms->begin_form($filters_form) ?><table class="table-admin-filters-form"><tr>
+		<?php foreach($filters_form_fields as $field => $data) { ?>
+			<?php $type = CMS_Fields::type($data); $layout_parms = $type->create_layout($field, $data)->get_parms(); ?>
+			<?php if (isset($data['caption'])&&$data['caption']) { ?>
+				<th class="caption caption-<?= $field ?>"><?= $data['caption']?>:</th>
+			<?php } ?>
+			<td class="field field-<?= $field ?> <?= $layout_parms['url_class'] ?>"><?php include($controller->template('list-filters-form-field')); ?></td>
+			<?php if (isset($data['rcaption'])&&$data['rcaption']) { ?>
+				<td class="rcaption rcaption-<?= $field ?>"><?= $data['rcaption']?></td>
+			<?php } ?>
+		<?php } ?>
+		<td class="submit"><input type="submit" class="filters-submit-button" value=">>"></td>
+	</tr></table><?= $this->forms->end_form($filters_form) ?></div>
+<?php } ?>

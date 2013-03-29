@@ -1,0 +1,37 @@
+.field-content-selection-tabs {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	overflow: hidden;
+	height: 100%;
+	clear: both;
+}
+
+.field-content-selection-tabs li {
+	float: left;
+	margin-right: 3px;
+	background-color: #EEE;
+	cursor: pointer;
+	font-size: 10px;
+}
+
+.field-content-selection-tabs li.active {
+	background-color: #8ADCE8;
+}
+
+.field-content-item {
+	display: none;
+}
+
+.field-content-item:first-child {
+	display: block;
+}
+
+.field-content-selection-label ,.field-content-selection-list *, .field-content-selection-list {
+	font-size: 10px;
+}
+
+.field-content-selection-list {
+	margin: 2px 0;
+}
+

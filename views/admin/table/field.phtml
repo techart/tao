@@ -1,0 +1,70 @@
+<?php	
+	$do = true;
+	if (isset($parms['if_component_exists'])) {
+		if (!CMS::component_exists($parms['if_component_exists'])) $do = false;
+	}
+
+	if (isset($parms['embedded_admin'])&&$embedded_admin) {
+		if (!$parms['embedded_admin']) $do = false;
+	}
+
+	if ($do) {
+
+		$type = 'input';
+		$tpl = '';
+		$comment = '';
+		$help = '';
+		$tpl = '';
+		$items = false;
+		$caption = '';
+
+		if (isset($parms['type'])) {
+			$type = trim($parms['type']);
+			unset($parms['type']);
+		}
+
+		if (isset($parms['template'])) {
+			$tpl = trim($parms['template']);
+			unset($parms['template']);
+		}
+
+		if (isset($parms['caption'])) {
+			$caption = trim($parms['caption']);
+			unset($parms['caption']);
+		}
+
+		if (isset($parms['help'])) {
+			$help = trim($parms['help']);
+			unset($parms['help']);
+		}
+
+		if (isset($parms['items'])) {
+			$items = $c->items_for_select($parms['items']);
+			unset($parms['items']);
+		}
+
+		if (isset($parms['comment'])) {
+			$comment = trim($parms['comment']);
+			if ($comment!='') $comment = CMS::lang($comment);
+			unset($parms['comment']);
+		}
+
+		unset($parms['if_component_exists']);
+		unset($parms['match']);
+		unset($parms['array']);
+		unset($parms['comment']);
+		unset($parms['error_message']);
+		$parms = (array)$parms;
+		
+		if (isset($stay_on_edit)&&$stay_on_edit) {
+			$class = 'checkchange';
+			if (isset($parms['class'])) $class .= ' '.$parms['class'];
+			$parms['class'] = $class;
+		}
+		
+
+		if ($tpl!=''&&file_exists($c->template($tpl))) include($c->template($tpl));
+		else if ($tpl!=''&&file_exists("../app/views/$tpl.phtml")) include("../app/views/$tpl.phtml");
+		else include($c->type_full_template($type));
+	}
+?>

@@ -1,0 +1,11 @@
+<?php
+if ($count==0) { 
+	include($controller->template("list-norows"));
+	return;
+}
+	ob_start();
+	include($controller->template("tree-table"));
+	$list_html = ob_get_contents();
+	ob_end_clean();
+	print $list_html;
+?>

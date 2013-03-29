@@ -1,0 +1,31 @@
+<?php print $this->forms->hidden(isset($lang) ? $type_object->name_lang($name . '_format', $lang) : $name . '_format'); ?>
+
+<?php if ($type_object->get_switch_style($name, $data) == 'tabs'): ?>
+<ul class="field-content-selection field-content-selection-tabs">
+<?php foreach($formats as $code => $f): ?>
+<li class="field-content-selection-item" data-for="<?php print $form->name . '_' . ($lang ? $f['__langs_name'][$lang] : $f['__name']) ?>" data-format="<?php print $code ?>">
+	<?php print $f['name'] ?>
+</li>
+<?php endforeach; ?>
+</ul>
+<?php endif; ?>
+
+<div class="field-content-items">
+<?php foreach($formats as $code => $f): ?>
+<div class="field-content-item field-content-item-<?= $code ?>">
+	<?php print $f['__type']->render(isset($lang) ? $f['__langs_name'][$lang] : $f['__name'], $f['__data']) ?>
+</div>
+<?php endforeach; ?>
+</div>
+
+<?php if ($type_object->get_switch_style($name, $data) == 'select'): ?>
+<label class="field-content-selection-label" for="<?php print "field-{$name}-format" ?>">Формат:</label>
+<select class="field-content-selection field-content-selection-list" id ="<?php print "field-{$name}-format" ?>">
+<?php foreach($formats as $code => $f): ?>
+<!-- <option class="field-content-selection-item" data-for="<?php print $form->name . '_' . (isset($lang) ? $f['__langs_name'][$lang] : $f['__name']) ?>" data-format="<?php print $code ?>" value="<?php print $code ?>"> -->
+<option class="field-content-selection-item" data-for="field-content-item-<?= $code ?>" data-format="<?php print $code ?>" value="<?php print $code ?>">
+	<?php print $f['name'] ?>
+</option>
+<?php endforeach; ?>
+</select>
+<?php endif; ?>
