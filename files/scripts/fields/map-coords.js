@@ -253,8 +253,8 @@ TAO.fields.map_coords = function (map_container) {
 			}
 			
 			// google maps "display: none" problem
-			// solved by showTab event (tabs.js)
-			tabs_nav = $('.admin-table-form-tabs .tabs-nav');
+			// solved by tabsactivate event (tabs.js)
+			tabs_nav = $('.admin-table-form-tabs');
 			if (tabs_nav.length) {
 				var map_handler = function() {
 					
@@ -266,10 +266,10 @@ TAO.fields.map_coords = function (map_container) {
 					width = google_map_object.map.getDiv().offsetWidth;
 					height = google_map_object.map.getDiv().offsetHeight;
 					if (width>0&&height>0) {
-						tabs_nav.unbind('showTab', map_handler);
+						tabs_nav.unbind('tabsactivate', map_handler);
 					}
 				};
-				tabs_nav.bind('showTab', map_handler);
+				tabs_nav.bind('tabsactivate', map_handler);
 			}
 		}
 		return google_map_object;
@@ -350,12 +350,12 @@ TAO.fields.map_coords = function (map_container) {
 				);
 			}
 			// yandex карты - перерисовка на многовкладочной форме
-			tabs_nav = $('.admin-table-form-tabs .tabs-nav');
+			tabs_nav = $('.admin-table-form-tabs');
 			if (tabs_nav.length) {
 				var map_handler = function() {
 					yandex_map_object.map.container.fitToViewport();
 				};
-				tabs_nav.bind('showTab', map_handler);
+				tabs_nav.bind('tabsactivate', map_handler);
 			}
 		}
 		return yandex_map_object;

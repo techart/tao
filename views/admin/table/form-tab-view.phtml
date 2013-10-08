@@ -1,6 +1,6 @@
 <?php
-print CMS::stdstyle('jquery/tabs.css');
-print CMS::stdscript('jquerry/tabs.js');
+print CMS::stdstyle('jquery/ui.css');
+print CMS::stdscript('jquery/ui.js');
 ?> 
 <div id="formtabs">
   <ul class="tabs-nav">
@@ -50,7 +50,7 @@ print CMS::stdscript('jquerry/tabs.js');
 <script type="text/javascript">
 <!--
 $(function(){
-	$('#formtabs').tabs_light(<?= $tabs_parms ?>);
+	$('#formtabs').tabs(<?= $tabs_parms ?>);
 });
 //-->
 </script>

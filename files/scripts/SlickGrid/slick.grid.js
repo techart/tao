@@ -926,9 +926,16 @@ if (typeof Slick === "undefined") {
 
     function getColumnCssRules(idx) {
       if (!stylesheet) {
+        //--- FIX ----
+        createCssRules();
+        //--- END FIX ----
         var sheets = document.styleSheets;
         for (var i = 0; i < sheets.length; i++) {
-          if ((sheets[i].ownerNode || sheets[i].owningElement) == $style[0]) {
+          if (
+            //--- FIX ----
+            (sheets[i].cssRules && sheets[i].cssRules.length > 0 && sheets[i].cssRules[0].selectorText && sheets[i].cssRules[0].selectorText.substring(0,11) == '.slickgrid_') ||
+            //--- END FIX ----
+            (sheets[i].ownerNode || sheets[i].owningElement) == $style[0]) {
             stylesheet = sheets[i];
             break;
           }

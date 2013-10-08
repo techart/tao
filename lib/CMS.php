@@ -37,7 +37,7 @@ Core::load('WS', 'Events');
 class CMS implements Core_ModuleInterface {
 ///   <constants>
 	const MODULE  = 'CMS';
-	const VERSION = '2.0.3';
+	const VERSION = '2.0.4';
 ///   </constants>
 
 	static $libpath		= '';
@@ -1042,6 +1042,11 @@ class CMS implements Core_ModuleInterface {
 			self::$mappers[$name] = $mapper;
 		}
 		self::$layouts[$name] = $layout;
+		$dir = self::component_dir($name);
+		Text_Insertions::filter()->add_views_paths(array(
+			$dir.'/app/views',
+			$dir.'/views',
+		));
 	}
 ///     </body>
 ///   </method>

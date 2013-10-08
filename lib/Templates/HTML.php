@@ -1291,15 +1291,15 @@ class Templates_HTML_Template
   
   protected function filter_required($content) {
     $name = 'html_required:' . $this->root->name;
-    $filter = Text_Insertions::filter($name);
+    $filter = Text_Insertions::filter($name, false);
     if (!$filter->exists('head')) {
       $filter->register(array('head' => new Core_Call($this, 'build_head')));
     }
-    return $filter->process($content);
+    return $filter->process($content, array('layout' => $this));
   }
   
   protected function filter_custom($content) {
-    return Text_Insertions::filter()->process($content);
+    return Text_Insertions::filter()->process($content, array('layout' => $this));
   }
 
 ///   </protocol>

@@ -106,10 +106,7 @@ TAO.fields.image.process = function (field) {
 		$img_info.show();
 		TAO.fields.image.bind_info_buttons(field_name, field, $input);
 	}
-	else {
-		$img_upload.show();
-	}
-
+	$img_upload.show();
 	var $upload = $("#upload-image-"+field_name, field);
 	$upload.attr('id', $upload.attr('id')+Math.floor(Math.random()*10000));
 	var $indicator = $("#image-load-indicator-"+field_name, field);
@@ -120,7 +117,7 @@ TAO.fields.image.process = function (field) {
 		autoSubmit: true,
 		responseType: false,
 		onSubmit: function(file, extension){
-			$upload.hide();
+			// $upload.hide();
 			$indicator.show();
 		},
 		onComplete: function(file, resp){

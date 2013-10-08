@@ -8,7 +8,7 @@ div.image-field {
 		cursor: pointer;
 		text-decoration: underline;
 		color: #4A7C88;
-		display: none;
+		clear:both;
 	}
 
 

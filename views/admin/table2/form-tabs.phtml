@@ -1,6 +1,6 @@
 <?php
-	$this->use_styles(CMS::stdfile_url('styles/jquery/tabs.css'));
-	$this->use_script(CMS::stdfile_url('scripts/jquery/tabs.js'), array('weight' => -10));
+	$this->use_script(CMS::stdfile_url('scripts/jquery/ui.js'));
+	$this->use_style(CMS::stdfile_url('styles/jquery/ui.css'));
 	$key = md5(WS::env()->request->path);
 
 	$tabs_parms = array('fxAutoHeight' => true);
@@ -22,6 +22,6 @@
 
 <?php $this->begin('js'); ?>
 $(function(){
-	$('#admin-table-form-tabs-<?= $key ?>').tabs_light(<?= json_encode($tabs_parms) ?>);
+	$('#admin-table-form-tabs-<?= $key ?>').tabs(<?= json_encode($tabs_parms) ?>);
 });
 <?php $this->end('js'); ?>

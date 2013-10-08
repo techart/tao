@@ -103,8 +103,9 @@ TAO.fields.documents_grid.process = function(field) {
 		table.addColumns(TAO.settings.fields[field_name].fields);
 		table.run();
 		
-		$(".admin-table-form-tabs .tabs-nav").bind('showTab', function (e, clicked) {
-			var tab = $($(clicked).attr('href'));
+		$(".admin-table-form-tabs").on("tabsactivate", function (e, ui) {
+			var clicked = ui.newTab.find('a');
+			var tab = $(clicked.attr('href'));
 			if (tab.find(base_element).length) {
 				var width = base_element.parents('.attaches-list').width();
 				base_element.parent('div').width(width);

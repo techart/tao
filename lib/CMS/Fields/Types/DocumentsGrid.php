@@ -17,8 +17,9 @@ class CMS_Fields_Types_DocumentsGrid extends CMS_Fields_Types_Documents_Base imp
 	protected function layout_preprocess($l, $name, $data) {
 
 		$l->use_styles(
-			CMS::stdfile_url('scripts/SlickGrid/slick.grid.css'),
-			CMS::stdfile_url('scripts/SlickGrid/slick.css'),
+			CMS::stdfile_url('styles/SlickGrid/slick.grid.css'),
+			CMS::stdfile_url('styles/SlickGrid/slick-default-theme.css'),
+			CMS::stdfile_url('styles/SlickGrid/slick.css'),
 			CMS::stdfile_url('styles/jquery/ui.css'),
 			CMS::stdfile_url('styles/fields/documents-grid.css')
 		);

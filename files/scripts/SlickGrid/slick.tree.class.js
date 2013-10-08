@@ -431,9 +431,9 @@ TAO.require(['tao/oop', 'SlickGrid/slick.table'], function() {
         // class property
 
         icons: {
-          documentIcon: "/tao/scripts/SlickGrid/images/document.png",
-          expandedIcon: "/tao/scripts/SlickGrid/images/folder-open.gif",
-          collapsedIcon: "/tao/scripts/SlickGrid/images/folder.gif"
+          documentIcon: "/tao/images/SlickGrid/document.png",
+          expandedIcon: "/tao/images/SlickGrid/folder-open.gif",
+          collapsedIcon: "/tao/images/SlickGrid/folder.gif"
         },
 
         // class public method

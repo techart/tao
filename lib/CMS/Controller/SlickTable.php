@@ -110,10 +110,10 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 	{
 		$t->use_styles(
 			CMS::stdfile_url('styles/admin/table.css'),
-			CMS::stdfile_url('scripts/SlickGrid/slick.grid.css'),
-			CMS::stdfile_url('scripts/SlickGrid/slick.css'),
-			CMS::stdfile_url('scripts/SlickGrid/controls/slick.pager.css'),
-			CMS::stdfile_url('scripts/SlickGrid/css/smoothness/jquery-ui-1.8.16.custom.css')
+			CMS::stdfile_url('styles/SlickGrid/slick.grid.css'),
+			CMS::stdfile_url('styles/SlickGrid/slick.css'),
+			CMS::stdfile_url('styles/SlickGrid/controls/slick.pager.css')
+			//CMS::stdfile_url('styles/SlickGrid/css/smoothness/jquery-ui-1.8.16.custom.css')
 		);
 		$t->use_scripts(
 				CMS::stdfile_url('scripts/tao.js'),

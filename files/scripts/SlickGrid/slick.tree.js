@@ -24,9 +24,9 @@
       reordered: true,
       rerenderOnResize: true,
       icons: {
-          documentIcon: "/tao/scripts/SlickGrid/images/document.png",
-          expandedIcon: "/tao/scripts/SlickGrid/images/folder-open.gif",
-          collapsedIcon: "/tao/scripts/SlickGrid/images/folder.gif",
+          documentIcon: "/tao/images/SlickGrid/images/document.png",
+          expandedIcon: "/tao/images/SlickGrid/images/folder-open.gif",
+          collapsedIcon: "/tao/images/SlickGrid/images/folder.gif",
       }
     }
     var _treeColumnOptions = {
