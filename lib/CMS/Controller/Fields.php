@@ -47,21 +47,32 @@ class CMS_Controller_Fields extends CMS_Controller {
 	}
 
 	//TODO: cache this:
-	protected function search_fields($from, $to, $by) {
+	protected function search_fields($from, $to, $by, $weight_name = false, $caption_name = false, $default = null) {
 		$res = $to;
 		$weight = 0;
 		$delta = 0.001;
 		foreach ($from as $name => $f) {
+			if (!is_null($default) && !isset($f[$by])) {
+				$f[$by] = $default;
+			}
 			if (isset($f[$by]) && $f[$by]) {
 				$parms = $f[$by];
 				if ($parms === true) $parms = $f;
 				else if (is_string($parms)) {$name = $parms; $parms = $f;}
 				else $parms = array_merge($f, $parms);
+				if ($caption_name&&isset($parms[$caption_name])) {
+					$parms['caption'] = $parms[$caption_name];
+					unset($parms[$caption_name]);
+				}
 				$parms['caption'] = isset($parms['caption']) ? $parms['caption'] : $f['caption'];
 				$res[$name] = $parms;
 			}
 		}
 		foreach ($res as $name => $parms) {
+			if ($weight_name&&isset($parms[$weight_name])) {
+				$parms['weight'] = $parms[$weight_name];
+				unset($parms[$weight_name]);
+			}
 			if (!isset($parms['weight'])) {
 				$weight += $delta;
 				$parms['weight'] = $weight;
@@ -85,10 +96,10 @@ class CMS_Controller_Fields extends CMS_Controller {
 	protected function load_item() {
 		if ($this->edit_item) return $this->edit_item;
 		$item = false;
-		if ($this->id > 0) {
+		if (!empty($this->id)) {
 			$item = $this->load($this->id);
-			if (!$item) return $this->page_not_found();
-			if ($this->on_field_item_access($item)) return 'Access denied!';
+			// if (!$item) return $this->page_not_found();
+			// if ($this->on_field_item_access($item)) return 'Access denied!';
 			$this->edit_item = $item;
 		}
 		return $item;
@@ -96,20 +107,34 @@ class CMS_Controller_Fields extends CMS_Controller {
 
 	protected function field_action($field,$action) {
 		$item = $this->load_item();
+		if (!$item) return $this->page_not_found();
+		if ($this->on_field_item_access($item)) return 'Access denied!';
 
+		$field_data = null;
 		foreach ($this->fields_for_action() as $fields) {
-			if (preg_match('!(_[\d]+)$!', $field, $m) && ($multi = $fields[str_replace($m[1], '', $field)]) && $multi['type'] == 'multivalue') {
-				$field_data = $multi['widget'];
+			if (isset($fields[$field])) {
+					$field_data = $fields[$field];
 			}
-			else if (!isset($fields[$field])) continue;
-			
-			$field_data = isset($field_data) ? $field_data : $fields[$field];
+			else {
+				foreach ($fields as $fname => $fdata) {
+					$ftype = CMS_Fields::type($fdata);
+					if ($field_data = $ftype->search_subfield($fname, $fdata, $field)) {
+						if (is_string($field_data)) {
+							$field_data = array('type' => $field_data);
+						}
+						break;
+					}
+				}
+			}
+			if (empty($field_data)) continue;
 			
 			$type = CMS_Fields::type($field_data);
+			$field_data['__item'] = $item;
+			$field_data['__item_id'] = $item->id();
 			
 			$type->on_before_action($field,$field_data,$action,$item, $fields);
 			//FIME:
-			$data['__table'] = $this->name();
+			$field_data['__table'] = $this->name();
 			$rc = $type->action($field,$field_data,$action,$item, $fields);
 			$type->on_after_action($rc, $field,$field_data,$action,$item, $fields);
 			if ($rc===false) return $this->page_not_found();
@@ -152,6 +177,9 @@ class CMS_Controller_Fields extends CMS_Controller {
 
 	protected $form_fields = array();
 	protected function form_fields($action = 'edit') {
+		if ($fields = $this->schema_fields()) {
+			return $this->search_fields($fields,array(),'in_form','weight_in_form','caption_in_form', true);
+		}
 		return $this->form_fields;
 	}
 

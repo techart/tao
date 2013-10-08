@@ -1,11 +1,9 @@
 <?php
 
-// Base help function like create_tree
-
 class Tree implements Core_ModuleInterface {
 	const VERSION = '0.0.0';
 
-	//TODO: рфекторинг
+	//TODO: рефакторинг
   static public function create_tree($flat, $options = array()) {
     $childs = array();
     $rows = array();
@@ -15,10 +13,17 @@ class Tree implements Core_ModuleInterface {
     $parent_name = isset($options['parent_name']) ? $options['parent_name'] : 'parent_id';
     $childs_name = isset($options['childs_name']) ? $options['childs_name'] : 'childs';
     $flat_keys = isset($options['flat_keys']) ? $options['flat_keys'] : false;
+    $childs_limit = isset($options['childs_limit']) ? $options['childs_limit'] : false;
     
+    $count = 0;
+
     foreach($flat as $k => $row) {
-      if (isset($options['process_callback']))
+      if (isset($options['process_callback'])) {
         $row = Core::invoke($options['process_callback'], array($row));
+      }
+      if (empty($row)) {
+        continue;
+      }
         
       if (is_string($row)) $row = array($title_name => $row);
       
@@ -41,7 +46,9 @@ class Tree implements Core_ModuleInterface {
     }
 
     foreach($rows as $id => &$row) {
-      self::tree_row_childs($row, $id, $childs, $childs_name);
+      $count++;
+      self::tree_row_childs($row, $id, $childs, $childs_name, $count, $childs_limit);
+      if ($childs_limit && $count >= $childs_limit) continue;
     }
     unset($row);
     
@@ -68,11 +75,13 @@ class Tree implements Core_ModuleInterface {
     }
   }
 
-  static protected function tree_row_childs(&$row, $id, $childs, $childs_name) {
+  static protected function tree_row_childs(&$row, $id, $childs, $childs_name, &$count, $childs_limit) {
       $row[$childs_name] = $childs[$id];
+      $count++;
+      if ($childs_limit && $count >= $childs_limit) return;
       if ($row[$childs_name])
         foreach ($row[$childs_name] as $ii => &$rr) {
-          self::tree_row_childs($rr, $ii, $childs, $childs_name);
+          self::tree_row_childs($rr, $ii, $childs, $childs_name, $count, $childs_limit);
         }  
       return $row;
   }

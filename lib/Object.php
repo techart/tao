@@ -1,468 +1,517 @@
 <?php
-/// <module name="Object" version="0.2.1" maintainer="timokhin@techart.ru">
-// TODO: избавляемся от wrapper
+/**
+ * Набор утилит для работы с объектами
+ *
+ * @package Object
+ */
 
-/// <class name="Object" stereotype="module">
-///   <brief>Набор утилит для работы с объектами</brief>
-///   <implements interface="Core.ModuleInterface" />
-///   <details>
-///   </details>
+
+/**
+ * Класс модуля
+ * 
+ * @package Object 
+ */
 class Object implements Core_ModuleInterface {
 
-///   <constants>
-  const VERSION = '0.2.1';
-///   </constants>
+/**
+ * Версия модуля
+ */
+  const VERSION = '0.2.2';
 
-///   <protocol name="building">
-
-///   <method name="AttrList" returns="Object.AttrList" scope="class">
-///     <body>
-  static public function AttrList() { return new Object_AttrList(); }
-///     </body>
-///   </method>
-
-///   <method name="Listener" returns="Object.Listener" scope="class">
-///     <args>
-///       <arg name="type" type="string" default="null" />
-///     </args>
-///     <body>
-  static public function Listener($type = null) { return new Object_Listener($type); }
-///     </body>
-///   </method>
-
-///   <method name="Factory" returns="Object.Factory" scope="class">
-///     <args>
-///       <arg name="prefix" type="string" default="''" />
-///     </args>
-///     <body>
-  static public function Factory($prefix = '') { return new Object_Factory($prefix); }
-///     </body>
-///   </method>
-
-///   <method name="Aggregator" returns="Object.Aggregator" scope="class">
-///     <body>
-  static public function Aggregator() { return new Object_Aggregator(); }
-///     </body>
-///   </method>
-
-///   <method name="Wrapper" returns="Object.Wrapper" scope="class">
-///     <body>
-  static public function Wrapper($object, array $attrs = array()) { return new Object_Wrapper($object, $attrs); }
-///     </body>
-///   </method>
-
-  static public function Filter($value, $field = 'group') { return new Object_Filter($value, $field); }
-
-///   </protocol>
+/**
+ * Создает объект класса Object_AttrList
+ * 
+ * @return  Object_AttrList
+ */
+public function AttrList() {
+	return new Object_AttrList();
 }
-/// </class>
+
+/**
+ * Создает объект класса Object_Listener
+ * 
+ * @param string $type имя класса или интерфейса
+ * @return Object_Listener
+ */
+  static public function Listener($type = null) {
+  	return new Object_Listener($type);
+  }
+
+/**
+ * Создает объект класса Object_Factory
+ * @param string $prefix префис класса
+ *
+ * @return  Object_Factory
+ */
+  static public function Factory($prefix = '') {
+  	return new Object_Factory($prefix);
+  }
 
 
-/// <interface name="Object.AttrListInterface">
+/**
+ * Создает объект класса Object_Aggregator
+ *
+ * @return Object_Aggregator
+ */
+  static public function Aggregator() {
+   return new Object_Aggregator();
+   }
+
+/**
+ * Создает объект класса Object_Wrapper
+ * @param object $object Исходный объект
+ * @param array  $attrs  Массив расширения
+ * @return Object_Wrapper
+ */
+  static public function Wrapper($object, array $attrs = array()) {
+  	return new Object_Wrapper($object, $attrs);
+  }
+
+/**
+ * Создает объект класс Object_Filter
+ * @param mixed $value значение, по которому происходит фильтрация
+ * @param string $field имя свойства, которое нужно проверять
+ */
+  static public function Filter($value, $field = 'group') {
+  	return new Object_Filter($value, $field);
+  }
+
+}
+
+
+/**
+ * Интерфейс, который должен реализовывать класс имеющий список атрибутов Object_AttrList
+ * @package Object 
+ */
 interface Object_AttrListInterface {
 
-///   <protocol name="quering">
-
-///   <method name="__attrs" returns="Object.AttrList">
-///     <args>
-///       <arg name="flavor" type="null" />
-///     </args>
-///     <body>
+/**
+ * Возвращает список атрибутов Object_AttrList
+ *
+ * В зависимости от параметра $flavor могут возвращаться разные наборы атрибутов
+ * @param  mixed $flavor 
+ * @return Object_AttrList список атрибутов
+ */
   public function __attrs($flavor = null);
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </interface>
 
 
-/// <class name="Object.Attribute" stereotype="abstract">
+/** 
+ * Базовый класс для классов 
+ * 
+ * - {@link Object_ObjectAttribute}
+ * - {@link Object_CollectionAttribute}
+ * - {@link Object_ValueAttribute}
+ * 
+ *
+ * @package Object 
+ * 
+ */
 abstract class Object_Attribute {
+	/**
+	 * @var string Название атрибута
+	 */
+	public $name;
+  
+	/**
+	 * Создание атрибута.
+	 * 
+	 * Опции устанавливается как открытые свойства класса.
+	 * 
+	 * @param string $name Название атрибута.
+	 * @param array $options Дополнительные опции.
+	 */
+	public function __construct($name, array $options = array()) {
+		foreach ($options as $k => $v) $this->$k = $v;
+		$this->name = $name;
+	}
 
-  public $name;
+	/**
+	 * Выполняет проверку, является ли коллекция экземпляром Object_ObjectAttribute
+	 * 
+	 * @return boolean
+	 */
+	public function is_object() { return $this instanceof Object_ObjectAttribute; }
 
-///   <protocol name="creating">
+	/**
+	 * Выполняет проверку, является ли коллекция экземпляром Object_ValueAttribute
+	 * 
+	 * @return boolean
+	 */
+	public function is_value() { return $this instanceof Object_ValueAttribute; }
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
-  public function __construct($name, array $options = array()) {
-    foreach ($options as $k => $v) $this->$k = $v;
-    $this->name = $name;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="quering">
-
-///   <method name="is_object" returns="boolean">
-///     <body>
-  public function is_object() { return $this instanceof Object_ObjectAttribute; }
-///     </body>
-///   </method>
-
-///   <method name="is_value" returns="boolean">
-///     <body>
-  public function is_value() { return $this instanceof Object_ValueAttribute; }
-///     </body>
-///   </method>
-
-///   <method name="is_collection" returns="boolean">
-///     <body>
-  public function is_collection() { return $this instanceof Object_CollectionAttribute; }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/**
+	 * Выполняет проверку, является ли коллекция экземпляром Object_CollectionAttribute
+	 * 
+	 * @return boolean
+	 */
+	public function is_collection() { return $this instanceof Object_CollectionAttribute; }
 }
-/// </class>
 
 
-/// <class name="Object.ObjectAttribute" extends="Object.Attribute">
+/**
+ * Обертка вокруг абстрактного класса Object_Attribute
+ * 
+ * @see Object_Attribute
+ * @package Object 
+ */
 class Object_ObjectAttribute extends Object_Attribute {}
-/// </class>
 
-
-/// <class name="Object.CollectionAttribute" extends="Object.Attribute">
+/**
+ * Обертка вокруг абстрактного класса Object_Attribute
+ * 
+ * @see Object_Attribute
+ * @package Object 
+ */
 class Object_CollectionAttribute extends Object_Attribute {}
-/// </class>
 
-
-/// <class name="Object.ValueAttribute" extends="Object.Attribute">
+/**
+ * Обертка вокруг абстрактного класса Object_Attribute
+ * 
+ * @see Object_Attribute
+ * @package Object 
+ */
 class Object_ValueAttribute extends Object_Attribute {}
-/// </class>
 
-
-/// <class name="Object.AttrList">
+/**
+ * Класс для формирования списка атрибутов
+ *
+ * Используется например в модуле JSON для преобразования данных
+ * 
+ * @package Object 
+ */
 class Object_AttrList implements IteratorAggregate {
 
-  protected $attrs = array();
-  protected $parent;
+/**
+ * @var array Массив атрибутов
+ */
+	protected $attrs = array();
+/**
+ * @var Object_AttrList Родитель
+ */
+	protected $parent;
 
-///   <protocol name="configuring">
+/**
+ * Установка родителя.
+ * 
+ * @param Object_AttrList $parent
+ * 
+ * @throws Core_InvalidArgumentValueException Если в качестве параметра используется вызывающий объект
+ * 
+ * @return self
+ */
+	public function extend(Object_AttrList $parent) {
+		if ($this === $parent) {
+			throw new Core_InvalidArgumentValueException('parent','this');
+		}
+		$this->parent = $parent;
+		return $this;
+	}
 
-///   <method name="extend" returns="Object.AttrList">
-///     <args>
-///       <arg name="parent" type="Object.AttrList" />
-///     </args>
-///     <body>
-  public function extend(Object_AttrList $parent) {
-    $this->parent = $parent;
-    return $this;
-  }
-///     </body>
-///   </method>
+/**
+ * Добавляет атрибут типа типа Object_ObjectAttribute.
+ * 
+ * @param string $name Имя атрибута
+ * @param string $type Тип данных (имя класса)
+ * @param array $options Содержимое коллекции.
+ * 
+ * @return self
+ */
+	public function object($name, $type, array $options = array()) {
+		foreach ((array) $name as $n)
+			$this->attribute(
+				new Object_ObjectAttribute(
+					$n,
+					array_merge($options, array('type' => $type))));
+		return $this;
+	}
 
-///   </protocol>
+/**
+ * Добавляет атрибут типа Object_CollectionAttribute.
+ * 
+ * Описание типов данных для параметра $item можно посмотреть {@link http://php.net/manual/en/function.settype.php здесь}.
+ * 
+ * @param string|array $name Имя коллекции или массив имен
+ * @param string $items Тип данных в коллекции (имя класса, 'datetime', 'boolean', ... )
+ * @param array $options Дополнительные опции.
+ * 
+ * @throws Core_InvalidArgumentTypeException Если $name не указанного типа.
+ * 
+ * @return self
+ */
+	public function collection($name, $items = null, array $options = array()) {
+		if ( ! is_string($name) && ! is_array($name) )
+		{
+			throw new Core_InvalidArgumentTypeException('name', $name);
+		}
+		
+		foreach ((array) $name as $n)
+			$this->attribute(
+				new Object_CollectionAttribute(
+					$n,
+					array_merge($options, array('items' => $items))));
+		return $this;
+	}
 
-///   <protocol name="configuring">
+/**
+ * Создает объект типа Object_ValueAttribute.
+ * 
+ * @param string $name Имя атрибута
+ * @param (string|array) $options 
+ * Если $options является строкой - то это тип значения,
+ * если $options является массивом - то это опции атрибута.
+ * 
+ * @return self
+ */
+	public function value($name, $options = array()) {
+		foreach ((array) $name as $n)
+			$this->attribute(
+				new Object_ValueAttribute(
+				$n, is_string($options) ? array('type' => $options) : (array) $options));
+		return $this;
+	}
 
-///   <method name="object" returns="Object.AttrList">
-///     <args>
-///       <arg name="name"    type="string" />
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
-  public function object($name, $type, array $options = array()) {
-    foreach ((array) $name as $n)
-      $this->attribute(
-        new Object_ObjectAttribute(
-          $n,
-          array_merge($options, array('type' => $type))));
-    return $this;
-  }
-///     </body>
-///   </method>
+/**
+ * Добавляет в текущую коллекцию объект типа Object_Attribute
+ * 
+ * @see Object_Attribute
+ * 
+ * Ключ - имя атрибута (задается как параметр $name при создании объекта)
+ * 
+ * @param Object_Attribute $attr
+ * 
+ * @return self
+ */
+	protected function attribute(Object_Attribute $attr) {
+		$this->attrs[$attr->name] = $attr;
+		return $this;
+	}
 
-///   <method name="collection" returns="Object.AttrList">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="items" type="string" />
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
-  public function collection($name, $items = null, array $options = array()) {
-    foreach ((array) $name as $n)
-      $this->attribute(
-        new Object_CollectionAttribute(
-          $name,
-          array_merge($options, array('items' => $items))));
-    return $this;
-  }
-///     </body>
-///   </method>
+/**
+ * Делает объект пригодным для использования через итератор.
+ * Если есть родительский объект, то добавляет его как итератор к текущему.
+ * 
+ * @return AppendIterator
+ */
+	public function getIterator() {
+		$iterator = new AppendIterator();
+		if (isset($this->parent)) 
+			$iterator->append($this->parent->getIterator());
+			
+		$iterator->append(new ArrayIterator($this->attrs));
+		return $iterator;
+	}
 
-///   <method name="value" returns="Object.AttrList">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="options"  default="array()" />
-///     </args>
-///     <body>
-  public function value($name, $options = array()) {
-    foreach ((array) $name as $n)
-      $this->attribute(
-        new Object_ValueAttribute(
-          $n, is_string($options) ? array('type' => $options) : (array) $options));
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="supporting">
-
-///   <method name="attribute" returns="Obejct.AttrList" access="protected">
-///     <args>
-///       <arg name="attr" type="Object.Attribute" />
-///     </args>
-///     <body>
-  protected function attribute(Object_Attribute $attr) {
-    $this->attrs[$attr->name] = $attr;
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="iterating" interface="IteratorAggregate">
-
-///   <method name="getIterator" returns="AppendIterator">
-///     <body>
-  public function getIterator() {
-    $iterator = new AppendIterator();
-    if (isset($this->parent)) $iterator->append($this->parent->getIterator());
-    $iterator->append(new ArrayIterator($this->attrs));
-    return $iterator;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Object.BadConstException" extends="Core.Exception" stereotype="exception">
+
+/**
+ * Объект исключения Object_Const
+ * 
+ * @package Object
+ * @deprecated 
+ */
 class Object_BadConstException extends Core_Exception {
 
-  protected $value;
+/**
+ * @var mixed Значение константы
+ */
+	protected $value;
 
-///   <protocol name="creating">
-
-///   <method name="__construct">
-///     <args>
-///       <arg name="value" />
-///     </args>
-///     <body>
-  public function __construct($value) { parent::__construct("Bad constant value: $value"); }
-///     </body>
-///   </method>
-
-///   </protocol>
+/**
+ * Конструктор
+ * 
+ * @param mixed $value значение константы
+ */
+	public function __construct($value) {
+		parent::__construct("Bad constant value: $value");
+	}
 }
-/// </class>
 
-/// <class name="Object.Const" stereotype="abstract">
-///   <brief>Базовый класс для констант</brief>
-///   <implements interface="Core.StringifyInterface" />
-///   <implements interface="Core.PropertyAccessInterface" />
+/**
+ * Объектное представление константы
+ * 
+ * @package Object
+ * @deprecated
+ */
 abstract class Object_Const
   implements Core_StringifyInterface, Core_EqualityInterface {
 
-  protected $value;
+/**
+ * @var mixed Значение константы
+ */
+	protected $value;
 
-///   <protocol name="creating">
+/**
+ * Конструктор
+ * @param mixed $value Значение константы
+ */
+	protected function __construct($value) {
+		$this->value = $value;
+	}
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="value" type="string" brief="значение константы" />
-///     </args>
-///     <body>
-  protected function __construct($value) { $this->value = $value; }
-///     </body>
-///   </method>
+/**
+ * Возвращает объект по значению
+ * @param  mixed $value значение
+ * @return object
+ */
+	abstract static function object($value);
 
-///   </protocol>
+/**
+ * Строковое представление константы
+ * @return string
+ */
+	public function as_string() {
+		return (string) $this->value;
+	}
 
-///   <protocol name="building">
+/**
+ * Строковое представление константы
+ * 
+ * @see self::as_string()
+ * @return string
+ */
+	public function __toString() {
+		return $this->as_string();
+	}
 
-///   <method name="object" returns="Object.Const" scope="class">
-///     <brief>Возвращает объектное представление константы</brief>
-///     <args>
-///       <arg name="value" brief="константа типа, для которой необходимо получить объектное представлениен" />
-///     </args>
-///     <body>
-  abstract static function object($value);
-///     </body>
-///   </method>
+/**
+ * Сравнение двух констант
+ * @param  mixed $to
+ * @return boolean
+ */
+	public function equals($to) {
+		return ($to instanceof $this) && ($this instanceof $to) && $to->value = $this->value;
+	}
 
-///   </protocol>
 
-///   <protocol name="stringifying" interface="Core.StringifyInterface">
+/**
+ * Доступ к свойствам
+ * @param string $property
+ * @return mixed
+ */
+	public function __get($property) {
+		switch (true) {
+			case $property == 'value':                       return $this->value;
+			case property_exists($this, $property):          return $this->$property;
+			case method_exists($this, $m = "get_$property"): return $this->$m();
+			default:
+				throw new Core_MissingPropertyException($property);
+		}
+	}
 
-///   <method name="as_string" returns="string">
-///     <brief>Возвращает строковое представление константы типа</brief>
-///     <body>
-  public function as_string() { return (string) $this->value; }
-///     </body>
-///   </method>
+/**
+ * Доступ на запись запрещен
+ * @param string $property
+ * @param mixed $value
+ * 
+ * @throws Core_ReadOnlyObjectException
+ */
+	public function __set($property, $value) {
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
-///   <method name="__toString" returns="string">
-///     <brief>Возвращает строковое представление константы</brief>
-///     <body>
-  public function __toString() { return $this->as_string(); }
-///     </body>
-///   </method>
+/**
+ * Проверяет установлено ил свойство
+ * @param  string  $property
+ * @return boolean
+ */
+	public function __isset($property) {
+		return $property == 'value' || isset($this->$property) || method_exists($this, "get_$property");
+	}
 
-///   </protocol>
+/**
+ * Удаление свойства запрещено
+ * @param string $propety
+ * 
+ * @throws Core_ReadOnlyObjectException
+ */
+	public function __unset($propety) {
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
-  public function equals($to) {
-    return ($to instanceof $this) && ($this instanceof $to) && $to->value = $this->value;
-  }
+/**
+ * Значение константы
+ * @return mixed
+ */
+	public function value() {
+		return $this->value;
+	}
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
+/**
+ * Возвращает объект соответствующий заданному классу
+ * @param  string  $class       имя класса
+ * @param  mixed  $value       значение
+ * @param  integer $cardinality верхний предел значения
+ * 
+ * @throws Object_BadConstException
+ * 
+ * @return mixed               
+ */
+	static protected function object_for($class, $value, $cardinality = 0) {
+		switch (true) {
+			case $value instanceof $class:
+				return $value;
+			case is_string($value) && method_exists($class, $m = strtoupper((string) $value)):
+				return  call_user_func(array($class, $m));
+			case is_int($value) && ($value >= 0) && $value < $cardinality:
+				return new $class($value);
+			default:
+				throw new Object_BadConstException($value);
+		}
+	}
 
-///   <method name="__get" returns="mixed">
-///     <brief>Возвращает значение атрибута константы</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя атрибута" />
-///     </args>
-///     <body>
-  public function __get($property) {
-    switch (true) {
-      case $property == 'value':                       return $this->value;
-      case property_exists($this, $property):          return $this->$property;
-      case method_exists($this, $m = "get_$property"): return $this->$m();
-      default:
-        throw new Core_MissingPropertyException($property);
-    }
-  }
-///     </body>
-///   </method>
-
-///   <method name="__set" returns="mixed">
-///     <brief>Установка значения атрибута константы</brief>
-///     <args>
-///       <arg name="property" type="string" brief="Имя атрибута" />
-///       <arg name="value" brief="Значение атрибута" />
-///     </args>
-///     <details>
-///       <p>Изменение значений атрибутов запрещено.</p>
-///     </details>
-///     <body>
-  public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
-
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установку атрибута константы</brief>
-///     <body>
-  public function __isset($property) {
-    return $property == 'value' || isset($this->$property) || method_exists($this, "get_$property");
-  }
-///     </body>
-///   </method>
-
-///   <method name="__unset">
-///     <brief>Удаляет атрибут константы</brief>
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
-  public function __unset($propety) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="supporting">
-
-///   <method name="value">
-///     <body>
-  public function value() { return $this->value; }
-///     </body>
-///   </method>
-
-///   <method name="object_for" returns="OpenSocial.Type">
-///     <brief>Возвращает объект константы по значению константы и имени класса объекта</brief>
-///     <args>
-///       <arg name="class" type="string" brief="имя класса объекта" />
-///       <arg name="value" type="string|Object.Const" brief="константа" />
-///       <arg name="cardinality" type="int" default="0" />
-///     </args>
-///     <body>
-  static protected function object_for($class, $value, $cardinality = 0) {
-    switch (true) {
-      case $value instanceof $class:
-        return $value;
-      case is_string($value) && method_exists($class, $m = strtoupper((string) $value)):
-        return  call_user_func(array($class, $m));
-      case is_int($value) && ($value >= 0) && $value < $cardinality:
-        return new $class($value);
-      default:
-        throw new Object_BadConstException($value);
-    }
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Object.Struct">
-///   <brief>Класс представляет собой структуру с расширенными возможностями</brief>
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.CallInterface" />
+/**
+ * Класс представляет собой структуру с расширенными возможностями
+ *
+ * @package Object
+ */
 class Object_Struct
   implements Core_PropertyAccessInterface,
              Core_CallInterface,
              Core_EqualityInterface {
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <details>
-///       Если существует метод get_$property, где $property - имя свойства,
-///       то возвращается результат этого метода,
-///        иначе возвращается значение обычного свойства объекта, если оно существует
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
-  public function __get($property) {
-    if (method_exists($this, $method = "get_{$property}"))
-      return $this->$method();
-    elseif (property_exists($this, $property))
-      return $this->$property;
-    else
-      throw new Core_MissingPropertyException($property);
-  }
-///     </body>
-///   </method>
+/**
+ * Доступ на чтение к свойствам объекта.
+ * 
+ * Если существует метод get_$property, где $property - имя свойства, 
+ * то возвращается результат этого метода, 
+ * иначе возвращается значение обычного свойства объекта, если оно существует.
+ * 
+ * @throws Core_MissingPropertyException если свойство не существует.
+ * 
+ * @param string $property Свойство объекта
+ * 
+ * @return mixed Значение свойства
+ */
+	public function __get($property) {
+		if (method_exists($this, $method = "get_{$property}"))
+			return $this->$method();
+		elseif (property_exists($this, $property))
+			return $this->$property;
+		else
+			throw new Core_MissingPropertyException($property);
+	}
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на запись к свойствам объекта</brief>
-///     <details>
-///       Если существует метод set_$property, где $property - имя свойства,
-///       то значение устанавливается с помощью этого метода,
-///        иначе устанавливается значение обычного свойства объекта, если оно существует
-///     </details>
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+
+/**
+ * Доступ на запись к свойствам объекта.
+ * 
+ * Если существует метод set_$property, где $property - имя свойства, 
+ * то значение устанавливается с помощью этого метода,, 
+ * иначе устанавливается значение обычного свойства объекта, если оно существует.
+ * 
+ * @throws Core_MissingPropertyException если свойство не существует.
+ * 
+ * @param string $property Свойство объекта
+ * @param mixed $value Значение свойства
+ * 
+ * @return self
+ */
   public function __set($property, $value) {
     if (method_exists($this, $method = "set_{$property}"))
         return $this->$method($value);
@@ -471,28 +520,34 @@ class Object_Struct
     else
       throw new Core_MissingPropertyException($property);
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяется существует ли свойство с именем $property</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+
+/**
+ * Проверяется существует ли свойство с именем $property
+ * 
+ * @param string Свойство объекта
+ * 
+ * @return boolean
+ */
   public function __isset($property) {
-    return method_exists($this, "get_{$property}") ||
+    return (method_exists($this, $method =  "get_{$property}") && (bool) $this->$method() ) ||
            (property_exists($this, $property) && isset($this->$property));
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Выбрасывает исключение</brief>
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+
+/**
+ * Установка в значение null свойства объекта.
+ * 
+ * Если существует метод set_$property, где $property - имя свойства, 
+ * то вызывается этот метод с параметром для установки null, 
+ * иначе устанавливается значение обычного свойства объекта в null, если оно существует.
+ * 
+ * @throws Core_MissingPropertyException если свойство не существует.
+ * 
+ * @param string $property Свойство объекта
+ * 
+ * @return self
+ */
   public function __unset($property) {
 
     switch (true) {
@@ -507,50 +562,43 @@ class Object_Struct
     }
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling" interface="Core.CallInterface">
-
-///   <method name="__call" returns="Data.Object">
-///     <brief>Устанавливает свойство объекта с помощью вызова метода с именем свойства</brief>
-///     <args>
-///       <arg name="method" type="string" brief="имя метода-свойства" />
-///       <arg name="args"   type="array()" brief="аргументы вызова" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает свойство объекта с помощью вызова метода с именем свойства
+ * 
+ * @param string $method имя метода-свойства
+ * @param array $args аргументы вызова - В функцию __set передается только $args[0]
+ * 
+ * @return self
+ */
   public function __call($method, $args) {
     $this->__set($method, $args[0]);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
-///   <method name="get_properties" access="private" returns="array">
-///     <brief>Возвращает массив всех свойств объекта</brief>
-///     <body>
+/** 
+ * Возвращает массив имен всех свойств объекта
+ * 
+ * @return array $result
+ */
   private function get_properties() {
     $result = array();
     foreach (Core::with(new ReflectionObject($this))->getProperties() as $v)
-      if (($name = $v->getName()) != '_frozen') $result[] = $v->getName();
+      //if (($name = $v->getName()) != '_frozen') 
+      $result[] = $v->getName();
     return $result;
   }
-///     </body>
-///   </method>
-///   </protocol>
 
-///   <protocol name="equality">
-///   <method name="equals" returns="boolean">
-///     <brief>Сравнивает два Data.Object, не учитывая динамические свойства get_ set_</brief>
-///     <args>
-///       <arg name="with" type="Data.Object" brief="с кем сравниваем" />
-///     </args>
-///     <body>
+
+/**
+ * Сравнивает два объекта Object_Struct
+ * 
+ * @param Object_Struct $with Объект, с которым сравнивается текущий.
+ * 
+ * @return boolean
+ */
   public function equals($with) {
     if (!($with instanceof Object_Struct) ||
         !Core::equals($p = $this->get_properties(), $with->get_properties()))
@@ -560,562 +608,712 @@ class Object_Struct
 
     return true;
   }
-///     </body>
-///   </method>
-
-///   </protocol>
 
 }
-/// </class>
 
 
-/// <class name="Object.AbstractDelegator" stereotype="abstract">
-///   <implements interface="IteratorAggregate" />
-///   <implements interface="Core.CallInterface" />
-///   <implements interface="Core.IndexedAccessInterface" />
+/**
+ * Базовый абстрактный класс для Object_Aggregator и Object_Listener
+ * 
+ * @package Object
+ */
 abstract class Object_AbstractDelegator
-  implements IteratorAggregate, Core_CallInterface, Core_IndexedAccessInterface {
+	implements IteratorAggregate, Core_CallInterface, Core_IndexedAccessInterface {
 
-  protected $delegates   = array();
-  protected $reflections = array();
-  protected $classes = array();
-  protected $last_index = 0;
+/**
+ * @var array массив зарегистрированных объектов
+ */
+	protected $delegates   = array();
+/**
+ * @var array массив зарегистрированных классов
+ */
+	protected $classes = array();
+/**
+ * @var integer Текущий индекс
+ */
+	protected $last_index = 0;
 
-///   <protocol name="creating">
+/**
+ * Конструктор
+ * @param array $delegates массив объектов
+ */
+	public function __construct(array $delegates = array()) {
+		foreach ($delegates as $d) $this->append($d);
+	}
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="delegates" type="array" />
-///     </args>
-///     <body>
-  public function __construct(array $delegates = array()) {
-    foreach ($delegates as $d) $this->append($d);
-  }
-///     </body>
-///   </method>
+/**
+ * Добавляет объект
+ * @param  object $object
+ * @param  mixed $index
+ * @return self
+ */
+	protected function append_object($object, $index = null) {
+		$index = $this->compose_index($index);
+		$this->delegates[$index] = $object;
+		return $this;
+	}
 
-///   </protocol>
+/**
+ * Формирует индекс
+ * @param null|int|string $index
+ * @return string|int
+ */
+	protected function compose_index($index) {
+		return is_null($index) ? $this->last_index++ : (is_numeric($index) ? $index : (string) $index);
+	}
 
-///   <protocol name="configuring">
+	
 
-///   <method name="append_object" returns="Object.AbstractDelegator">
-///     <body>
-  protected function append_object($object, $index = null) {
-    if (!is_string($index)) {
-      $this->delegates[$this->last_index]   = $object;
-      $this->reflections[$this->last_index] = new ReflectionObject($object);
-      $this->last_index++;
-    } else {
-      $this->delegates[$index]   = $object;
-      $this->reflections[$index] = new ReflectionObject($object);
+/**
+ * Добавление объектов или имен классов.
+ * 
+ * @param string|object $instance 
+ * @param null|int|string $index
+ * 
+ * @return self
+ */
+	public function append($instance, $index = null) {
+		$index = $this->compose_index($index);
+		switch (true) {
+			case (is_string($instance)):
+				$this->classes[$index] = $instance;
+				break;
+			case (is_object($instance)):
+				$this->append_object($instance, $index);
+				break;
+			default:
+				throw new Core_InvalidArgumentValueException('instance','Must be string or object');
+		}
+		return $this;
+	}
+
+/**
+ * Удаление делегированных строк или объектов.
+ * 
+ * @param int|string $index Корректный индекс массива
+ * 
+ * @return self
+ */
+	public function remove($index) {
+		if (isset($this->delegates[$index])) {
+			unset($this->delegates[$index]);
+      $this->last_index--;
     }
-
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   <method name="append" returns="Object.AbstractDelegator">
-///     <body>
-  public function append($instance, $index = null) {
-    if (is_string($instance))
-      if (!is_string($index)) {
-        $this->classes[$this->last_index] = $instance;
-        $this->last_index++;
-      }
-      else $this->classes[$index] = $instance;
-    else $this->append_object($instance, $index);
-  }
-///     </body>
-///   </method>
-
-///   <method name="remove" returns="Object.AbstractDelegator">
-///     <body>
-  public function remove($index) {
-    if (isset($this->delegates[$index]))
-      unset($this->delegates[$index]);
-    if (isset($this->classes[$index]))
-      unset($this->classes[$index]);
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="iterating" interface="IteratorAggregate">
-
-///   <method name="getIterator" returns="ArrayIterator">
-///     <body>
-  public function getIterator() {
-    foreach ($this->classes as $index => $class)
-      $this->append_object(Core::make($class), $index);
-    $this->classes = array();
-    return new ArrayIterator($this->delegates);
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="indexing">
-
-///   <method name="offsetGet" returns="object">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
-  public function offsetGet($index) {
-    switch (true) {
-      case isset($this->delegates[$index]):
-        return $this->delegates[$index];
-      case isset($this->classes[$index]):
-        $this->append_object(Core::make($this->classes[$index]), $index);
-        unset($this->classes[$index]);
-        return $this->delegates[$index];
+		if (isset($this->classes[$index])) {
+			unset($this->classes[$index]);
+      $this->last_index--;
     }
-    return null;
-  }
-///     </body>
-///   </method>
+		return $this;
+	}
 
-///   <method name="offsetSet" returns="object">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
-  public function offsetSet($index, $value) {
-    $this->append($value, $index);
-    return $this;
-  }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
-  public function offsetExists($index) { return isset($this->delegates[$index]) || isset($this->classes[$index]); }
-///     </body>
-///   </method>
+/**
+ * Возвращает итератор
+ *
+ * Проходит по всем имеющимся классам и создает объекты
+ * @return ArrayIterator
+ */
+	public function getIterator() {
+		foreach ($this->classes as $index => $class)
+			$this->append_object(Core::make($class), $index);
+			
+		$this->classes = array();
+		return new ArrayIterator($this->delegates);
+	}
 
-///   <method name="offsetUnset">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
-  public function offsetUnset($index) {
-    return $this->remove($index);
-  }
-///     </body>
-///   </method>
 
-///   </protocol>
+/**
+ * Доступ к объектам
+ * @param null|int|string $index
+ * @return object|null
+ */
+	public function offsetGet($index) {
+		switch (true) {
+			case isset($this->delegates[$index]):
+				return $this->delegates[$index];
+			case isset($this->classes[$index]):
+				$this->append_object(Core::make($this->classes[$index]), $index);
+				unset($this->classes[$index]);
+				return $this->delegates[$index];
+		}
+		return null;
+	}
+
+/**
+ * Аналог append 
+ * @param  null|int|string $index
+ * @param  string|object $value
+ * @return self
+ */
+	public function offsetSet($index, $value) {
+		$this->append($value, $index);
+		return $this;
+	}
+
+/**
+ * Определяет есть ли объект или класс по заданному индексу
+ * @param null|int|string $index 
+ * @return boolean
+ */
+	public function offsetExists($index) { 
+		return isset($this->delegates[$index]) || isset($this->classes[$index]); 
+	}
+
+/**
+ * Аналог remove
+ * @param  null|int|string $index
+ * @return self
+ */
+	public function offsetUnset($index) {
+		return $this->remove($index);
+	}
 
 
 }
-/// </class>
 
 
-/// <class name="Object.Listener" extends="Object.AbstractDelegator">
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <brief>Делегирует вызов списку объектов</brief>
-///   <details>
-///     <p>Позволяет уведомлять объекты-слушатели о произошедших событиях. </p>
-///   </details>
+/**
+ * Делегирует вызов списку объектов
+ *
+ * Позволяет уведомлять объекты-слушатели о произошедших событиях.
+ * 
+ * @package Object
+ */
 class Object_Listener extends Object_AbstractDelegator {
 
-  protected $type;
+/**
+ * @var string Тип делегируемого объекта
+ */
+	protected $type;
 
-///   <protocol name="creating">
+/**
+ * Конструктор
+ * @param string|null $type Тип делегируемого объекта
+ * @param array $listeners список "слушателей"
+ */
+	public function __construct($type = null, array $listeners = array()) {
+		if ($type) $this->type = Core_Types::real_class_name_for($type);
+		parent::__construct($listeners);
+	}
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="type" type="string" default="null" />
-///     </args>
-///     <body>
-  public function __construct($type = null, array $listeners = array()) {
-    if ($type) $this->type = Core_Types::real_class_name_for($type);
-    parent::__construct($listeners);
-  }
-///     </body>
-///   </method>
 
-///   </protocol>
+/**
+ * Добавление делегируемого объекта
+ * 
+ * Если при создании объекта был указан параметр $type,
+ * то должны добавляться только объекты этого типа. То есть 
+ * параметр $listener должен быть объектом типа $this->type.
+ * 
+ * @param object $listener 
+ * @param null|int|string $index 
+ * 
+ * @see Object_AbstractDelegator::append()
+ * 
+ * @throws Core_InvalidArgumentTypeException  Если установлено свойство $this->type 
+ * и $listener не является объектом этого типа.
+ */
+	public function append($listener, $index = null) {
+		if (!$this->type || ($listener instanceof $this->type))
+			return parent::append($listener, $index);
+		else
+			throw new Core_InvalidArgumentTypeException('listener', $listener);
+	}
 
-///   <protocol name="configuring">
 
-///   <method name="append" returns="Object.Listener">
-///     <args>
-///       <arg name="listener" type="object" />
-///     </args>
-///     <body>
-  public function append($listener, $index = null) {
-    if (!$this->type || ($listener instanceof $this->type))
-      return parent::append($listener, $index);
-    else
-      throw new Core_InvalidArgumentTypeException('listener', $listener);
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="calling" interface="Core.CallInterface">
-
-///   <method name="__call" returns="mixed">
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args" type="array" />
-///     </args>
-///     <body>
-  public function __call($method, $args) {
-    foreach ($this as $k => $v)
-      if ($this->reflections[$k]->hasMethod($method)) $this->reflections[$k]->getMethod($method)->invokeArgs($v, $args);
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+/**
+ * Вызов метода у всех зарегистрированных "слушателей"
+ * 
+ * @param  string $method Имя метода
+ * @param  array $args   аргументы
+ * @return self
+ */
+	public function __call($method, $args) {
+	  
+		foreach ($this as $k => $v)
+			if (method_exists($this->delegates[$k], $method))
+				call_user_func_array(array($this->delegates[$k], $method), $args);
+		return $this;
+	}
 }
-/// </class>
 
 
-/// <class name="Object.Aggregator" extends="Object.AbstractDelegator">
+/**
+ * Агрегатор.
+ *
+ * Перекидывает вызов метода на первый найденный зарегистрированный объект.
+ * Есть возможность задания $fallback
+ *
+ * @package Object
+ */
 class Object_Aggregator extends Object_AbstractDelegator {
 
-  private $methods;
-  private $fallback;
+/**
+ * @var array callback методы
+ */
+	private $methods;
+/**
+ * $fallback
+ */
+	private $fallback;
 
-///   <protocol name="configuring">
+/**
+ * ONLY FOR UNIT TEST
+ *
+ * @internal
+ */
+	protected function get_private_property_methods()  {
+		return $this->methods;
+	}
+  
+/**
+ * ONLY FOR UNIT TEST
+ * 
+ * @internal
+ */
+	protected function get_private_property_fallback()  {
+		return $this->fallback;
+	}
 
-///   <method name="fallback_to" returns="Object.Aggregator">
-///     <body>
-  public function fallback_to(Object_Aggregator $fallback) {
-    $this->fallback = $fallback;
-    return $this;
-  }
-///     </body>
-///   </method>
+/**
+ * Устанавливает $fallback
+ * 
+ * @param  Object_Aggregator $fallback
+ * 
+ * @throws Core_InvalidArgumentValueException Если в качестве fallback передается сам $this
+ * 
+ * @return self                      
+ */
+	public function fallback_to(Object_Aggregator $fallback) {
+		if ($this === $fallback) {
+			throw new Core_InvalidArgumentValueException('fallback','this');
+		}
+		$this->fallback = $fallback;
+		return $this;
+	}
 
-    public function clear_fallback() {
-        $this->fallback = null;
-        return $this;
-    }
+/**
+ * Обнуляет цепочку $fallback
+ * 
+ * @return self                      
+ */
+	public function clear_fallback() {
+		$this->fallback = null;
+		return $this;
+	}
 
-///   </protocol>
 
-///   <protocol name="calling" interface="Core.CallInterface">
+/**
+ * Перенаправляет вызов метода.
+ * 
+ * Ищет вызванный метод в массиве $methods.
+ * Если не находит его в этом массиве, то ищет метод в массиве классов
+ * $delegates. Если находит его там, то копирует его в массив $methods.
+ * Если не находит, то пробует найти его в цепочке калбэков.
+ *
+ * @param method string Имя метода
+ * @param  array массив аргументов 
+ * 
+ * @throws Core_MissingMethodException Если нигде не может найти запрошенный метод.
+ */
+	public function __call($method, $args) {
+		if (!isset($this->methods[$method])) {
+			foreach ($this as $k => $d) {
+				if (method_exists($d, $method)) {
+					$this->methods[$method] = array($d, $method);
+					break;
+				}
+			}
+		}
+		
+		switch (true) {
+			case isset($this->methods[$method]):
+				return call_user_func_array($this->methods[$method], (array) $args);
+			case $this->fallback:
+				return $this->fallback->__call($method, $args);
+			default:
+				throw new Core_MissingMethodException($method);
+		}
+	}
 
-///   <method name="__call" returns="mixed">
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args"   type="array" />
-///     </args>
-///     <body>
-  public function __call($method, $args) {
-    if (!isset($this->methods[$method])) {
-      foreach ($this as $k => $d) {
-        $r = $this->reflections[$k];
-        if ($r->hasMethod($method)) {
-          $this->methods[$method] = array($d, $r->getMethod($method));
-          break;
-        }
-      }
-    }
-    switch (true) {
-      case isset($this->methods[$method]):
-        return $this->methods[$method][1]->invokeArgs($this->methods[$method][0], $args);
-      case $this->fallback:
-        return $this->fallback->__call($method, $args);
-      default:
-        throw new Core_MissingMethodException($method);
-    }
-  }
-///     </body>
-///   </method>
 
-///   </protocol>
+/**
+ * Возвращает зарегистрированный объект по индексу 
+ * 
+ * Возвращает либо объект по запрошенному индексу из родительского класса, 
+ * либо, если родитель вернул null, то элемент массива $fallback 
+ * с запрошенным индексом.  
+ *
+ * @param null|int|string $index
+ * 
+ * @throws Core_MissingIndexedPropertyException Если запрошенный элемент отсутствует.
+ * 
+ * @return object
+ */
+	public function offsetGet($index) {
+		$from_parent  = parent::offsetGet($index);
+		if (!empty($from_parent)) return $from_parent;
+		if ($this->fallback instanceof self)
+			return $this->fallback[$index];
+		throw new Core_MissingIndexedPropertyException($index);
+	}
 
-///   <protocol name="indexing">
-
-///   <method name="offsetGet" returns="object">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
-  public function offsetGet($index) {
-    $from_parent  = parent::offsetGet($index);
-    if (!empty($from_parent)) return $from_parent;
-    if ($this->fallback instanceof self)
-        return $this->fallback[$index];
-    throw new Core_MissingIndexedPropertyException($index);
-  }
-///     </body>
-///   </method>
-
-///   <method name="offsetSet" returns="object">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
+/**
+ * Добавляет объект по индексу
+ * @param  null|int|string $index
+ * @param  string|object $value
+ * @return parent        
+ */
   public function offsetSet($index, $value) {
     return parent::offsetSet($index, $value);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
+/**
+ * Проверяет существование объекта по индексу
+ * @param  null|int|string $index
+ * @return boolean       
+ */
   public function offsetExists($index) {
     return parent::offsetExists($index) || (($this->fallback instanceof self) && isset($this->fallback[$index])); }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
+/**
+ * Пытается удалить объект по индексу
+ * @param  null|int|string $index
+ * @return void
+ */
   public function offsetUnset($index) {
     parent::offsetUnset($index);
     if (isset($this->fallbak[$index]))
         unset($this->fallbak[$index]);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
 
-/// <class name="Object.Factory">
-///   <implements interface="Core.CallInterface" />
+/**
+ * Фабрика объектов
+ * @package Object
+ */
 class Object_Factory implements Core_CallInterface {
 
-  private $map = array();
-  private $prefix;
+/**
+ * @var array массив зарегистрированных классов
+ */
+	private $map = array();
+
+/**
+ * @var string префикс для названий классов
+ */
+	private $prefix;
+
+/**
+ * Конструктор
+ * @param string $prefix префикс для названий классов
+ */
+	public function __construct($prefix = '') {
+		$this->prefix = $prefix;
+	}
+
+/**
+ * Заполняет массив $map значениями.
+ * 
+ * Если параметр $name массив, то параметр $type необязательный.
+ * Если он передан, то используется как префикс для значений ключей массива $name
+ * Если не передан, то в качестве префикса для значений ключей используется свойство 
+ * $this->prefix (устанавливается параметром конструктора).
+ * 
+ * Если параметр $name является строкой, то параметр $type обязателен.
+ * В этом случае $name используется как ключ массива, а $type как значение.
+ * В качестве префикса используется $this->prefix.
+ * Если параметр $type отсутствует или переданно пустое значение, то 
+ * бросается исключение Core_InvalidArgumentTypeException
+ * 
+ * Если параметр $name имеет другой тип, то 
+ * бросается исключение Core_InvalidArgumentTypeException.
+ * 
+ * @param array|string $name
+ * @param mixed $type По умолчанию null
+ * 
+ * @throws Core_InvalidArgumentTypeException
+ * 
+ * @return self
+ */
+	public function map($name, $type = null) {
+		switch (true) {
+			case is_array($name):
+				$prefix = ($type === null ? $this->prefix : (string) $type);
+				foreach ($name as $k => $v) $this->map[$k] = "$prefix$v";
+				break;
+			case is_string($name):
+				if ($type)
+					$this->map[$name] = "{$this->prefix}$type";
+			else
+				throw new Core_InvalidArgumentTypeException('type', $type);
+				break;
+			default:
+				throw new Core_InvalidArgumentTypeException('name', $name);
+		}
+		return $this;
+	}
 
 
-///   <protocol name="creating">
+/**
+ * Заполняет массив $map значениями, используя функцию $this->map
+ * 
+ * @param array $maps
+ * @param string $prefix
+ * 
+ * @return self
+ */
+	public function map_list(array $maps, $prefix = '') {
+		foreach ($maps as $k => $v) $this->map($k, "$prefix$v");
+		return $this;
+	}
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="defaults" type="array" default="array()" />
-///       <arg name="prefix" type="string" default="''" />
-///     </args>
-///     <body>
-  public function __construct($prefix = '') {
-    $this->prefix = $prefix;
-  }
-///     </body>
-///   </method>
 
-///   </protocol>
+/**
+ * Создает объект класса map[$name] c параметрами конструктора $args.
+ * 
+ * @uses self::$map
+ * 
+ * @param mixed $name Должен быть ключом массива, установленного ранее 
+ * через $this->map() или $this->map_list(). Значением ключа должен быть 
+ * либо объект либо имя класса 
+ * 
+ * @see Core::reflection_for()
+ * @see Core::amake()
+ * 
+ * @param array $args Параметры, передаваемые конструктору класса
+ * 
+ * @throws Core_InvalidArgumentValueException Если ключ $name отсутствует в массиве $map
+ * 
+ * @return object
+ */
+	public function new_instance_of($name, $args = array()) {
+		if (isset($this->map[$name]))
+			return Core::amake($this->map[$name], $args);
+		else
+			throw new Core_InvalidArgumentValueException('name', $name);
+	}
 
-///   <protocol name="configuring">
+/**
+ * Псевдоним new_instance_of
+ *
+ * @param  string $method
+ * @param  array $args
+ * @see  self::new_instance_of($name, $args = array())
+ */
+	public function __call($method, $args) { return $this->new_instance_of($method, $args); }
 
-///   <method name="map" returns="Object.Factory">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="type" type="string" default="null" />
-///     </args>
-///     <body>
-  public function map($name, $type = null) {
-    switch (true) {
-      case is_array($name):
-        $prefix = ($type === null ? $this->prefix : (string) $type);
-        foreach ($name as $k => $v) $this->map[$k] = "$prefix$v";
-        break;
-      case is_string($name):
-        if ($type)
-          $this->map[$name] = "{$this->prefix}$type";
-        else
-          throw new Core_InvalidArgumentTypeException('type', $type);
-        break;
-      default:
-        throw new Core_InvalidArgumentTypeException('name', $name);
-    }
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   <method name="map_list" returns="Delegate.FactoryDelegator">
-///     <args>
-///       <arg name="maps" type="array" />
-///       <arg name="prefix" type="string" default="" />
-///     </args>
-///     <body>
-  public function map_list(array $maps, $prefix = '') {
-    foreach ($maps as $k => $v) $this->map($k, "$prefix$v");
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="building">
-
-///   <method name="new_instance_of" returns="object">
-///     <args>
-///     </args>
-///     <body>
-  public function new_instance_of($name, $args = array()) {
-    if (isset($this->map[$name]))
-      return Core::amake($this->map[$name], $args);
-    else
-      throw new Core_InvalidArgumentValueException('name', $name);
-  }
-///     </body>
-///   </method>
-
-///   <method name="__call" returns="object">
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args"   type="array" />
-///     </args>
-///     <body>
-  public function __call($method, $args) { return $this->new_instance_of($method, $args); }
-///     </body>
-///   </method>
-
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Object.Wrapper">
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.CallInterface" />
+/**
+ * Враппер над объектом
+ * @package Object
+ */
 class Object_Wrapper
   implements Core_PropertyAccessInterface, Core_CallInterface {
 
+/**
+ * Расширяемый объект
+ */
   protected $object;
+
+/**
+ * массив атрибутов, с помощью которых и происходит расширение
+ * @var array
+ */
   protected $attrs = array();
 
-///   <protocol name="creating">
-
-///   <method name="__construct">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs"  type="array"  />
-///     </args>
-///     <body>
+	/**
+   * Конструктор 
+	 * @param object $object
+	 * @param array $attrs
+	 * 
+	 * @throw Core_InvalidArgumentValueException Если параметры не соответствуют указанным типам
+	 */
   public function __construct($object, array $attrs) {
+	  if (!(is_object($object))) {
+		  throw new Core_InvalidArgumentValueException('object','Must be object');
+	  }
     $this->object = $object;
     $this->attrs  = $attrs;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
+/** 
+ * Доступ на чтение.
+ * 
+ * Может быть либо именем свойства, либо ключом массива, 
+ * либо специальным значением: 
+ * -	'__object' - вернет объект, переданный в конструкторе,
+ * -	'__attrs' - вернет массив, переданный в конструкторе.
+ *
+ * @param string $property Имя свойства
+ * 
+ * @return mixed
+ */
+	public function __get($property) {
+		switch ($property) {
+			case '__object':
+				return $this->object;
+			case '__attrs':
+				return $this->attrs;
+			default:
+				return array_key_exists($property, $this->attrs) ?
+					$this->attrs[$property] : 
+					(
+						(property_exists($this->object, $property)) ?
+							$this->object->$property : 
+							null
+					);
+		}
+	}
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
-  public function __get($property) {
-    switch ($property) {
-      case '__object':
-        return $this->object;
-      case '__attrs':
-        return $this->attrs;
-      default:
-        return array_key_exists($property, $this->attrs) ?
-          $this->attrs[$property] : $this->object->$property;
-    }
-  }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
-  public function __set($property, $value) {
-    if (array_key_exists($property, $this->attrs))
-      $this->attrs[$property] = $value;
-    else
-      $this->object->$property = $value;
-    return $this;
-  }
-///     </body>
-///   </method>
+	/**
+	 * Доступ на запись.
+ 	 *
+	 * Сначала обращение идет к массиву расширения, затем к самому объекту
+	 * 
+	 * @param string $property Имя свойства
+	 * @param mixed $value
+	 * 
+	 * @throws Core_ReadOnlyObjectException Если $property имеет значение '__object' или '__attrs'
+	 * 
+	 * @return self
+	 */
+	public function __set($property, $value) {
+		if ($property == '__object' || $property == '__attrs')
+		{
+			throw new Core_ReadOnlyObjectException($this);
+		}
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установленно ли свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
-  public function __isset($property) {
-    return isset($this->attrs[$property]) || isset($this->object->$property);
-  }
-///     </body>
-///   </method>
+		if (array_key_exists($property, $this->attrs))
+			$this->attrs[$property] = $value;
+		else
+			$this->object->$property = $value;
+		return $this;
+	}
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string"  />
-///     </args>
-///     <body>
-  public function __unset($property) {
-    if (array_key_exists($property, $this->attrs))
-      unset($this->attrs[$property]);
-    else
-      unset($this->object->$property);
-    return $this;
-  }
-///     </body>
-///   </method>
 
-///   </protocol>
+/**
+ * Проверяет установленно ли свойство объекта
+ * 
+ * @param string $property Имя свойства
+ * 
+ * @return boolean
+ */
+	public function __isset($property) {
+		return isset($this->attrs[$property]) || isset($this->object->$property);
+	}
 
-///   <protocol name="calling">
 
-///   <method name="__call">
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args" type="array" />
-///     </args>
-///     <body>
-  public function __call($method, $args) {
-    return call_user_func_array(array($this->object, $method), $args);
-  }
-///     </body>
-///  </method>
+/**
+ * Удаление свойства.
+ * 
+ * @param string $property Имя свойства
+ * 
+ * @throws Core_ReadOnlyObjectException Если $property имеет значение '__object' или '__attrs'
+ * 
+ * @return self
+ */
+	public function __unset($property) {
+		if ($property == '__object' || $property == '__attrs')
+		{
+			throw new Core_ReadOnlyObjectException($this);
+		}
+		if (array_key_exists($property, $this->attrs))
+			unset($this->attrs[$property]);
+		else if (property_exists($this->object,$property))
+			unset($this->object->$property);
+//		else
+//			throw new Core_MissingPropertyException($property);
+		return $this;
+	}
 
-///   </protocol>
+	/**
+	 * Вызов метода
+     *
+     * Если в расширении есть callback, то используем его, иначе пробрасываем вызов в искомый объект
+     *
+     * @param  string $method
+     * @param  array $args
+	 */
+	public function __call($method, $args) {
+		if (Core_Types::is_callable($c = $this->__get($method))) return call_user_func_array($c, $args);
+		return call_user_func_array(array($this->object, $method), $args);
+	}
+
+
 }
-/// </class>
 
+
+/**
+ * Фильтр
+ *
+ * <code>
+ * $a = array(array('key1' => 1, 'key2' => 2), array('key1' => 11, 'key2' => 12));
+ * var_dump(array_filter($a, Object::Filter(1, 'key1')));
+ * // в результате останется только первый элемент массива (object) array('key1' => 1, 'key2' => 2)
+ * </code>
+ * 
+ * @package Object
+ */
 class Object_Filter {
 
+/**
+ * @var string название совйства
+ */
   protected $field;
+
+/**
+ * @var mixed значение свойства
+ */
   protected $value;
 
-  public function __construct($value, $field = 'group') {
-    $this->field = $field;
-    $this->value = $value;
-  }
+/**
+ * Конструктор
+ *  
+ * @throws Core_InvalidArgumentValueException Если вторым параметром передан null
+ * 
+ * @param mixed $value Значение, по которому происходит фильтрация.
+ * @param string $field Название значения фильтрации.
+ */
+	public function __construct($value, $field = 'group') {
+		if (is_null($field))
+		{
+		  throw new Core_InvalidArgumentValueException('field','null');
+		}
+		  
+		$this->field = $field;
+		$this->value = $value;
+	}
 
-  public function filter($e) {
-    return $e[$this->field] == $this->value;
-  }
+	/**
+	 * Проверка установленных в конструкторе значений.
+	 * 
+	 * 
+	 * 
+	 * Если $e скаляр, то:
+	 * - возвращается true, если $e == $this->value
+	 * - иначе false.
+	 * 
+	 * Если $e массив или объект возвращает true, если существует ключ $e[$this->field] 
+	 * и $e[$this->field] == $this->value  
+	 * Если нет или если такого ключа - то false.
+	 *
+	 * @param string|array|object $e .
+	 * 
+	 * @return boolean
+	 */
+	public function filter($e) {
+		if (is_scalar($e)) {
+			return ($e == $this->value);
+		}
+		else {
+			return (isset($e[$this->field]) && $e[$this->field] == $this->value);
+		}
+	}
 }
-
-/// </module>

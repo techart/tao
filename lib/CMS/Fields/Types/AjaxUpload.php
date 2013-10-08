@@ -197,17 +197,15 @@ class CMS_Fields_Types_AjaxUpload extends CMS_Fields_AbstractField implements Co
 		return $filename;
 	}
 
-	public function container($name,$data,$item) {
-		$class = 'CMS_Fields_Types_AjaxUpload_Container';
-		if (Core_Types::real_class_name_for($data['container']) instanceof CMS_Fields_ImageContainer)
-			$class = $data['container'];
-		return Core::make($class, $name,$data,$item,$this);
+	public function container_class()
+	{
+		//FIXME: rename class to CMS_Fields_Types_AjaxUpload_ValueContainer
+		return 'CMS_Fields_Types_AjaxUpload_Container';
 	}
-
-
 
 }
 
+//FIXME: rename class to CMS_Fields_Types_AjaxUpload_ValueContainer
 class CMS_Fields_Types_AjaxUpload_Container extends CMS_Fields_ValueContainer {
 	
 	public function dir() {

@@ -1,0 +1,9 @@
+<div class="table-empty">
+	<?php 
+		if ($connect_error) { 
+			print $connect_error;
+		} else {
+			print CMS::lang($message_norows);
+		}
+	?>
+</div>

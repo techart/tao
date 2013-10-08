@@ -1,0 +1,31 @@
+<?php
+
+$view_url = $controller->action_url('view',$item);
+$ver = $item->installed();
+$class = '';
+if ($ver) {
+	$class = ' installed';
+	if ($ver!=$item['version']) {
+		$class = ' update';
+	}
+}
+
+?>
+<div class="stockroom-item<?= $class ?>">
+	<div class="version"><?= $item['version'] ?></div>
+	<div class="title"><?= $item['title'] ?></div>
+	<div class="announce"><?= $item['announce'] ?></div>
+	<div class="bottom">
+		<?php if (!$ver) { ?>
+		<a class="button install" href="<?= $controller->action_url('install',$item) ?>">Установить</a>
+		<?php } ?>
+
+		<?php if ($ver) { ?>
+			<div class="installed-version"">Установленная версия: <em><?= $ver ?></em></div>
+		<?php } ?>
+
+		<?php if ($ver && $ver!=$item['version']) { ?>
+			<a class="button update" href="<?= $controller->action_url('update',$item) ?>">Обновить</a>
+		<?php } ?>
+	</div>
+</div>

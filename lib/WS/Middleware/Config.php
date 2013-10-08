@@ -7,7 +7,7 @@
 ///     <p>Сервис работает с файлом конфигурации в формате Config.DSL. Все последующие сервисы в цепочке могут
 ///        получить информацию о конфигурации из объекта env->config.</p>
 ///   </details>
-Core::load('WS', 'Config.DSL');
+Core::load('WS', 'Config.DSL', 'Events');
 
 /// <class name="WS.Middleware.Config" stereotype="module">
 ///   <brief>Класс модуля</brief>
@@ -71,9 +71,12 @@ class WS_Middleware_Config_Service extends WS_MiddlewareService {
 ///     </args>
 ///     <body>
   public function run(WS_Environment $env) {
-    return $this->application->run(
-      $env->assign_if(array(
-        'config' => Config_DSL::load($this->path))));
+    $config = Config_DSL::load($this->path);
+    $env->assign_if(array(
+        'config' => $config
+    ));
+    Events::call('ws.config', $config);
+    return $this->application->run($env);
   }
 ///     </body>
 ///   </method>

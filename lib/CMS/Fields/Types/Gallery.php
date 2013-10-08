@@ -185,8 +185,8 @@ class CMS_Fields_Types_Gallery extends CMS_Fields_Types_Documents {
 
 	protected function layout_preprocess($l, $name, $data) {
 		$this->use_styles(CMS::stdfile_url('styles/fields/gallery.css'));
-		$this->use_scripts(CMS::stdfile_url('scripts/jquery-dragsort.js'));
-		//$this->use_scripts(CMS::stdfile_url('scripts/jquery-json.js'));
+		$this->use_scripts(CMS::stdfile_url('scripts/jquery/dragsort.js'));
+		//$this->use_scripts(CMS::stdfile_url('scripts/jquery/json.js'));
 		$this->use_scripts(CMS::stdfile_url('scripts/fields/gallery.js'));
 		$l->use_scripts(CMS::stdfile_url('scripts/jquery/block.js'));
 		$id = $this->url_class();
@@ -396,6 +396,10 @@ class CMS_Fields_Types_Gallery_ItemContainer extends CMS_Fields_Types_Gallery_Va
 		$this->file_data['orig_path'] = $dir . '/' . $this->file_name;
 		$this->file_data['orig_url'] = $this->value_to_url($this->file_data['orig_path']);
 		return $this;
+	}
+
+	public function get_file_data() {
+		return $this->file_data;
 	}
 
 	public function cached_path() {

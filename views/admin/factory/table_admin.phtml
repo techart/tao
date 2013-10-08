@@ -1,0 +1,42 @@
+<? print '&lt;?php'; ?>
+
+
+Core::load('CMS.Controller.Table');
+
+class <?= str_replace('.','_',$this->admin_module) ?> extends CMS_Controller_Table
+{
+	protected $orm_name = '<?= $table ?>';
+	protected $title_list = '<?= $this->component ?>: список записей';
+	protected $title_edit = '<?= $this->component ?>: редактирование';
+	protected $title_add = '<?= $this->component ?>: добавление';
+	protected $norows = 'Записи отсутствуют';
+	protected $button_add = 'Добавить';
+
+<?php if ($this->admin_fields=='native') { ?>
+	protected function list_fields()
+	{
+		return array(
+<?= $this->draw_array($this->fields_list,"\t\t\t") ?>
+		);
+	}
+
+<?php if ($this->admin_tabs) { ?>
+	protected function form_tabs()
+	{
+		return array(
+			'default' => 'Свойства',
+		);
+	}
+<?php } ?>
+
+<?php if (!empty($this->fields_form)) { ?>
+	protected function form_fields()
+	{
+		return array(
+<?= $this->draw_array($this->fields_form,"\t\t\t") ?>
+		);
+	}
+<?php } ?>
+
+<?php } ?>
+}

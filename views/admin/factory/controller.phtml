@@ -1,0 +1,12 @@
+<? print '&lt;?php'; ?>
+
+
+class Component_<?= $this->component ?>_Controller extends CMS_Controller implements Core_ModuleInterface
+{
+	public function index()
+	{
+		return '<?= $this->component ?>';
+	}
+
+}
+

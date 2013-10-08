@@ -5,11 +5,11 @@ class Templates_HTML_Includes implements Core_ConfigurableModuleInterface {
   const VERSION = '0.1.0';
   
   static protected $options = array(
-    'join_dir' => '/%files%/_joins',
+    'join_dir' => 'joins',
  );
 
   static public function initialize(array $options = array()) {
-    foreach(self::$options as $k => $v) self::$options[$k] = str_replace('%files%',Core::option('files_name'),$v);
+    foreach(self::$options as $k => $v) self::$options[$k] = str_replace('%files%', Core::option('files_name'),$v);
     self::options($options);
   }
   
@@ -104,17 +104,46 @@ class Templates_HTML_Includes_Agregator implements Core_IndexedAccessInterface, 
     return $this;
   }
 
-  public function add($file, $weight = 0, $type = 'app', $join = true, $immutable = false) {
-   $file = (string) $file;
-   $el = isset($this->files[$file])? $this->files[$file] : null;
-   if (!empty($el) && $el['immutable']) return $this;
-   
-    $this->files[$file] = new ArrayObject(array(
+  public function add($file, $weight = 0, $type = 'app', $join = true, $immutable = false, $attrs = array(), $add_timestamp = null) {
+    $file = (string) $file;
+    $exist = isset($this->files[$file])? $this->files[$file] : null;
+    if (!empty($exist) && $exist['immutable']) {
+      return $this;
+    }
+    $file_object = new ArrayObject(array(
         'weight' => $weight,
         'type' => $type,
         'join' => in_array($file, $this->exclude_join) ? false : $join,
-        'immutable' => $immutable
+        'immutable' => $immutable,
+        'attrs' => $attrs
     ));
+    if (!is_null($add_timestamp)) {
+      $file_object['add_timestamp'] = $add_timestamp;
+    }
+    $this->files[$file] = $file_object;
+    return $this;
+  }
+
+  public function add_file_array($file, $options = array()) {
+    $options = (array) $options;
+    $file = (string) $file;
+    $exist = isset($this->files[$file])? $this->files[$file] : null;
+    if (!empty($exist) && $exist['immutable']) {
+      return $this;
+    }
+    if (empty($exist)) {
+      $this->add($file,
+        empty($options['weight']) ? 0 : $options['weight'],
+        empty($options['type']) ? 'app' : $options['type'],
+        !isset($options['join']) ? true : $options['join'],
+        !isset($options['immutable']) ? false : $options['immutable'],
+        isset($options['attrs']) ? $options['attrs'] : array(),
+        isset($options['add_timestamp']) ? $options['add_timestamp'] : null);
+    } else {
+      $exist_options = $exist->getArrayCopy();
+      $exist_options = Core_Arrays::deep_merge_update($exist_options, $options);
+      $this->files[$file] = new ArrayObject($exist_options);
+    }
     return $this;
   }
 
@@ -163,8 +192,14 @@ class Templates_HTML_Includes_Agregator implements Core_IndexedAccessInterface, 
 
   protected function joins_dir($file = '') {
     $dir = Templates_HTML_Includes::option('join_dir');
-    if (!is_dir('.' . $dir))
+    $ext = pathinfo($file, PATHINFO_EXTENSION);
+    $paths = Templates_HTML::option('paths');
+    if (!empty($ext) && isset($paths[$ext])) {
+      $dir = '/' . trim($paths[$ext] . '/' . trim($dir, PATH_SEPARATOR), '/');
+    }
+    if (!is_dir('.' . $dir)) {
       IO_FS::mkdir('.' . $dir, IO_FS::option('dir_mod'), true);
+    }
     return "$dir/$file";
   }
   
@@ -215,19 +250,26 @@ class Templates_HTML_Includes_Agregator implements Core_IndexedAccessInterface, 
     $as_is = array();
     $i = 0;
     $join_index = 0;
-    foreach ($this->files as $file => $data) {
-      $file = $this->file_path($file);
+    $names = array();
+    foreach ($this->files as $file_name => $data) {
+      $file = $this->file_path($file_name);
       if ($data['join'] && $this->do_join && !Templates_HTML::is_url($file)) {
           $join_index = $join_index == 0 ? $i : $join_index;
           $to_join[$i] = $file;
+      } else {
+        $as_is[$i] = $file;
+        $names[$file] = $file_name;
       }
-      else $as_is[$i] = $file;
       $i++;
     }
     if (!empty($to_join))
         $as_is[$join_index] = $this->join_files($to_join);
     ksort($as_is);
-    return $as_is;
+    $res = array();
+    foreach ($as_is as $i => $file_path) {
+      $res[$file_path] = isset($names[$file_path]) ? $this->files[$names[$file_path]] : array();
+    }
+    return $res;
   }
 
   public function getIterator() {
@@ -254,11 +296,7 @@ class Templates_HTML_Includes_Agregator implements Core_IndexedAccessInterface, 
 ///     </args>
 ///     <body>
   public function offsetSet($index, $value) {
-    return $this->add($index,
-      empty($value['weight']) ? 0 : $value['weight'],
-      empty($value['type']) ? 'app' : $value['type'],
-      empty($value['join']) ? true : $value['join'],
-      !isset($value['immutable']) ? false : $value['immutable']);
+    return $this->add_file_array($index, $value);
   }
 ///     </body>
 ///   </method>

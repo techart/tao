@@ -38,6 +38,67 @@ class CMS_Fields_Types_SQLDateStr extends CMS_Fields_AbstractField implements Co
 		return 'datetime';
 	}
 
+	protected function layout_preprocess($l, $name, $data)
+	{
+		if(isset($data['datepicker']) && $data['datepicker']) {
+			$l->use_scripts(CMS::stdfile_url('scripts/jquery/ui.js'));
+			$l->use_scripts(CMS::stdfile_url('scripts/fields/datepicker.js'));
+			$this->use_lang_file($l, $data);
+			$l->use_styles(CMS::stdfile_url('styles/jquery/ui.css'));
+			$l->use_styles(CMS::stdfile_url('styles/jquery/datepicker.css'));
+		}
+
+		return parent::layout_preprocess($l, $name, $data);
+	}
+
+	protected function preprocess($t, $name, $data)
+	{
+		if(isset($data['datepicker']) && $data['datepicker']) {
+			$data['tagparms']['class'] = "datepick dp-applied";
+			$lang = $this->get_lang($data);
+
+			$t->append_to('js',
+				"$(function() {
+					$('.datepick').each(function() {
+						TAO.fields.datepicker($(this), '$lang');
+					});
+				});"
+			);
+		}
+
+		return parent::preprocess($t, $name, $data);
+	}
+
+
+	protected function use_lang_file($l, $data)
+	{
+		$lang_file = $this->get_lang_file($data);
+		if($lang_file)
+			$l->use_scripts($lang_file);
+	}
+
+	protected function get_lang_file($data)
+	{
+		$lang_file = false;
+
+		$lang_file = $data['lang_file'];
+		$lang = $this->get_lang($data);
+		$path = "jquery/lang/$lang.js";
+
+		if($data['lang_file'])
+			$lang_file = $data['lang_file'];
+		elseif(IO_FS::exists('scripts/' . $path))
+			$lang_file = $path;
+		elseif(IO_FS::exists(CMS::stdfile('scripts/' . $path)))
+			$lang_file = CMS::stdfile_url('scripts/' . $path);
+
+		return $lang_file;
+	}
+
+	protected function get_lang($data)
+	{
+		return $data['lang'] ? $data['lang'] : CMS::site_lang();
+	}
 }
 
 

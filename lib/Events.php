@@ -57,7 +57,7 @@ class Events implements Core_ModuleInterface {
 		$args = func_get_args();
 		$num_args = count($args);
 		return Core::invoke(array(self::Dispatcher(), 'dispatch'), 
-			array_slice(array_merge(array($ename, $e, &$arg1, &$arg2, &$arg3, &$arg4, &$arg5, &$arg6), array_slice($args, 8)), $num_args));
+			array_slice(array_merge(array($ename, $e, &$arg1, &$arg2, &$arg3, &$arg4, &$arg5, &$arg6), array_slice($args, 8)), 0, $num_args));
 	}
 
 	static public function current_event() {

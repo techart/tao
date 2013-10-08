@@ -16,7 +16,7 @@ $(form).submit(function() {
 				var message = '';
 
 				if (input.attr('data-validate-presence')!==undefined) {
-					var value = input.attr('value');
+					var value = input.val();
 					value = value.replace(/\s+/,'');
 					if (value=='') {
 						valid = false;
@@ -26,7 +26,7 @@ $(form).submit(function() {
 
 				if (input.attr('data-validate-match')!==undefined) {
 					var regexp = new RegExp(input.attr('data-validate-match'),input.attr('data-validate-match-mods'));
-					var value = input.attr('value');
+					var value = input.val();
 					if (!value.match(regexp)) {
 						valid = false;
 						message = input.attr('data-validate-match-message');
@@ -38,7 +38,7 @@ $(form).submit(function() {
 					$.ajaxSetup({async:false});
 					var rc = '';
 					var request = {};
-					request[input.attr('data-field-name')] = input.attr('value');
+					request[input.attr('data-field-name')] = input.val();
 					$.post(url,request,function(data) {
 						rc = data;
 					});

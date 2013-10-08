@@ -1,0 +1,36 @@
+<?php
+$this->use_styles(CMS::stdfile_url('styles/admin/vars.css'));
+foreach($rows as $dir) {
+	if ($dir->is_dir()) {
+		include('dir.phtml');
+	}
+}
+?>
+<script type="text/javascript">
+<!--
+$(function() {
+	$('tr.var-edit').each(function() {
+		var url = $(this).attr('data-url');
+		$('td.var',$(this)).click(function() {
+			location.href = url;
+		});
+	});
+	<?php if ($controller->is_admin()) { ?>
+	$('div.action-button-delete').click(function() {
+		if (confirm("<?= CMS::lang()->_vars->confirm_delete_var ?>")) {
+			var url = $(this).attr('data-url');
+			alert(url);
+		}
+	});
+	$('.vars-dir .header p').addClass('clickable').click(function() {
+		var url = $(this).attr('data-url');
+		location.href = url;
+	});
+	$('.add-var').addClass('clickable').click(function() {
+		var url = $(this).attr('data-url');
+		location.href = url;
+	});
+	<?php } ?>
+});
+//-->
+</script>

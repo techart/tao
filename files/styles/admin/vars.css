@@ -1,0 +1,87 @@
+div.vars-dir {
+	border: 1px solid #ccc;
+	margin: 0 0 10px 0;
+	padding: 2px;
+	border-top-left-radius: 8px;
+}
+
+	div.vars-dir div.header {
+		border-top-left-radius: 6px;
+		background-color: #888888;
+		background: linear-gradient(#bbb, #555);
+		margin: 0;
+		padding: 0;
+	}
+
+	div.vars-dir .clickable {
+		cursor: pointer;
+	}
+
+		div.vars-dir div.header div.add-var {
+			float: right;
+			width: 19px;
+			height: 25px;
+			padding: 0;
+			margin: 0 0 0 40px;
+			background-repeat: no-repeat;
+			background-image: url(/tao/images/icons/plus-button.png);
+			background-position: 0px 4px;
+		}
+
+
+		div.vars-dir div.header p {
+			font-size: 13px;
+			font-weight: bold;
+			color: white;
+			margin: 0;
+			padding: 5px 8px;
+			width: 80%;
+		}
+
+
+	div.vars-dir table {
+		border-spacing: 1px;
+	}
+
+		div.vars-dir table tr td {
+			background-color: #eee;
+		}
+
+		div.vars-dir table tr:hover td {
+			background-color: #ddd;
+		}
+
+		div.vars-dir table td {
+			cursor: pointer;
+			padding: 2px;
+		}
+
+		div.vars-dir table td.var-name {
+			background-repeat: no-repeat;
+			background-position: 2px 1px;
+			padding: 2px 2px 2px 20px;
+			width: 20%;
+		}
+
+		div.vars-dir table td.var-title {
+			width: 40%;
+		}
+
+		div.vars-dir table td.var-value {
+			overflow: hidden;
+			font-size: 10px;
+			color: #444;
+		}
+
+
+		div.vars-dir table td.action-button {
+			width: 16px;
+		}
+
+div.action-button {
+	width:16px;
+	height:16px;
+	padding: 0;
+	background-repeat: no-repeat;
+	background-image: url(/tao/images/del.png);
+}

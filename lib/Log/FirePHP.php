@@ -1,6 +1,6 @@
 <?php
 /// <module name="Log.FirePHP" maintainer="svistunov@techart.ru" version="0.1.0">
-Core::load('Log');
+Core::load('Log', 'Events');
 
 /// <class name="Log.FirePHP" stereotype="module">
 ///   <implements interface="Core.ModuleInterface" />
@@ -8,6 +8,7 @@ class Log_FirePHP implements Core_ModuleInterface {
 ///   <constants>
   const VERSION = '0.1.0';
 ///   </constants>
+//
 
 ///   <protocol name="building">
 
@@ -24,6 +25,14 @@ class Log_FirePHP implements Core_ModuleInterface {
 /// <class name="Log.FirePHP.Handler" extends="Log.Handler">
 class Log_FirePHP_Handler extends Log_Handler {
 
+  public function init()
+  {
+    $self = $this;
+    Events::add_listener('ws.response', function($resp) use ($self) {
+      $self->dump($resp);
+    });
+  }
+
 /// <constants>
   static protected $types = array(
     Log_Level::DEBUG => 'LOG',
@@ -33,7 +42,7 @@ class Log_FirePHP_Handler extends Log_Handler {
     Log_Level::WARNING => 'WARN'
   );
   static protected $max_len = 5000;
-  static protected $start_number = 1111;
+  static protected $start_number = 1;
 /// </constsnts>
 
   protected $messages = array();
@@ -102,16 +111,16 @@ class Log_FirePHP_Handler extends Log_Handler {
     $number = self::$start_number;
     foreach ($this->messages as $m) {
       $json = json_encode(array(
-        array('Type' => self::$types[$m->level]),
+        array('Type' => self::$types[$m->level], 'File' => 'FirePHP', 'Line' => 0),
         $m->body
       ));
       $len = strlen($json);
-      if ($len >= self::$max_len)
-        $this->chunked($names, $headers, $number, $json, $len);
-      else {
+      // if ($len >= self::$max_len)
+      //   $this->chunked($names, $headers, $number, $json, $len);
+      // else {
         $names[] = $this->build_name($number);
         $headers[] = sprintf('%s|%s|', $len, $json);
-      }
+      // }
     }
     return count($names) > 0 ? array_combine($names, $headers) : array();
   }
@@ -152,7 +161,7 @@ class Log_FirePHP_Handler extends Log_Handler {
 ///     </args>
 ///     <body>
   private function build_name(&$number) {
-    $res =  'X-Wf-'.implode('-', str_split($number));
+    $res =  'X-Wf-1-1-1-'.$number;//implode('-', str_split($number));
     $number += 1;
     return $res;
   }

@@ -42,13 +42,22 @@
 
 	$ffid = "{$form->name}_{$name}";
 
+$size_style = '';
+if (isset($data['admin_preview_size'])) {
+	$size = explode('x', $data['admin_preview_size']);
+	if (count($size) == 1) {
+		$size[1] = $size[0];
+	}
+	$size_style = "style='width:{$size[0]}px; height: {$size[1]}px;'";
+}
+
 ?>
 
 <?= $this->forms->hidden($name,$tagparms) ?>
 
-<div class="image-field" id="image-field-<?= $name ?>">
+<div class="image-field" id="image-field-<?= $name ?>" >
 	<div class="upload-image" id="upload-image-<?= $name ?>" data-url="<?= $c->field_action_url($name,'upload',$item,array('code'=>$type_object->temp_code())) ?>"><?= $lang->ta_browse ?></div>
 	<div class="image-load-indicator" id="image-load-indicator-<?= $name ?>">&nbsp;</div>
-	<div data-url-upload="<?= $c->field_action_url($name,'preview',$item) ?>"  data-url="<?= $type_object->admin_preview_url($name,$data,$item) ?>" class="image-preview" id="image-preview-<?= $name ?>">&nbsp;</div>
+	<div <?= $size_style ?>  data-url-upload="<?= $c->field_action_url($name,'preview',$item) ?>"  data-url="<?= $type_object->admin_preview_url($name,$data,$item) ?>" class="image-preview" id="image-preview-<?= $name ?>">&nbsp;</div>
 	<div data-url="<?= $c->field_action_url($name,'info',$item) ?>" class="image-info" id="image-info-<?= $name ?>"><?php include('info.phtml'); ?></div>
 </div>

@@ -1,0 +1,8 @@
+<?php
+
+$this->no_layout();
+if (IO_FS::exists('./install/install.php')) {
+	include('./install/install.php');
+} else {
+	$controller->not_found();
+}

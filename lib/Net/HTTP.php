@@ -1155,11 +1155,7 @@ class Net_HTTP_Request
 ///     </args>
 ///     <body>
   public function uri($uri) {
-    $this->uri = array('scheme' => 'http', 'host' => '', 'path' => '');
-
-    Core_Arrays::update(
-      $this->uri,
-      ($parsed = @parse_url((string) $uri)) ? $parsed : parse_url('/'));
+      $this->uri = ($parsed = @parse_url((string) $uri)) ? $parsed : parse_url('/');
 
     //if ($this->uri['host']) $this->headers->host($this->uri['host']);
 //TODO: проверить обнуление query параметров
@@ -1255,6 +1251,9 @@ class Net_HTTP_Request
       case 'scheme':
       case 'host':
       case 'path':
+      case 'port':
+      case 'user':
+      case 'pass':
         return $this->uri[$property];
       case 'query':
         return $this->urlencode($this->query);
@@ -1535,7 +1534,12 @@ class Net_HTTP_Request
 ///     <brief>Формирует строку URI на основе результатов парсинга URI, указанного при создании объекта</brief>
 ///     <body>
   protected function compose_url() {
-    return $this->uri['scheme'].'://'.$this->uri['host'].$this->compose_urn();
+    $uri = (object) $this->uri;
+    return
+      ($uri->scheme ? "$uri->scheme://" : '').
+      ($uri->user ? $uri->user.($uri->pass ? ":$uri->pass" : '').'@' : '').
+      ($uri->host ? $uri->host.($uri->port ? ":$uri->port" : '') : '').
+      $this->compose_urn();
   }
 ///     </body>
 ///   </method>
@@ -1616,6 +1620,7 @@ class Net_HTTP_Response
              Core_CallInterface {
 
     protected $status;
+    protected $url = '';
 
 ///   <protocol name="creating">
 
@@ -1637,20 +1642,19 @@ class Net_HTTP_Response
 ///       <arg name="string" type="string" brief="строковое представление отклика" />
 ///     </args>
 ///     <body>
-    static public function from_string($string) {
+    static public function from_string(&$body, &$header) {
       $response = new Net_HTTP_Response();
-      $string = preg_replace('!HTTP/\d.\d\s+100\s+Continue\s+!', '', $string);
-      list($headers, $body) = explode("\n\n", preg_replace("{\r\n\r\n}", "\n\n", $string, 1), 2);
+      $header = preg_replace('!HTTP/\d.\d\s+100\s+Continue\s+!', '', $header);
       $m = array();
       $status = '';
 
-      foreach (explode("\n", $headers) as $line) {
+      foreach (explode("\n", $header) as $line) {
         if (!$status && preg_match('{^HTTP/\d\.\d\s+(\d+(?:\s+.+))}', $line, $m)) $status = $m[1];
         if (preg_match("{([^:]+):\s*(.*)}", $line, $m)) $response->header($m[1], $m[2]);
       }
-      list($code, $message) = explode(" ", preg_replace('{\s+}', ' ', (string) $status));
+      list($code, $message) = explode(" ", preg_replace('{\s+}', ' ', (string) $status), 2);
       return $response->
-        status($code, $message)->
+        status($code, trim($message))->
         body($body);
     }
 ///     </body>
@@ -1672,6 +1676,12 @@ class Net_HTTP_Response
   }
 ///     </body>
 ///   </method>
+
+  public function url($url)
+  {
+    $this->url = $url;
+    return $url;
+  }
 
 ///   </protocol>
 
@@ -1714,7 +1724,7 @@ class Net_HTTP_Response
 ///     <body>
   public function __get($property) {
     switch ($property) {
-      case 'status':
+      case 'status': case 'url':
         return $this->$property;
       default:
         return parent::__get($property);
@@ -1732,7 +1742,7 @@ class Net_HTTP_Response
 ///     <body>
   public function __set($property, $value) {
     switch ($property) {
-      case 'status':
+      case 'status':  case 'url':
         $this->$property($value);
         return $this;
       default:
@@ -1750,7 +1760,7 @@ class Net_HTTP_Response
 ///     <body>
   public function __isset($property) {
     switch ($property) {
-      case 'status':
+      case 'status': case 'url':
         return true;
       default:
         return parent::__isset($property);
@@ -1770,7 +1780,7 @@ class Net_HTTP_Response
 ///     <body>
   public function __unset($property) {
     switch ($property) {
-      case 'status':
+      case 'status': case 'url':
         throw new Core_UndestroyablePropertyException($property);
       default:
         parent::__unset($property);

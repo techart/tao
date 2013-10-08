@@ -1,7 +1,8 @@
 <?php 
 	$item_data = $type_object->get_item_data($name, $data);
 	$iitem[$item_name] = $iitem['__data'];
-	$item_data['__item'] = $iitem;
+	$item_data['__item'] = $item;
+	// $item_data['__item'] = $iitem;
 	$item_type = CMS_Fields::type($item_data);
 	$item_type->view($this);
 ?>

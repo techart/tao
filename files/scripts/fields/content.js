@@ -1,15 +1,15 @@
 $(function() {
 
-window.TAO = window.TAO || {}
-TAO.fields = TAO.fields || {}
+window.TAO = window.TAO || {};
+TAO.fields = TAO.fields || {};
 
 TAO.fields.content = function(field) {
 	var ff = field;
 	var labels = $('.field-content-selection-label', field);
 	if (labels.length > 0) {
 		var txw = labels.parents('.field').find('textarea').width();
-		var sel = labels.siblings('select')
-		labels.css('margin-left', txw - labels.outerWidth(true) - sel.outerWidth(true) - 5)
+		var sel = labels.siblings('select');
+		labels.css('margin-left', txw - labels.outerWidth(true) - sel.outerWidth(true) - 5);
 	}
 	
 	$('.field-content-selection .field-content-selection-item',field).each(function() {
@@ -21,57 +21,66 @@ TAO.fields.content = function(field) {
 		else
 			el.addClass('active');
 		field = $('.' + el.attr('data-for'), el.parent().parent());
-		field.show();
-		field.siblings().hide();
+		field.siblings().removeClass('field-content-pane-current');
+		field.addClass('field-content-pane-current');
+		var selector = field.find('textarea');
+		var editor = TAO.editor.get(selector);
+		if (editor && typeof editor.refresh === 'function') {
+			editor.refresh(selector);
+		}
 	}
 	
 	var switch_content = function() {
-		//console.debug(el);
+		var ell;
 		if (el.is('option'))
-			var ell = $(this).find(':selected');
+			ell = $(this).find(':selected');
 		else
-			var ell = el;
-		//console.debug(ell, $(this));
+			ell = el;
 		var field;
 		if ($('.field-lang-visible',ff).length)
 			field = $('.field-lang-visible .' + ell.attr('data-for'), ff);
 		else
 			field = $('.' + ell.attr('data-for'), ff);
-		//console.debug('.' + el.attr('data-for')+' textarea');
-		var current = field.siblings(':visible');
+		var current = field.siblings('.field-content-pane-current');
 		if (field.length <= 0) return;
 		ell.addClass('active');
 		ell.siblings().removeClass('active');
+		var to_editor, from_editor;
+		var to_selector, from_selector;
 		if (current.length) {
-			var val = current.find('textarea').val();
-			if (tinyMCE) {
-				var to_editor = tinyMCE.get(field.find('textarea').attr('id'));
-				var from_editor = tinyMCE.get(current.find('textarea').attr('id'));
-			}
-			val = from_editor ? from_editor.getContent() : val;
+			var val = $(current.find('textarea')).val();
+			to_selector = field.find('textarea'),
+				from_selector = current.find('textarea');
+			to_editor = TAO.editor.get(to_selector),
+				from_editor = TAO.editor.get(from_selector);
+			val = from_editor ? from_editor.getContent(from_selector) : val;
 			if (to_editor) {
-				to_editor.setContent(val, {format : 'raw'});
+				to_editor.setContent(to_selector, val);
 			}
 			else {
 				field.find('textarea').val(val);
 			}
 		}
-		field.siblings().hide();
-		//console.debug(field);
-		field.show();
+		field.siblings().removeClass('field-content-pane-current');
+		field.addClass('field-content-pane-current');
 		var format = ell.parent().siblings('input[type="hidden"]');
 		format.val(ell.attr('data-format'));
-	}
+
+		if (to_editor && typeof to_editor.refresh === 'function') {
+			to_editor.refresh(to_selector);
+		}
+		
+	};
 	
 	if (el.is('option'))
 		el.parent().change(switch_content);
 	else
 		el.click(switch_content);
 	
-})
-}
+});
+};
 
-})
+});
 
 
 

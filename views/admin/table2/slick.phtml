@@ -1,0 +1,16 @@
+<?php
+include($c->template('header'));
+
+include($controller->template("list-navigator-top"));
+
+if ($count==0) { 
+	include($controller->template("list-norows"));
+	return;
+}
+?>
+
+<div class='table-data slick-table-data'>
+    <div class='slick-grid' style="<?= $style ?>"></div>
+    
+</div>
+<div id="pager"></div>

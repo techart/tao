@@ -124,8 +124,8 @@ class Core implements Core_ModuleInterface {
 
 ///   <constants>
   const MODULE        = 'Core';
-  const VERSION       = '0.2.13';
-  const RELEASE       =  10000;
+  const VERSION       = '0.3.0';
+  const RELEASE       =  20000;
   const PATH_VARIABLE = 'TAO_PATH';
 ///   </constants>
 
@@ -138,6 +138,9 @@ class Core implements Core_ModuleInterface {
   static protected $start_time = 0;
   static protected $cached_modules = array();
   static protected $flush_modules_cahce = false;
+  protected static $default_deprecated_dir = '../tao/deprecated/lib/';
+  protected static $base_dir = null;
+  protected static $save_dir = null;
 
 ///   <protocol name="creating">
 
@@ -172,6 +175,7 @@ class Core implements Core_ModuleInterface {
 ///     </details>
 ///     <body>
   static public function initialize(array $config = array()) {
+    self::$base_dir = getcwd();
     self::$start_time = microtime();
     $loader_opts = self::parse_environment_paths();
     if (isset($config['loader']))
@@ -179,15 +183,25 @@ class Core implements Core_ModuleInterface {
     self::$loader = new Core_ModuleLoader();
     self::$loader->paths($loader_opts);
     self::options($config);
-    Core::load('Events');
-    if (Core::option('spl_autoload')) {
+    self::init_autoload();
+    self::init_module_cache();
+    self::init_deprecated();
+  }
+///     </body>
+///   </method>
+
+  protected static function init_autoload() {
+    if (self::option('spl_autoload')) {
       self::register_spl_autoload();
     }
+  }
+
+  protected static function init_module_cache() {
     if (Core::option('modules_cache')) {
+      Core::load('Events');
       $modules = array();
       if (is_file(self::option('modules_cache_path'))) {
-        //TODO: include 
-        self::$cached_modules = include(self::option('modules_cache_path')); // unserialize(file_get_contents(self::option('modules_cache_path')));
+        self::$cached_modules = include(self::option('modules_cache_path'));
       } else {
         self::$cached_modules = Core::find_all_modules();
         self::$flush_modules_cahce = true;
@@ -195,8 +209,33 @@ class Core implements Core_ModuleInterface {
       Events::add_listener('ws.response', array('Core', 'flush_modules_cache'));
     }
   }
-///     </body>
-///   </method>
+
+  protected static function init_deprecated() {
+    if (self::option('deprecated')) {
+      $dir = self::option('deprecated_dir');
+      if(empty($dir)) {
+        $dir = self::$default_deprecated_dir;
+      }
+      spl_autoload_register(function($class) use ($dir) {
+        $file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+        $file = $dir . $file;
+        if (is_file($file)) require $file;
+      });
+    }
+  }
+
+  protected static function push_dir()
+  {
+    self::$save_dir = getcwd();
+    if (self::$base_dir) {
+      chdir(self::$base_dir);
+    }
+  }
+
+  protected static function pop_dir()
+  {
+    chdir(self::$save_dir);
+  }
 
   static public function start_time() {
     return self::$start_time;
@@ -216,13 +255,13 @@ class Core implements Core_ModuleInterface {
   
   static public function option($name, $value = null) {
     if (is_null($value)) {
-      return self::$options[$name];
+      return isset(self::$options[$name]) ? self::$options[$name] : null;
     } else {
       return self::$options[$name] = $value;
     }
   }
 
-  static function register_spl_autoload() {
+  static public function register_spl_autoload() {
     if (!self::$spl_autoload_registered)
       spl_autoload_register('Core::spl_autoload');
     Core::option('spl_autoload', true);
@@ -293,8 +332,10 @@ class Core implements Core_ModuleInterface {
 ///     </details>
 ///     <body>
   static public function load() {
+    self::push_dir();
     if (Core::option('spl_aggressive_autoload')) return;
     foreach (func_get_args() as $module) self::$loader->load($module);
+    self::pop_dir();
   }
 ///     </body>
 ///   </method>
@@ -640,10 +681,12 @@ class Core implements Core_ModuleInterface {
 ///     </details>
 ///     <body>
   static public function amake($class, array $parms) {
+    self::push_dir();
     $class = self::replace_class($class);
     $real_name = Core_Types::real_class_name_for($class);
     self::autoload($class, $real_name);
     $reflection = Core_Types::reflection_for($real_name);
+    self::pop_dir();
     return $reflection->getConstructor() ?
       $reflection->newInstanceArgs($parms):
       $reflection->newInstance();
@@ -687,8 +730,8 @@ class Core implements Core_ModuleInterface {
     if (!class_exists($real_name, false)) {
       $module = Core_Types::module_name_for($class);
       $module_real = Core_Types::real_class_name_for($module);
-      if (file_exists(Core::loader()->file_path_for($class))) self::$loader->load($class);
-      if (!class_exists($module_real, false) && file_exists(Core::loader()->file_path_for($module))) self::$loader->load($module);
+      if (file_exists(Core::loader()->file_path_for($class, false))) self::$loader->load($class);
+      if (!class_exists($module_real, false) && file_exists(Core::loader()->file_path_for($module, false))) self::$loader->load($module);
     }
   }
 
@@ -1243,6 +1286,32 @@ class Core_TypeException extends Core_Exception {}
 class Core_NotImplementedException extends Core_Exception {}
 /// </class>
 
+/**
+ * Исключение: отсутсвует ключ в массиве
+ * 
+ * @package Core
+ */
+class Core_MissingKeyIntoArrayException extends Core_Exception
+{
+
+  protected $arg_array_name;
+  protected $arg_key_name;
+
+	/**
+	 * Конструктор
+	 * 
+	 * @params string $array_name Имя массива
+	 * @params string $key_name Имя отсутствующего ключа
+	 */
+	public function __construct($array_name, $key_name)
+	{
+		$this->arg_array_name = $array_name;
+		$this->arg_key_name = $key_name;
+		parent::__construct("Missing key '{$this->arg_key_name}' into array '{$this->arg_array_name}'");
+	}
+
+}
+
 
 /// <class name="Core.InvalidArgumentTypeException" extends="Core.TypeException" stereotype="exception">
 ///   <brief>Исключение: некорректный тип аргумента</brief>
@@ -1560,6 +1629,30 @@ class Core_UndestroyablePropertyException extends Core_ObjectAccessException {
 }
 /// </class>
 
+/**
+ * Исключение: попытка удаления индексного свойства
+ * 
+ */
+class Core_UndestroyableIndexedPropertyException extends Core_ObjectAccessException
+{
+
+  /**
+   * Название индексного свойства
+   * @var string
+   */
+  protected $property;
+
+  /**
+   * Конструктор
+   * @param string $property имя свойства
+   */
+  public function __construct($property)
+  {
+    $this->property = (string) $property;
+    parent::__construct("Unable to destroy indexed property: $property");
+  }
+}
+
 
 /// <class name="Core.ModuleException" extends="Core.Exception" stereotype="exception">
 ///   <brief>Базовый класс исключений загрузчика модулей</brief>
@@ -1666,7 +1759,7 @@ class Core_ModuleLoader implements Core_ModuleLoaderInterface {
 
   protected $paths   = array(
   '-App' => '../app/lib',
-  '*' => '../tao/lib',
+  // '*' => '../tao/lib',
   );
   protected $configs = array();
   protected $loaded  = array('Core' => true);
@@ -1680,6 +1773,7 @@ class Core_ModuleLoader implements Core_ModuleLoaderInterface {
 ///     </args>
 ///     <body>
   public function __construct(array $paths = array()) {
+    $this->paths['*'] = __DIR__;
     $this->paths($paths);
   }
 ///     </body>
@@ -1751,21 +1845,17 @@ class Core_ModuleLoader implements Core_ModuleLoaderInterface {
         include($cached_path);
       }
       else {
-        $loaded = $this->load_module_file($file = $this->file_path_for($module), $real_module_name, $module);
+        $loaded = $this->load_module_file($file = $this->file_path_for($module, false), $real_module_name, $module);
         Core::cached_modules($module, $file);
       }
       if (Core::option('spl_autoload') && !$loaded) return false;
 
       if ($this->is_module($real_module_name)) {
-        // if (method_exists($real_module_name, 'before_initialize'))
-        //   call_user_func(array($real_module_name, 'before_initialize'));
         if (method_exists($real_module_name, 'initialize'))
           call_user_func(array($real_module_name, 'initialize'),
             isset($this->configs[$module]) ?
               $this->configs[$module] :
               array());
-        // if (method_exists($real_module_name, 'after_initialize'))
-        //   call_user_func(array($real_module_name, 'after_initialize'));
       } else
         throw new Core_InvalidModuleException($module);
     }
@@ -1802,7 +1892,7 @@ class Core_ModuleLoader implements Core_ModuleLoaderInterface {
 ///          Core.ModuleNotFoundException.</p>
 ///     </details>
 ///     <body>
-  public function file_path_for($module) {
+  public function file_path_for($module, $first = true) {
     foreach ($this->paths as $name => $root) {
       if ($drop_prefix = ($name[0] == '-')) $name = substr($name, 1);
 
@@ -1874,8 +1964,7 @@ class Core_ModuleLoader implements Core_ModuleLoaderInterface {
 ///     </details>
 ///     <body>
   protected function is_module($module_real_name) {
-    return (in_array("Core_ModuleInterface",class_implements($module_real_name)) &&
-            constant($module_real_name.'::VERSION'));
+    return in_array("Core_ModuleInterface",class_implements($module_real_name));
   }
 ///     </body>
 ///   </method>
@@ -2285,7 +2374,7 @@ class Core_Strings {
 ///     </details>
 ///     <body>
   static public function contains($string, $fragment) {
-    return mb_strpos($string,  $fragment) !== false;
+    return ($fragment && (mb_strpos($string,  $fragment) !== false));
   }
 ///     </body>
 ///   </method>

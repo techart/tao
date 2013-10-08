@@ -114,12 +114,10 @@ class Dev_Benchmark_Timer implements
 ///       <arg name="note" type="string" default="''" />
 ///     </args>
 ///     <body>
-  public function repeat($times, array $call, $note = '') {
+  public function repeat($note, $times, $call, $args = array()) {
     if (!$this->started_at) $this->start();
-    for ($i = 0; $i < $times; $i++)  call_user_func_array(array($call[0], $call[1]), array_slice($call, 2));
-    return $this->lap(
-      Core::if_not($note,
-        Core_Types::virtual_class_name_for($call[0]).'::'.$call[1]));
+    for ($i = 0; $i < $times; $i++)  call_user_func_array($call, $args);
+    return $this->lap($note);
   }
 ///     </body>
 ///   </method>

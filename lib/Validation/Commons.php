@@ -1,340 +1,370 @@
 <?php
-/// <module name="Validation.Commons" version="0.2.0" maintainer="timokhin@techart.ru">
-///   <brief>Модуль предоставляет набор стандартных тестов валидации</brief>
-
+/**
+ * Набор классов стандартных тестов валидации.
+ * 
+ * @package Validation\Commons
+ */
+ 
 Core::load('Validation');
 
-/// <class name="Validation.Commons" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="Validation.Commons.FormatTest" stereotype="registers" />
-///   <depends supplier="Validation.Commons.PresenceTest" stereotype="registers" />
-///   <depends supplier="Validation.Commons.NumericalityTest" stereotype="registers" />
-///   <depends supplier="Validation.Commons.InclusionTest" stereotype="registers" />
-///   <depends supplier="Validation.Commons.ConfirmationTest" stereotype="registers" />
-///   <depends supplier="Validation.Commons.EmailTest" stereotype="registers" />
-///   <depends supplier="Validation.Commons.ContentTypeTest" stereotype="registers" />
-///   <depends supplier="Validation.Commons.NumericRangeTest" stereotype="registers" />
+/**
+ * Класс модуля
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons implements Core_ModuleInterface {
 
-///   <constants>
-  const VERSION = '0.2.0';
-///   </constants>
+	/**
+	 * Версия модуля
+	 */
+	const VERSION = '0.2.1';
+	
+	/**
+	 * @var string Регулярное выражение для проверки формата Email адреса.
+	 */
+	static protected $email_regexp = '';
 
-///   <protocol name="creating">
-///   <method name="initialize" scope="class">
-///     <brief>Инициализация модуля</brief>
-///     <body>
-  static public function initialize() {
-  }
-///     </body>
-///   </method>
-///   </protocol>
+	/**
+	 * Инициализация модуля.
+	 * 
+	 * @param array $options
+	 * 
+	 */
+	static public function initialize($options = array()) {
+		foreach ($options as $k => $v) if (isset(self::$k)) self::$k = $v;
+	}
 }
-/// </class>
 
-/// <class name="Validation.Commons.FormatTest" extends="Validation.AttributeTest">
-///   <brief>Проверяет атрибут на соответствие регулярному выражению</brief>
+/**
+ * Класс теста.
+ * 
+ * Проверяет атрибут на соответствие регулярному выражению.
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons_FormatTest extends Validation_AttributeTest {
-  protected $regexp;
+	/** @var string регулярное выражение */
+	protected $regexp;
 
-///   <protocol name="creating">
+	/**
+	 * Конструктор
+	 * 
+	 * @param string $attribute имя атрибута
+	 * @param string $regexp регулярное выражение
+	 * @param string $message сообщение об ошибке
+	 */
+	public function __construct($attribute, $regexp, $message) {
+		$this->regexp = $regexp;
+		parent::__construct($attribute, $message);
+	}
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="attribute" type="string" brief="имя атрибута" />
-///       <arg name="regexp"    type="string" brief="регулярное выражение" />
-///       <arg name="message"   type="string" brief="сообщение об ошибке" />
-///     </args>
-///     <body>
-  public function __construct($attribute, $regexp, $message) {
-    $this->regexp = $regexp;
-    parent::__construct($attribute, $message);
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="supporting">
-
-///   <method name="do_test" returns="boolean" access="protected">
-///     <brief>Производит проверку значения атрибута</brief>
-///     <args>
-///       <arg name="value" brief="значение атрибута" />
-///     </args>
-///     <body>
-  protected function do_test($value) {
-    return Core_Regexps::match($this->regexp, $value);
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/** 
+	 * Проверка значения.
+	 * 
+	 * Производит проверку значения атрибута на соответствие регулярному выражению.
+	 * 
+	 * @param string $value
+	 * 
+	 * @return boolean
+	 */
+	protected function do_test($value) {
+		return Core_Regexps::match($this->regexp, $value);
+	}
 }
-/// </class>
 
 
-/// <class name="Validation.Commons.EmailTest" extends="Validation.Commons.FormatTest">
-///   <brief>Проверяет атрибута на соответствие Email адресу</brief>
+/**
+ * Класс теста.
+ * 
+ * Проверяет атрибут на соответствие формату Email адреса.
+ * Проверка не учитывает национальные алфавиты.
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons_EmailTest extends Validation_Commons_FormatTest {
+	/**
+	 * Регулярное выражение для проверки по умочанию
+	 */
+	const REGEXP = '{^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$}';
 
-///   <protocol name="creating">
-
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="attribute" type="string" brief="имя атрибута" />
-///       <arg name="message"   type="string" brief="сообщение об ошибке" />
-///     </args>
-///     <body>
-  public function __construct($attribute, $message) {
-    parent::__construct($attribute, '{^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$}' , $message);
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/**
+	 * Конструктор
+	 * 
+	 * @todo Согласовать c Validation_Commons::$email_regexp
+	 * 
+	 * 
+	 * @param string $attribute имя атрибута
+	 * @param string $message сообщение об ошибке
+	 * @param string $regexp_email регулярное выражение null по умолчанию
+	 */
+	public function __construct($attribute, $message, $regexp_email = null) {
+		$regexp = ($regexp_email) ? $regexp_email : self::REGEXP;
+		parent::__construct($attribute, $regexp, $message);
+	}
 }
-/// </class>
 
-
-/// <class name="Validation.Commons.ConfirmationTest" extends="Validation.AbstractTest">
-///   <brief>Проверяет на соответствие два атрибута объекта</brief>
+/**
+ * Класс теста.
+ * 
+ * Проверяет атрибут на равенство значения двух атрибутов объекта.
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons_ConfirmationTest extends Validation_AbstractTest {
-  protected $attribute;
-  protected $confirmation;
-  protected $message;
+	
+	/** @var string имя атрибута */
+	protected $attribute;
+	
+	/** @var string имя атрибута */
+	protected $confirmation;
+	
+	/** @var string сообщение об ошибке */
+	protected $message;
 
-///   <protocol name="creating">
+	/**
+	 * Конструктор
+	 * 
+	 * @param string $attribute имя атрибута
+	 * @param string $confirmation имя атрибута
+	 * @param string $message сообщение об ошибке
+	 */
+	public function __construct($attribute, $confirmation, $message) {
+		$this->attribute    = $attribute;
+		$this->confirmation = $confirmation;
+		$this->message      = $message;
+	}
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="attribute" type="string" brief="имя атрибута" />
-///       <arg name="confirmation" type="string" brief="имя атрибута-соответствия" />
-///       <arg name="message" type="string" brief="сообщение об ошибке" />
-///     </args>
-///     <body>
-  public function __construct($attribute, $confirmation, $message) {
-    $this->attribute    = $attribute;
-    $this->confirmation = $confirmation;
-    $this->message      = $message;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="performing">
-
-///   <method name="test" returns="boolean">
-///     <brief>Производит проверку</brief>
-///     <args>
-///       <arg name="object" brief="объект" />
-///       <arg name="errors" type="Validation.Errors" brief="ошибки" />
-///       <arg name="array_access" type="boolean" default="false" brief="флаг индексного доступа к объекту" />
-///     </args>
-///     <body>
-  public function test($object, Validation_Errors $errors, $array_access = false) {
-    if ($this->value_of_attribute($object, $this->attribute, $array_access) != $this->value_of_attribute($object, $this->confirmation, $array_access)) {
-      $errors->
-        reject_value($this->attribute, $this->message);
-      return false;
-    }
-    return true;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/**
+	 * Производит проверку объекта.
+	 * 
+	 * Проверяет атрибут на равенство значения двух атрибутов объекта.
+	 * @see Validation_AbstractTest::value_of_attribute()
+	 * @see Validation_AbstractTest::test()
+	 * 
+	 * @param mixed $object объект проверки
+	 * @param Validation_Errors $errors Класс представляющий ошибки валидации
+	 * @param boolean $array_access флаг индексного доступа к объекту
+	 * 
+	 * @return boolean
+	 */
+	public function test($object, Validation_Errors $errors, $array_access = false) {
+		if ($this->value_of_attribute($object, $this->attribute, $array_access) != $this->value_of_attribute($object, $this->confirmation, $array_access)) {
+			$errors->reject_value($this->attribute, $this->message);
+			return false;
+		}
+		return true;
+	}
 }
-/// </class>
 
-
-/// <class name="Validation.Commons.ContentTypeTest" extends="Validation.AttributeTest">
-///   <brief>Проверяет content type файла (IO.FS.File) </brief>
+/**
+ * Класс теста.
+ * 
+ * Проверяет content type файла (IO.FS.File)
+ * @todo Написать тест
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons_ContentTypeTest extends Validation_AttributeTest {
-  protected $content_type;
+	/** @var string content type файла */
+	protected $content_type;
 
-///   <protocol name="creating">
+	/**
+	 * Конструктор
+	 * 
+	 * @param string $attribute имя атрибута
+	 * @param string $content_type content type файла
+	 * @param string $message сообщение об ошибке
+	 */
+	public function __construct($attribute, $content_type, $message) {
+		$this->content_type = $content_type;
+		parent::__construct($attribute, $message);
+	}
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="attribute"    type="string" brief="имя атрибута" />
-///       <arg name="content_type" type="string" />
-///       <arg name="message"      type="string" brief="сообщение об ошибке" />
-///     </args>
-///     <body>
-  public function __construct($attribute, $content_type, $message) {
-    $this->content_type = $content_type;
-    parent::__construct($attribute, $message);
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
-///   <protocol name="supporting">
-
-///   <method name="do_test" returns="boolean" access="protected">
-///     <brief>Проверяет content type</brief>
-///     <args>
-///       <arg name="value" brief="значение атрибута" />
-///     </args>
-///     <body>
-  protected function do_test($value) {
-    return ($value instanceof IO_FS_File) &&
-           Core_Regexps::match("^$this->content_type", $value->content_type);
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/** 
+	 * Проверка значения.
+	 * 
+	 * Производит проверку значения атрибута content_type на то, что оно 
+	 * начинается со значения content_type, переданного в конструкторе.
+	 * 
+	 * @param IO_FS_File $value
+	 * 
+	 * @return boolean
+	 */
+	protected function do_test($value) {
+		return ($value instanceof IO_FS_File) &&
+			Core_Regexps::match("!^$this->content_type!", $value->content_type);
+	}
 }
-/// </class>
 
-
-/// <class name="Validation.Commons.PresenceTest" extends="Validation.AttributeTest">
-///   <brief>Проверяет атрибут на незаполненность</brief>
+/**
+ * Класс теста.
+ * 
+ * Проверяет атрибут на незаполненность
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons_PresenceTest extends Validation_AttributeTest {
-///   <protocol name="supporting">
-///   <method name="do_test" returns="boolean" access="protected">
-///     <brief>Проверяет атрибут на отсутствие значения</brief>
-///     <args>
-///       <arg name="value" brief="значение атрибута" />
-///     </args>
-///     <body>
-  protected function do_test($value) { return $value ? true : false; }
-///     </body>
-///   </method>
-///   </protocol>
+	
+	/** 
+	 * Проверка значения.
+	 * 
+	 * Проверяет атрибут на отсутствие значения.
+	 * 
+	 * @param mixed $value
+	 * 
+	 * @return boolean
+	 */
+	protected function do_test($value)
+	{
+		if (is_string($value)) {
+			$value = trim($value);
+			return !empty($value);
+		}
+		return $value ? true : false;
+	}
 }
-/// </class>
 
-/// <class name="Validation.Commons.NumericalityTest" extends="Validation.AttributeTest">
-///   <brief>Проверяет значение атрибута на принадлежность к числам</brief>
+/**
+ * Класс теста.
+ * 
+ * Проверяет значение атрибута на принадлежность к числам
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons_NumericalityTest extends Validation_AttributeTest {
-///   <protocol name="supporting">
 
-///   <method name="do_test" returns="boolean" access="protected">
-///     <brief>Осуществляет проверку</brief>
-///     <args>
-///       <arg name="value" brief="значение атрибута" />
-///     </args>
-///     <body>
-  protected function do_test($value) { return $value == NULL || Core_Types::is_number($value); }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/** 
+	 * Проверка значения.
+	 * 
+	 * Проверяет атрибут на принадлежность к числам.
+	 * Значение NULL интерпретируется как число.
+	 * 
+	 * @param mixed $value
+	 * 
+	 * @return boolean
+	 */
+	protected function do_test($value) { return $value == NULL || Core_Types::is_number($value); }
 }
-/// </class>
 
-/// <class name="Validation.Commons.NumericRangeTest" extends="Validation.AttributeTest">
-///   <brief>Проверяет атрибут на вхождение в заданный интервал</brief>
+/**
+ * Класс теста.
+ * 
+ * Проверяет значение атрибута на вхождение в заданный числовой интервал
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons_NumericRangeTest extends Validation_AttributeTest {
-  protected $from;
-  protected $to;
+	/** @var integer начало интервала */
+	protected $from;
 
-///   <protocol name="creating">
+	/** @var integer конец интервала */
+	protected $to;
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///   <args>
-///     <arg name="name"    type="number" brief="имя атрибута" />
-///     <arg name="from"    type="number" brief="начало интервала" />
-///     <arg name="to"      type="number" brief="конеуц интервала" />
-///     <arg name="message" type="string" brief="сообщение об ошибке" />
-///   </args>
-///   <body>
-  public function __construct($name, $from, $to, $message) {
-    $this->from = $from;
-    $this->to   = $to;
-    parent::__construct($name, $message);
-  }
-///   </body>
-///   </method>
+	/**
+	 * Конструктор
+	 * 
+	 * @param string $attribute имя атрибута
+	 * @param string|integer $from начало интервала
+	 * @param string|integer $to конец интервала
+	 * @param string $message сообщение об ошибке
+	 */
+	public function __construct($attribute, $from, $to, $message) {
+		$this->from = $from;
+		$this->to   = $to;
+		parent::__construct($attribute, $message);
+	}
 
-///   </protocol>
-
-///   <protocol name="supporting">
-
-///   <method name="do_test" returns="boolean" access="protected">
-///     <brief>Производит проверку</brief>
-///     <args>
-///       <arg name="value" brief="значение атрибута" />
-///     </args>
-///     <body>
-  protected function do_test($value) {
-    return Core_Types::is_number($value) && ($value >= $this->from) && ($value <= $this->to);
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/** 
+	 * Проверка значения.
+	 * 
+	 * Проверяет значение атрибута на вхождение в заданный числовой интервал.
+	 * Границы интервала считаются входящими в интервал. Если границы были представлены  
+	 * в виде строк и не могут быть преобразованы в числа, то они преобразуются в значения 0.
+	 * 
+	 * @param string|integer $value
+	 * 
+	 * @return boolean
+	 */
+	protected function do_test($value) {
+		return Core_Types::is_number($value) && ($value >= $this->from) && ($value <= $this->to);
+	}
 }
-/// </class>
 
-/// <class name="Validation.Commons.InclusionTest" extends="Validation.AttributeTest">
-///   <brief>Проверяет вхождение значения атрибута в заданный набор значений</brief>
+/**
+ * Класс теста.
+ * 
+ * Проверяет значение атрибута на вхождение в заданный набор значений.
+ * 
+ * Класс может проверять вхождение элемента в набор элементов и 
+ * равенство значения свойства объекта одному из значений этого свойства 
+ * в наборе объектов.
+ * 
+ * Для проверки вхождения элемента в набор элементов:
+ * параметр $values конструктора должен быть набором элементов(объектов, массивов, скаляров), 
+ * среди которых будет выполняться поиск элемента $value.
+ * $value должен быть того же типа, набором которых является параметр конструктора $values.
+ * Параметр конструктора $options в этом случае не используется.
+ * 
+ * Для проверки равенство значения свойства объекта одному из значений 
+ * этого свойства в наборе объектов:
+ * параметр $values конструктора должен быть набором объектов,
+ * $value должен быть объектом,
+ * параметр конструктора $options должен содержать ключ 'attribute' и 
+ * значением этого ключа должно быть имя проверяемого свойства объекта, переданного в $value.
+ * Каждый из набора объектов $values должен содержать свойство с таким же именем.
+ * 
+ * @package Validation\Commons
+ */
 class Validation_Commons_InclusionTest extends Validation_AttributeTest {
-  protected $values;
-  protected $options = array( 'attribute' => false );
+	/** @var mixed[] набор значений */
+	protected $values;
+	
+	/** @var array массив атрибутов по умолчанию array( 'attribute' => false ) */
+	protected $options = array( 'attribute' => false );
 
-///   <protocol name="creating">
+	/**
+	 * Конструктор
+	 * 
+	 * @param string $attribute имя атрибута
+	 * @param mixed[] $values начало интервала
+	 * @param string $message сообщение об ошибке
+	 * @param array $options массив атрибутов 
+	 */
+	public function __construct($attribute, $values, $message, array $options = array()) {
+		$this->values = $values;
+		Core_Arrays::update($this->options, $options);
+		parent::__construct($attribute, $message);
+	}
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="attribute" type="string" brief="имя атрибута" />
-///       <arg name="values" brief="набор значений" />
-///       <arg name="message" brief="сообщение об ошибке" />
-///       <arg name="options" type="array" default="array()" brief="массив атрибутов" />
-///     </args>
-///     <body>
-  public function __construct($attribute, $values, $message, array $options = array()) {
-    $this->values = $values;
-    Core_Arrays::update($this->options, $options);
-    parent::__construct($attribute, $message);
-  }
-///     </body>
-///   </method>
+	/**
+	 * Проверка значения.
+	 * 
+	 * @param mixed $value См. описание работы класса.
+	 * 
+	 * @return boolean
+	 */
+	protected function do_test($value) {
+		foreach ($this->values as $v)
+			if ($this->is_equal($v, $value)) return true;
+		return false;
+	}
 
-///   </protocol>
-
-///   <protocol name="supporting">
-
-///   <method name="do_test" returns="boolean" access="protected">
-///     <brief>Осуществляет проверку</brief>
-///     <args>
-///       <arg name="value" type="string" brief="значение атрибута" />
-///     </args>
-///     <body>
-  protected function do_test($value) {
-    foreach ($this->values as $v)
-      if ($this->is_equal($v, $value)) return true;
-    return false;
-  }
-///     </body>
-///   </method>
-
-///   <method name="is_equal" returns="boolean" access="protected">
-///     <args>
-///       <arg name="arg1" />
-///       <arg name="arg2" />
-///     </args>
-///     <body>
-  protected function is_equal($arg1, $arg2) {
-    return ($attribute = $this->options['attribute']) ?
-      $arg1->$attribute == $arg2->$attribute :
-      $arg1 == $arg2;
-  }
-///     </body>
-///   </method>
-
-/// </protocol>
+	/**
+	 * Сравнение значений.
+	 * 
+	 * Сравнивает:
+	 * - свои атрибуты своих аргументов, если в массиве атрибутов значение ключа attribute установлено;
+	 * - сами аргументы, если не установлено.
+	 * 
+	 * @param mixed $arg1
+	 * @param mixed $arg2
+	 * 
+	 * @return boolean
+	 */
+	protected function is_equal($arg1, $arg2) {
+		return ($attribute = $this->options['attribute']) ?
+			isset($arg1->$attribute) && isset($arg2->$attribute) && 
+				$arg1->$attribute == $arg2->$attribute :
+			$arg1 == $arg2;
+	}
 }
-/// </class>
-
-/// </module>

@@ -5,7 +5,7 @@ class Templates_HTML_Postprocess implements Core_ConfigurableModuleInterface {
   const VERSION = '0.1.0';
   
   static protected $options = array(
-    'minify_php_dir' => '../extern/Minify/'
+    'minify_php_dir' => '../vendor/Minify/'
   );
   
   static public function initialize(array $options = array()) {
@@ -32,20 +32,31 @@ class Templates_HTML_Postprocess implements Core_ConfigurableModuleInterface {
 }
 
 interface Templates_HTML_Postprocess_PostprocessorInterface {
-  public function postprocess(&$path, &$contnet);
+  public function postprocess(&$path, &$content);
 }
 
 
 class Templates_HTML_Postprocess_MinifyCSSPostprocessor implements Templates_HTML_Postprocess_PostprocessorInterface {
-	public function postprocess(&$path, &$contnet) {
-		require_once(Templates_HTML_Postprocess::option('minify_php_dir') . 'Compressor.php');
-		$contnet = Minify_CSS_Compressor::process($contnet);
+
+	public function postprocess(&$path, &$content) {
+    if (!class_exists('CssMin')) {
+      $dir = Templates_HTML_Postprocess::option('minify_php_dir');
+		  require_once($dir . 'CssMin/CssMin.php');
+    }
+    $m = new CssMinifier($content, $filters, $plugins);
+    $content = $m->getMinified();
 	}
+
 }
 
 class Templates_HTML_Postprocess_MinifyJSPostprocessor implements Templates_HTML_Postprocess_PostprocessorInterface {
-	public function postprocess(&$path, &$contnet) {
-		require_once(Templates_HTML_Postprocess::option('minify_php_dir') . 'JSMin.php');
-     	$contnet =  JSMin::minify($contnet);
+
+	public function postprocess(&$path, &$content) {
+    if (!class_exists('JSMinPlus')) {
+      $dir = Templates_HTML_Postprocess::option('minify_php_dir');
+      require_once($dir . 'JSMin/JSMin.php');
+    }
+    $content = JSMinPlus::minify($content);
 	}
+
 }

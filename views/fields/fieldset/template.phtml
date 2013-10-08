@@ -1,6 +1,10 @@
 <table class="fieldset fieldset-<?= $name ?>"><tr><?php
+
 if (isset($data['fields'])) {
-	foreach($data['fields'] as $field => $fdata) {
+	$fields = $data['fields'];
+	unset($data['fields']);
+	foreach($fields as $field => $fdata) {
+		$fdata = array_merge($data, $fdata);
 		if (isset($fdata['caption'])) {
 			$caption = trim($fdata['caption']);
 			print "<th class=\"caption caption-{$field}\">{$caption}</th>";
@@ -13,7 +17,8 @@ if (isset($data['fields'])) {
 			$this->use_scripts(CMS::stdfile_url('scripts/validation.js'));
 		}
 		
-		print '<td>';
+		print "<td class='field field-$field {$ftype->url_class()}'>";
+		$ftype->view($this);
 		print $ftype->draw($field,$fdata);
 		print '</td>';
 		

@@ -12,25 +12,25 @@ div.round-corner-rb {
 
 
 div.round-corner-lt { 
-	background-image: url(/files/_assets/images/round/round-lt.gif);
+	background-image: url(/tao/images/round/round-lt.gif);
 	top: -1px;
 	left: -1px; 
 }
 
 div.round-corner-rt { 
-	background-image: url(/files/_assets/images/round/round-rt.gif);
+	background-image: url(/tao/images/round/round-rt.gif);
 	top: -1px;
 	right: -1px; 
 }
 
 div.round-corner-lb { 
-	background-image: url(/files/_assets/images/round/round-lb.gif);
+	background-image: url(/tao/images/round/round-lb.gif);
 	bottom: -1px;
 	left: -1px; 
 }
 
 div.round-corner-rb { 
-	background-image: url(/files/_assets/images/round/round-rb.gif);
+	background-image: url(/tao/images/round/round-rb.gif);
 	bottom: -1px;
 	right: -1px; 
 }

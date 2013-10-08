@@ -1,188 +1,237 @@
 <?php
-/// <module name="DB.Adapter.MySQL" version="0.2.0" maintainer="timokhin@techart.ru">
-///   <brief>MySQL адаптер</brief>
+/**
+ * MySQL адаптер
+ * 
+ * @author Timokhin <timokhin@techart.ru>
+ * 
+ * @package DB\Adapter\MySQL
+ */
 
 Core::load('DB.Adapter.PDO', 'Time');
 
-/// <class name="DB.Adapter.MySQL" stereotype="module">
-class DB_Adapter_MySQL implements Core_ModuleInterface {
-///   <constants>
-  const VERSION = '0.2.0';
-///   </constants>
+/**
+ * Класс модуля
+ * 
+ * @version 0.2.0
+ * 
+ * @package DB\Adapter\MySQL
+ */
+class DB_Adapter_MySQL implements Core_ModuleInterface
+{
+	/** 
+	 * Версия модуля
+	 */
+	const VERSION = '0.2.0';
 }
-/// </class>
 
-/// <class name="DB.Adapter.MySQL.Connection" extends="DB.Adapter.PDO.Connection">
-///   <brief>Класс подключения к БД</brief>
-class DB_Adapter_MySQL_Connection extends DB_Adapter_PDO_Connection {
-  protected $schema;
+/**
+ * Класс подключения к БД
+ * 
+ * @package DB\Adapter\MySQL
+ */
+class DB_Adapter_MySQL_Connection extends DB_Adapter_PDO_Connection
+{
+	/**
+	 * @var DB_Adapter_MySQL_Schema Схема 
+	 */
+	protected $schema;
 
-///   <protocol name="processing">
+	/**
+	 * Подготавливает SQL-запрос к выполнению
+	 * 
+	 * @params string $sql SQL-запрос
+	 * 
+	 * @throws DB_ConnectionException Если сервер базы данных не может успешно подготовить утверждение
+	 * 
+	 * @return DB_Adapter_MySQL_Cursor
+	 */
+	public function prepare($sql)
+	{
+		try {
+			return new DB_Adapter_MySQL_Cursor($this->pdo->prepare($sql));
+		} catch (PDOException $e) {
+			throw new DB_ConnectionException($e->getMessage());
+		}
+	}
 
-///   <method name="prepare" returns="DB.Adapter.MySQL.Cursor">
-///     <brief>Подготавливает SQL-запрос к выполнению</brief>
-///     <args>
-///       <arg name="sql" type="string" brief="sql-запрос" />
-///     </args>
-///     <body>
-  public function prepare($sql) {
-    try {
-      return new DB_Adapter_MySQL_Cursor($this->pdo->prepare($sql));
-    } catch (PDOException $e) {
-      throw new DB_ConnectionException($e->getMessage());
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Преобразует значение в пригодный вид для вставки в sql запрос
+	 * 
+	 * @params mixed $value значение
+	 * 
+	 * @return mixed
+	 */
+	public function cast_parameter($value)
+	{
+		if ($value instanceof Time_DateTime) {
+			return $value->format(Time::FMT_DEFAULT);
+		} else {
+			return $value;
+		}
+	}
 
-///   <method name="cast_parameter" returns="mixed">
-///     <brief>Преобразует значение в пригодный вид для вставки в sql запрос</brief>
-///     <args>
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
-  public function cast_parameter($value) {
-    if ($value instanceof Time_DateTime)
-      return $value->format(Time::FMT_DEFAULT);
-    else
-      return $value;
-  }
-///     </body>
-///   </method>
+	/**
+	 * Проверяет требуется ли преобразовывать значение
+	 * 
+	 * @params mixed $value значение
+	 * 
+	 * @return boolean
+	 */
+	public function is_castable_parameter($value)
+	{
+		return ($value instanceof Time_DateTime);
+	}
 
-///   <method name="is_castable_parameter" returns="boolean">
-///     <brief>Проверяет требуется ли преобразовывать значение</brief>
-///     <args>
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
-  public function is_castable_parameter($value) {
-    return ($value instanceof Time_DateTime);
-  }
-///     </body>
-///   </method>
+	/**
+	 * Вызывается в DB.Connection после соединения
+	 */
+	public function after_connect()
+	{
+		$this->pdo->exec('SET NAMES '.DB::option('charset'));
+	}
 
-///   <method name="after_connect">
-///     <brief>Вызывается в DB.Connection после соединения</brief>
-///     <body>
-  public function after_connect() {
-    $this->pdo->exec('SET NAMES '.DB::option('charset'));
-  }
-///     </body>
-///   </method>
+	/**
+	 * Выполняет EXPLAIN для анализа запроса.
+	 * 
+	 * @params string $sql sql-запрос
+	 * @params array $binds массив параметров
+	 * 
+	 * @return array массив строк
+	 */
+	public function explain($sql, $binds)
+	{
+		$c = $this->prepare("EXPLAIN ($sql)");
+		$c->execute($binds);
+		
+		$result = array();
+		foreach ($c->fetch_all() as $v) {
+			$result[] = Core::object($v);
+		}
+		return $result;
+	}
 
-///   <method name="explain">
-///     <brief>Выполняет EXPLAIN для анализа запроса. Возвращает массив строк</brief>
-///     <args>
-///       <arg name="sql" type="string" brief="sql-запрос" />
-///       <arg name="binds" type="array" brief="массив параметров" />
-///     </args>
-///     <body>
-  public function explain($sql, $binds) {
-  $c = $this->prepare("EXPLAIN ($sql)");
-    $c->execute($binds);
-    $result = array();
-    foreach ($c->fetch_all() as $v)
-      $result[] = Core::object($v);
-    return $result;
-  }
-///     </body>
-///   </method>
-///   </protocol>
+	/**
+	 * Получает схему
+	 * 
+	 * @return DB_Adapter_MySQL_Schema
+	 */
+	public function get_schema()
+	{
+		return isset($this->schema) ? 
+			$this->schema : 
+			$this->schema = new DB_Adapter_MySQL_Schema();
+	}
 
-  public function get_schema() {
-    return isset($this->schema) ? $this->schema : $this->schema = new DB_Adapter_MySQL_Schema();
-  }
-
-  public function escape_identifier($str) {
-    return "`$str`";
-  }
+	/**
+	 * Заключает параметр в обратные кавычки
+	 * 
+	 * @params string $str
+	 * 
+	 * @return string
+	 */
+	public function escape_identifier($str)
+	{
+		return "`$str`";
+	}
 }
-/// </class>
 
 
-/// <class name="DB.Adapter.MySQL.Cursor">
-///   <brief>Класс курсора БД</brief>
-class DB_Adapter_MySQL_Cursor extends DB_Adapter_PDO_Cursor {
-///   <protocol name="processing">
-
-///   <method name="cast_column" returns="mixed">
-///     <brief>Преобразует значение полученное из БД в нужный формат, для работы с ним в php</brief>
-///     <args>
-///       <arg name="metadata" type="DB.ColumnMeta" brief="мета-данный колонки" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
-  public function cast_column(DB_ColumnMeta $metadata, $value) {
-      switch ($metadata->type) {
-      case 'datetime':
-      case 'timestamp':
-      case 'time':
-      case 'date':
-        return is_null($value) ? null : Time::DateTime($value);
-      case 'boolean':
-        return $value ? true : false;
-      case 'longlong':
-      case 'int24':
-      case 'integer':
-      case 'long':
-      case 'tiny':
-      case 'short':
-        return is_null($value) ? null : (int) $value;
-      case 'float':
-      case 'double':
-        return is_null($value) ? null : (float) $value;
-      default:
-        return $value;
-    }
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+/**
+ * Класс курсора БД
+ * 
+ * @package DB\Adapter\MySQL
+ */
+class DB_Adapter_MySQL_Cursor extends DB_Adapter_PDO_Cursor
+{
+	/**
+	 * Преобразует значение
+	 * 
+	 * Преобразует значение полученное из БД в нужный формат, для работы с ним в php
+	 * 
+	 * @params DB_ColumnMeta $metadata мета-данные колонки
+	 * @params mixed $value значение
+	 * 
+	 * @return mixed
+	 */
+	public function cast_column(DB_ColumnMeta $metadata, $value)
+	{
+		switch ($metadata->type) {
+			case 'datetime':
+			case 'timestamp':
+			case 'time':
+			case 'date':
+				return is_null($value) ? null : Time::DateTime($value);
+			case 'boolean':
+				return $value ? true : false;
+			case 'longlong':
+			case 'int24':
+			case 'integer':
+			case 'long':
+			case 'tiny':
+			case 'short':
+				return is_null($value) ? null : (int) $value;
+			case 'float':
+			case 'double':
+				return is_null($value) ? null : (float) $value;
+			default:
+				return $value;
+		}
+	}
 }
-/// </class>
 
-class DB_Adapter_MySQL_Schema implements DB_Adapter_SchemaInterface {
+/**
+ * Класс схемы БД
+ * 
+ * @package DB\Adapter\MySQL
+ */
+class DB_Adapter_MySQL_Schema implements DB_Adapter_SchemaInterface 
+{
 
-  protected static $type_map = array(
-      'varchar:normal'  => 'VARCHAR',
-      'char:normal'     => 'CHAR',
+	protected static $type_map = array(
+		'varchar:normal'  => 'VARCHAR',
+		'char:normal'     => 'CHAR',
 
-      'text:tiny'       => 'TINYTEXT',
-      'text:small'      => 'TINYTEXT',
-      'text:medium'     => 'MEDIUMTEXT',
-      'text:big'        => 'LONGTEXT',
-      'text:normal'     => 'TEXT',
+		'text:tiny'       => 'TINYTEXT',
+		'text:small'      => 'TINYTEXT',
+		'text:medium'     => 'MEDIUMTEXT',
+		'text:big'        => 'LONGTEXT',
+		'text:normal'     => 'TEXT',
 
-      'serial:tiny'     => 'TINYINT',
-      'serial:small'    => 'SMALLINT',
-      'serial:medium'   => 'MEDIUMINT',
-      'serial:big'      => 'BIGINT',
-      'serial:normal'   => 'INT',
+		'serial:tiny'     => 'TINYINT',
+		'serial:small'    => 'SMALLINT',
+		'serial:medium'   => 'MEDIUMINT',
+		'serial:big'      => 'BIGINT',
+		'serial:normal'   => 'INT',
 
-      'int:tiny'        => 'TINYINT',
-      'int:small'       => 'SMALLINT',
-      'int:medium'      => 'MEDIUMINT',
-      'int:big'         => 'BIGINT',
-      'int:normal'      => 'INT',
+		'int:tiny'        => 'TINYINT',
+		'int:small'       => 'SMALLINT',
+		'int:medium'      => 'MEDIUMINT',
+		'int:big'         => 'BIGINT',
+		'int:normal'      => 'INT',
 
-      'float:tiny'      => 'FLOAT',
-      'float:small'     => 'FLOAT',
-      'float:medium'    => 'FLOAT',
-      'float:big'       => 'DOUBLE',
-      'float:normal'    => 'FLOAT',
+		'float:tiny'      => 'FLOAT',
+		'float:small'     => 'FLOAT',
+		'float:medium'    => 'FLOAT',
+		'float:big'       => 'DOUBLE',
+		'float:normal'    => 'FLOAT',
 
-      'numeric:normal'  => 'DECIMAL',
+		'numeric:normal'  => 'DECIMAL',
 
-      'blob:big'        => 'LONGBLOB',
-      'blob:normal'     => 'BLOB',
-      
-      'timestamp:normal' => 'TIMESTAMP',
-      'datetime:normal' => 'DATETIME',
-      'date:normal' => 'DATE' 
-    );
+		'blob:big'        => 'LONGBLOB',
+		'blob:normal'     => 'BLOB',
 
+		'timestamp:normal' => 'TIMESTAMP',
+		'datetime:normal' => 'DATETIME',
+		'date:normal' => 'DATE' 
+	);
+
+	/**
+	 * Определение столбцов
+	 * 
+	 * @params array $column
+	 * 
+	 * @return string
+	 */
   public function column_definition($column) {
     $column = $this->map_column($column);
     if (isset($column['mysql_definition'])) return $column['mysql_definition'];

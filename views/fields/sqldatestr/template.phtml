@@ -7,14 +7,5 @@ if (!isset($tagparms['style'])) {
 	
 }
 
-if (isset($data['datepicker'])&&$data['datepicker']) {
-	$this->use_scripts(CMS::stdfile_url('scripts/date.js'));
-	$this->use_scripts(CMS::stdfile_url('scripts/datepicker.js'));
-	$this->use_scripts(CMS::stdfile_url('scripts/datepick.js'));
-	$this->use_styles(CMS::stdfile_url('styles/datepicker.css'));
-	$tagparms['class'] = 'date-pick dp-applied';
-}
-
-
 ?>
 <?= $this->forms->input($name,$tagparms) ?>

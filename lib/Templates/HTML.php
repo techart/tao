@@ -22,8 +22,9 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
   
   static protected $options = array(
     'template_class' => 'Templates.HTML.Template',
+    'paths' => array('css' => 'styles', 'js' => 'scripts', '_fallback' => 'image'),
     'assets' => '',
-    'copy_dir' => '/%files%/copy',
+    'copy_dir' => 'copy',
     'extern_file_prefix' => 'file://',
     'css_dir' => 'styles',
     'js_dir' => 'scripts',
@@ -194,14 +195,23 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
         return $res;
       }
       $ext = pathinfo($file, PATHINFO_EXTENSION);
+      $paths = Templates_HTML::option('paths');
       $mtime = @filemtime($res);
       if ($mtime) {
         $name = md5($res . $mtime);
-        $dir = sprintf('.%s/%s', self::option('copy_dir'), $ext);
-        if (!is_dir($dir)) IO_FS::mkdir($dir, null, true);
+        $dir = trim(self::option('copy_dir'), '/');
+        $root = $paths['_fallback'];
+        if (isset($paths[$ext])) {
+          $root = $paths[$ext];
+        }
+        $dir = $root . '/' . $dir;
+        if (!is_dir($dir)) {
+          IO_FS::mkdir($dir, null, true);
+        }
         $path = sprintf('%s/%s.%s', $dir, $name, $ext);
-        if (IO_FS::exists($path) || IO_FS::cp($res, $path))
-          return ltrim($path, '.');
+        if (IO_FS::exists($path) || IO_FS::cp($res, $path)) {
+          return '/' . ltrim($path, '.');
+        }
       }
     }
     return $file;
@@ -291,6 +301,7 @@ class Templates_HTML_Template
   protected $scripts_settings = array();
   protected $enable_less = false;
   protected $no_duplicates = array();
+  protected $partial_paths = array();
 
 ///   <protocol name="creating">
 
@@ -455,7 +466,7 @@ class Templates_HTML_Template
     $settings = array_merge(Templates_HTML::scripts_settings(), $this->scripts_settings);
     if (!empty($settings)) {
       //FIXME: путь к файлу
-      $this->use_script('/files/_assets/scripts/tao.js', array('type' => 'lib', 'weight' => -15));
+      $this->use_script('/tao/scripts/tao.js', array('type' => 'lib', 'weight' => -15));
       $src = '';
       $values = array();
       foreach ($settings as $val)
@@ -473,11 +484,13 @@ class Templates_HTML_Template
       $res = '';
       foreach ($this->agregators as $type => $a) {
           $method =  $type . '_link';
-          foreach ($a as $file) {
+          foreach ($a as $file_path => $file) {
+              $options = !empty($file) && isset($file['attrs']) ? $file['attrs'] : array();
+              $add_timestamp = !empty($file) && isset($file['add_timestamp']) ? $file['add_timestamp'] : Templates_HTML::option('add_timestamp');
               if (method_exists($this, $method))
-                  $res .= $this->$method($file);
+                  $res .= $this->$method($file_path, $options, $add_timestamp);
               else
-                  $res .= $this->get_helpers()->$method($file);
+                  $res .= $this->get_helpers()->$method($file_path, $options, $add_timestamp);
           }
       }
       return $res;
@@ -523,6 +536,13 @@ class Templates_HTML_Template
 ///     <body>
   public function inside(Templates_NestableTemplate $container) {
     parent::inside($container);
+    foreach ($this->agregators as $name => $ag) {
+      foreach ($ag as $fname => $finfo) {
+        if (!isset($container->agregators[$name][$fname])) {
+          $container->agregators[$name]->add_file_array($fname, $finfo);
+        }
+      }
+    }
     $this->agregators = $container->agregators;
     return $this;
   }
@@ -864,10 +884,10 @@ class Templates_HTML_Template
 ///       <arg name="options" type="array" />
 ///     </args>
 ///     <body>
-  public function js_link($path, array $options = array()) {
+  public function js_link($path, array $options = array(), $add_timestamp = true) {
     return $this->content_tag('script',  '',
         array_merge(array(
-            'src' => $this->js_path($path)
+            'src' => $this->js_path($path, $add_timestamp)
           ),
           $options))."\n";
   }
@@ -881,32 +901,34 @@ class Templates_HTML_Template
 ///       <arg name="options" type="array" />
 ///     </args>
 ///     <body>
-  public function css_link($path, array $options = array()) {
+  public function css_link($path, array $options = array(),  $add_timestamp = true) {
     return $this->tag('link',
         array_merge(array(
             'rel' => 'stylesheet',
             'type' => 'text/css',
-            'href' => $this->css_path($path) 
+            'href' => $this->css_path($path, $add_timestamp)
           ),
           $options))."\n";
   }
 ///     </body>
 ///   </method>
 
-  protected function js_path($path) {
-    return $this->add_timestamp(Templates_HTML::js_path($path));
+  protected function js_path($path, $add_timestamp = true) {
+    $path = Templates_HTML::js_path($path);
+    return $add_timestamp ? $this->add_timestamp($path) : $path;
   }
   
   protected function add_timestamp($link) {
     $ts = @filemtime('./' . ltrim($link, '/'));
     $is_joined = Core_Strings::starts_with($link, Templates_HTML_Includes::option('join_dir'));
-    return Templates_HTML::option('add_timestamp') && !empty($ts) && !$is_joined ?
+    return !empty($ts) && !$is_joined ?
       sprintf(Templates_HTML::option('timestamp_pattern'), $link, $ts) :
       $link;
   }
   
-  protected function css_path($path) {
-    return $this->add_timestamp(Templates_HTML::css_path($path));
+  protected function css_path($path, $add_timestamp = true) {
+    $path = Templates_HTML::css_path($path);
+    return $add_timestamp ? $this->add_timestamp($path) : $path;
   }
 
 ///   <method name="js" returns="Templates.HTML.Template">
@@ -1137,6 +1159,31 @@ class Templates_HTML_Template
 ///     </body>
 ///   </method>
 
+  public function set_patrial_paths($paths = array(), $base_name = '')
+  {
+    $suffix = trim(preg_replace('{/?[^/]+$}', '', $base_name), './');
+    if ($base_name && $suffix) {
+      foreach ($paths as $k => $p) {
+          $paths[$k] = trim($p, '/') . '/' . $suffix;
+      }
+    }
+    $this->partial_paths = $paths;
+    return $this;
+  }
+
+  public function partial_paths($paths = array(), $base_name = '')
+  {
+    if (!empty($paths)) {
+      $this->set_patrial_paths($paths, $base_name);
+    }
+    $result = $this->partial_paths;
+    $base_path = preg_replace('{/[^/]+$}', '', $this->get_path()) . '/';
+    if (array_search($base_path, $result) === false) {
+      $result[] = $base_path;
+    }
+    return $result;
+  }
+
 ///   <method name="get_partial_path" returns="string" access="protected">
 ///     <brief>Возвращает путь до partial шаблона</brief>
 ///     <args>
@@ -1150,9 +1197,17 @@ class Templates_HTML_Template
         if (Core_Strings::ends_with($t['file'], $this->extension)) break;
       return Templates::add_extension(dirname($trace[$k]['file']) . '/' . substr($name, 1), $this->extension);
     }
-    return Templates::is_absolute_path($name) ?
-      Templates::add_extension($name, $this->extension) :
-      preg_replace('{/[^/]+$}', '', $this->get_path()) . '/' . Templates::add_extension($name, $this->extension);
+    $file = Templates::add_extension($name, $this->extension);
+    if (Templates::is_absolute_path($name)) {
+      return $file;
+    }
+    foreach ($this->partial_paths() as $path) {
+      $result = trim($path.'/') . '/'. $file;
+      if (is_file($result)) {
+        return $result;
+      }
+    }
+    return $result;
   }
 ///     </body>
 ///   </method>
@@ -1230,7 +1285,7 @@ class Templates_HTML_Template
 
   protected function filter($content) {
     $content = $this->allow_filtering ? $this->filter_custom($content) : $content;
-    $content = $this->filter_required($content);
+    $content = $this->root->filter_required($content);
     return $content;
   }
   
@@ -1380,12 +1435,13 @@ class Templates_HTML_Metas implements Core_PropertyAccessInterface,
 ///   <method name="as_string" returns="string">
 ///     <body>
   public function as_string() {
+    $result = '';
     if (isset($this->http['content_type'])) {
       $result = $this->http_to_string('content_type', $this->http['content_type']);
       unset($this->http['content_type']);
     }
     
-    $result = sprintf("<title>%s</title>\n", htmlspecialchars($this->title));
+    $result .= sprintf("<title>%s</title>\n", htmlspecialchars($this->title));
     
     foreach ($this->http as $name => $content)
       $result .= $this->http_to_string($name, $content);

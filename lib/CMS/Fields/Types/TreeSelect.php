@@ -31,9 +31,9 @@ class CMS_Fields_Types_TreeSelect extends CMS_Fields_AbstractField implements Co
 		$l->append_to('js', $code);
 		$l->with('url_class', $id);
 		
-		$l->use_scripts(CMS::stdfile_url('scripts/fields/tree_select.js'));
-		$l->use_styles(CMS::stdfile_url('styles/fields/tree_select.css'));
-		$l->use_scripts(CMS::stdfile_url('scripts/jquery.scrollTo-min.js'));
+		$l->use_scripts(CMS::stdfile_url('scripts/fields/tree-select.js'));
+		$l->use_styles(CMS::stdfile_url('styles/fields/tree-select.css'));
+		$l->use_scripts(CMS::stdfile_url('scripts/jquery/scroll-to.js'));
 		return parent::layout_preprocess($l, $name, $data);
 	}
 	

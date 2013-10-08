@@ -1,7 +1,11 @@
 <?php
-    $this->use_styles(CMS::stdfile_url('styles/tabs.css'));
-    $this->use_scripts(CMS::stdfile_url('scripts/tabs.js'));
-    $key = md5(WS::env()->request->path);
+	$this->use_styles(CMS::stdfile_url('styles/jquery/tabs.css'));
+	$this->use_script(CMS::stdfile_url('scripts/jquery/tabs.js'), array('weight' => -10));
+	$key = md5(WS::env()->request->path);
+
+	$tabs_parms = array('fxAutoHeight' => true);
+	Events::call("cms.table.tabs_parms",$tabs_parms);
+	Events::call("{$mnemocode}.tabs_parms",$tabs_parms);
 ?>
 
 <ul class="tabs-nav">
@@ -16,10 +20,8 @@
 	</div>
 <?php } ?>
 
-<script type="text/javascript">
-<!--
+<?php $this->begin('js'); ?>
 $(function(){
-	$('#admin-table-form-tabs-<?= $key ?>').tabs({fxAutoHeight:true});
+	$('#admin-table-form-tabs-<?= $key ?>').tabs_light(<?= json_encode($tabs_parms) ?>);
 });
-//-->
-</script>
+<?php $this->end('js'); ?>

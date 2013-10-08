@@ -1,8 +1,8 @@
 <?php 
 	if ($parms['datepicker']||$type=='icalendar') {
-		print CMS::stdstyle('datepicker.css');
+		print CMS::stdstyle('jquery/datepicker.css');
 		print CMS::stdscript('date.js','scripts/date.js');
-		print CMS::stdscript('datepicker.js');
+		print CMS::stdscript('jquery/datepicker.js');
 		print CMS::stdscript('datepick.js','scripts/datepick.js');
 		$parms['class'] = 'date-pick dp-applied';
 	}

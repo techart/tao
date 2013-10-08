@@ -147,6 +147,7 @@ abstract class DB_ORM_Mapper
              Core_CallInterface {
 
   protected $parent;
+  protected $maps = array();
 
 ///   <protocol name="creating">
 
@@ -209,45 +210,54 @@ abstract class DB_ORM_Mapper
 ///     </body>
 ///   </method>
 
+
+  public function map($name, $callback)
+  {
+    if (Core_Types::is_callable($callback)) {
+      if ($callback instanceof Closure && method_exists($callback, 'bindTo')) {
+        $callback = $callback->bindTo($m = $this->spawn(), $m);
+      }
+      $this->maps[$name] = $callback;
+    }
+    return $this;
+  }
+
+
 ///   </protocol>
 
-///   <protocol name="mapping">
+	/**
+	 * Определяет, реализует ли данный маппер отображение метода $method
+	 * 
+	 * Если отображение поддерживается, возвращается имя метода, 
+	 * выполняющего отображение, в противном случае возвращается false.
+	 * 
+	 * @param string $method имя метода
+	 * 
+	 * @return string|boolean
+	 */
+	public function can_cmap($method) {
+		$default = $this->__can_map($method, true);
+		return method_exists($this,    "cmap_$method") ? "cmap_$method" :
+			(method_exists($this, "map_$method")  ? "map_$method"  :
+				( ($this->parent && !$default) ? $this->parent->can_cmap($method) :  $default));
+	}
 
-///   <method name="can_cmap" returns="string">
-///     <brief>Определяет, реализует ли данный маппер отображение метода $method</brief>
-///     <args>
-///       <arg name="method" type="string" brief="имя метода" />
-///     </args>
-///     <details>
-///       <p>Если отображение поддерживается, возвращается имя метода, выполняющего отображение, в противном случае
-///          возвращается false.</p>
-///     </details>
-///     <body>
-  public function can_cmap($method) {
-    $default = $this->__can_map($method, true);
-    return method_exists($this,    "cmap_$method") ? "cmap_$method" :
-             (method_exists($this, "map_$method")  ? "map_$method"  :
-             ( ($this->parent && !$default) ? $this->parent->can_cmap($method) :  $default));
-  }
-///     </body>
-///   </method>
-
-///   <method name="can_pmap" returns="string">
-///     <brief>Определяет, реализует ли данный маппер отображение свойства $property</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <details>
-///       <p>Если отображение поддерживается, возвращается имя метода, выполняющего отображение, в противном случае
-///          возвращается false.</p>
-///     </details>
-///     <body>
-  public function can_pmap($property) {
-    $default = $this->__can_map($property, false);
-    return method_exists($this,    "pmap_$property") ? "pmap_$property" :
-             (method_exists($this, "map_$property")  ? "map_$property"  : 
-             ( ($this->parent && !$default) ? $this->parent->can_pmap($property) : $default));
-  }
+	/**
+	 * Определяет, реализует ли данный маппер отображение свойства $property
+	 * 
+	 * Если отображение поддерживается, возвращается имя метода, 
+	 * выполняющего отображение, в противном случае возвращается false.
+	 * 
+	 * @param string $property имя свойства
+	 * 
+	 * @return string|boolean
+	 */
+	public function can_pmap($property) {
+		$default = $this->__can_map($property, false);
+		return method_exists($this,    "pmap_$property") ? "pmap_$property" :
+			(method_exists($this, "map_$property")  ? "map_$property"  : 
+				( ($this->parent && !$default) ? $this->parent->can_pmap($property) : $default));
+	}
 ///     </body>
 ///   </method>
 
@@ -257,7 +267,10 @@ abstract class DB_ORM_Mapper
 ///       <arg name="is_call" type="boolean" default="false" />
 ///     </args>
 ///     <body>
-  protected function __can_map($name, $is_call = false) { return false; }
+  protected function __can_map($name, $is_call = false)
+  {
+    return isset($this->maps[$name]);
+  }
 ///     </body>
 ///   </method>
 
@@ -267,7 +280,7 @@ abstract class DB_ORM_Mapper
 ///       <arg name="args" type="null|array" default="null" />
 ///     </args>
 ///     <body>
-  protected function __map($name, $args = null) { return null; }
+	protected function __map($name, $args = null) { return null; }
 ///     </body>
 ///   </method>
 
@@ -413,21 +426,31 @@ abstract class DB_ORM_Mapper
 ///       <p>Ни одно поддерживаемое свойство не может быть удалено</p>
 ///     </details>
 ///     <body>
-  public function __unset($property) {
-    switch ($property) {
-      case 'parent':
-        unset($this->parent);
-        break;
-      case 'db':
-      case 'session':
-      case '__root':
-        throw new Core_UndestroyablePropertyException($property);
-      default:
-        throw $this->can_pmap($property) ?
-          new Core_UndestroyablePropertyException($property) :
-          new Core_MissingPropertyException($property);
-    }
-  }
+	/**
+	 * Удаляет свойства
+	 * 
+	 * Поддерживается только удаление свойства parent
+	 * 
+	 * @throws Core_UndestroyablePropertyException При попытке удаления любого 
+	 * другого свойства, в том числе динамического.
+	 * 
+	 *  @throws Core_MissingPropertyException При попытке удалить несуществующее свойство.
+	 */
+	public function __unset($property) {
+		switch ($property) {
+			case 'parent':
+				unset($this->parent);
+				break;
+			case 'db':
+			case 'session':
+			case '__root':
+				throw new Core_UndestroyablePropertyException($property);
+			default:
+				throw $this->can_pmap($property) ?
+					new Core_UndestroyablePropertyException($property) :
+					new Core_MissingPropertyException($property);
+		}
+	}
 ///     </body>
 ///   </method>
 
@@ -446,6 +469,9 @@ abstract class DB_ORM_Mapper
 ///     </details>
 ///     <body>
   public function __call($method, $args) {
+    if (isset($this->maps[$method])) {
+      return Core::invoke($this->maps[$method], $args);
+    }
     if ($m = $this->can_cmap($method))
       return $this->cmap($method, $m, $args);
     else {
@@ -523,6 +549,13 @@ abstract class DB_ORM_Mapper
 ///       <dt>index</dt><dd>Имя индекса, используемого при выполнении операции SELECT</dd>
 ///     </dl>
 ///   </details>
+/**
+ * Коллекция опций.
+ * 
+ * Коллекция значений различных опций, определяющих поведение маппера.
+ * 
+ * @package DB\ORM
+ */
 class DB_ORM_MappingOptions
   implements Core_PropertyAccessInterface,
              Core_IndexedAccessInterface {
@@ -545,10 +578,23 @@ class DB_ORM_MappingOptions
 ///          работать сборщик мусора.</p>
 ///     </details>
 ///     <body>
-  public function __construct(DB_ORM_Mapper $mapper) {
-    $parent = isset($mapper->parent) ? $mapper->parent->options : null;
-    $this->parent = ($parent instanceof DB_ORM_MappingOptions) ? $parent : null;
-  }
+	/**
+	 * Конструктор
+	 * 
+	 * @param DB_ORM_MappingOptions $mapper.
+	 *
+	 * @throws Core_InvalidArgumentValueException Если в качестве параметра используется вызывающий объект
+	 */
+	public function __construct($parent = null) {
+		if ($parent === $this)
+		{
+			throw new Core_InvalidArgumentValueException('parent','this');
+		}
+		
+		$this->parent = ($parent instanceof DB_ORM_MappingOptions) ? $parent : null;
+		//$parent = isset($mapper->parent) ? $mapper->parent->options : null;
+		//$this->parent = ($parent instanceof DB_ORM_MappingOptions) ? $parent : null;
+	}
 ///     </body>
 ///   </method>
 
@@ -585,341 +631,323 @@ class DB_ORM_MappingOptions
 ///       </dl>
 ///     </details>
 ////    <body>
-  public function __call($method, $args) {
-    switch ($method) {
-      case 'classname':
-        return $this->option($method, (string) $args[0]);
-      case 'column':
-        $this->array_option('columns', (string) $args[0]);
-        if (isset($args[1])) $this->array_option('defaults', $args[1], $args[0]);
-        return $this;
-      case 'validator':
-        return $this->use_validator($args[0]);
-      case 'table':
-        return $this->option($method, explode(' ', (string) $args[0]));
-      case 'columns':
-      case 'exclude':
-      case 'only':
-      case 'key':
-        foreach ((array) $args[0] as $v) $this->array_option($method, (string) $v);
-        return $this;
-      case 'defaults':
-        foreach ((array) $args[0] as $k => $v) $this->array_option($method, $v, $k);
-        return $this;
-      case 'lookup_by':
-      case 'search_by':
-        return $this->option($method, (string) $args[0]);
-      case 'explicit_key':
-        return $this->option($method, (boolean) $args[0]);
-      case 'calculate':
-        foreach ((array) $args[0] as $k => $v) {
-          $alias = (string) $k;
-          if (is_int($k)) {
-            switch(true) {
-              case Core_Strings::contains($v, ' '):
-                $v = str_replace(' as ', ' ', $v);
-                $parts = explode(' ', $v);
-                $alias = array_pop($parts);
-                $v = implode(' ', $parts);
-                break;
-              case preg_match('{[0-9a-zA-Z_]+\.([0-9a-zA-Z_]+)}', $v, $m):
-                $alias = $m[1];
-                break;
-              default:
-                $alias = $v;
-            } 
-          }
-          $this->array_option($method, $v, $alias);
-        }
-        return $this;
-      case 'having':
-      case 'where':
-        return $this->array_option($method, (string) $args[0]);
-      case 'order_by':
-      case 'group_by':
-        return $this->option($method, (string) $args[0]);
-      case 'join':
-        return $this->array_option('join', array((string) $args[0], (string) $args[1], (array) $args[2]));
-      case 'range':
-        return $this->option('range', array((int) $args[0], isset($args[1]) ? (int) $args[1] : 0));
-      case 'index':
-        return $this->option('index', (string) $args[0]);
-      default:
-        return $this->option($method, $args[0]);
-    }
-  }
+	public function __call($method, $args) {
+		switch ($method) {
+			case 'classname':
+				return $this->option($method, (string) $args[0]);
+			case 'column':
+				$this->array_option('columns', (string) $args[0]);
+				if (isset($args[1])) $this->array_option('defaults', $args[1], $args[0]);
+				return $this;
+			case 'validator':
+				return $this->use_validator($args[0]);
+			case 'table':
+				return $this->option($method, explode(' ', (string) $args[0]));
+			case 'columns':
+			case 'exclude':
+			case 'only':
+			case 'key':
+				foreach ((array) $args[0] as $v) $this->array_option($method, (string) $v);
+				return $this;
+			case 'defaults':
+				foreach ((array) $args[0] as $k => $v) $this->array_option($method, $v, $k);
+				return $this;
+			case 'lookup_by':
+			case 'search_by':
+				return $this->option($method, (string) $args[0]);
+			case 'explicit_key':
+				return $this->option($method, (boolean) $args[0]);
+			case 'calculate':
+				foreach ((array) $args[0] as $k => $v) {
+					$alias = (string) $k;
+					if (is_int($k)) {
+						switch(true) {
+							case Core_Strings::contains($v, ' '):
+								$v = str_replace(' as ', ' ', $v);
+								$parts = explode(' ', $v);
+								$alias = array_pop($parts);
+								$v = implode(' ', $parts);
+								break;
+							case preg_match('{[0-9a-zA-Z_]+\.([0-9a-zA-Z_]+)}', $v, $m):
+								$alias = $m[1];
+								break;
+							default:
+								$alias = $v;
+						}
+					}
+					$this->array_option($method, $v, $alias);
+				}
+				return $this;
+			case 'having':
+			case 'where':
+				return $this->array_option($method, (string) $args[0]);
+			case 'order_by':
+			case 'group_by':
+				return $this->option($method, (string) $args[0]);
+			case 'join':
+				return $this->array_option('join', array((string) $args[0], (string) $args[1], (array) $args[2]));
+			case 'range':
+				return $this->option('range', array((int) $args[0], isset($args[1]) ? (int) $args[1] : 0));
+			case 'index':
+				return $this->option('index', (string) $args[0]);
+			default:
+				return $this->option($method, $args[0]);
+		}
+	}
 ///     </body>
 ///   </method>
 
 ///   </protocol>
 
-///   <protocol name="indexing">
+	/**
+	 * Возвращает значение опции
+	 * 
+	 * Помимо опций, перечисленных в описании метода __call, 
+	 * достпны еще две опции, значения которыъ вычисляются на основании значений других опций:
+	 * - result список всех колонок результирующего набора
+	 * - aliased_table имя исходной таблицы вместе с ее псевдонимом
+	 * 
+	 * @param string $index имя опции
+	 * 
+	 * @return mixed
+	 */
+	public function offsetGet($index) {
+		$parent = $this->parent;
+		switch ($index) {
+			case 'table':
+			case 'classname':
+			case 'validator':
+			case 'order_by':
+			case 'group_by':
+			case 'key':
+			case 'explicit_key':
+			case 'range':
+			case 'index':
+			case 'lookup_by':
+			case 'search_by':
+			case 'only':
+				return $this->has_option($index) ?
+					$this->options[$index] :
+					($parent ? $parent[$index] : null);
+			case 'aliased_table':
+				return implode(' ', $this['table']);
+			case 'table_prefix':
+				return isset($this->options['table']) ?
+					(isset($this->options['table'][1]) ? $this->options['table'][1] : $this->options['table'][0]) :
+					($parent ? $parent[$index] : null);
+			case 'defaults':
+			case 'columns':
+			case 'join':
+			case 'where':
+			case 'having':
+			case 'calculate':
+			case 'exclude':
+				return $parent ?
+					array_merge($parent[$index],
+						$this->has_option($index) ? $this->options[$index] : array()) :
+					($this->has_option($index) ? $this->options[$index] : array());
+			case 'result':
+				$r = array();
+				$t = $this['table'];
 
-///   <method name="offsetGet" returns="mixed">
-///     <brief>возвращает значение опции</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя опции" />
-///     </args>
-///     <body>
-///     <details>
-///       <p>Помимо опций, перечисленных в описании метода __call, достпны еще две опции, значения которыъ вычисляются
-///          на основании значений других опций:</p>
-///       <dl>
-///         <dt>result</dt><dd>список всех колонок результирующего набора</dd>
-///         <dt>aliased_table</dt><dd>имя исходной таблицы вместе с ее псевдонимом</dd>
-///       </dl>
-///     </details>
-  public function offsetGet($index) {
-    $parent = $this->parent;
-    switch ($index) {
-      case 'table':
-      case 'classname':
-      case 'validator':
-      case 'order_by':
-      case 'group_by':
-      case 'key':
-      case 'explicit_key':
-      case 'range':
-      case 'index':
-      case 'lookup_by':
-      case 'search_by':
-      case 'only':
-        return $this->has_option($index) ?
-          $this->options[$index] :
-          ($parent ? $parent[$index] : null);
-      case 'aliased_table':
-        return implode(' ', $this['table']);
-      case 'table_prefix':
-        return isset($this->options['table']) ?
-          (isset($this->options['table'][1]) ? $this->options['table'][1] : $this->options['table'][0]) :
-          ($parent ? $parent[$index] : null);
-      case 'defaults':
-      case 'columns':
-      case 'join':
-      case 'where':
-      case 'having':
-      case 'calculate':
-      case 'exclude':
-        return $parent ?
-          array_merge($parent[$index],
-            $this->has_option($index) ? $this->options[$index] : array()) :
-            ($this->has_option($index) ? $this->options[$index] : array());
-      case 'result':
-        $r = array();
-        $t = $this['table'];
-        
-        foreach ($this['columns'] as $c)
-          $r[$c] = (isset($t[1]) ? $t[1] : $t[0]).'.'.$c;
+				foreach ($this['columns'] as $c)
+				  $r[$c] = (isset($t[1]) ? $t[1] : $t[0]).'.'.$c;
 
-        foreach ($this['calculate'] as $k => $v) $r[$k] = $v;
+				foreach ($this['calculate'] as $k => $v) $r[$k] = $v;
 
-        if ($only = $this['only']) $r = array_intersect_key($r, array_flip($only));
+				if ($only = $this['only']) $r = array_intersect_key($r, array_flip($only));
 
-        foreach ($this['exclude'] as $c) unset($r[$c]);
+				foreach ($this['exclude'] as $c) unset($r[$c]);
 
-        return $r;
-      default:
-        $value = $this->has_option($index) ? $this->options[$index] : null;
-        if (is_array($value)) return array_merge($parent ? (array) $parent[$index] : array(), $value);
-        if (is_null($value)) return $parent ? $parent[$index] : null;
-        return $value;
-    }
-  }
-///     </body>
-///   </method>
+				return $r;
+			default:
+				$value = $this->has_option($index) ? $this->options[$index] : null;
+				if (is_array($value)) return array_merge($parent ? (array) $parent[$index] : array(), $value);
+				if (is_null($value)) return $parent ? $parent[$index] : null;
+				return $value;
+		}
+	}
 
-///   <method name="offsetSet">
-///     <brief>Запрещает установку каких-либо опций через интерфейс индексированного доступа</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя опции" />
-///       <arg name="value" type="string" brief="значение опции" />
-///     </args>
-///     <details>
-///       <p>Для установки свойств опций необходимо использовать соответствующие методы</p>
-///     </details>
-///     <body>
-  public function offsetSet($index, $value) {
-    switch ($index) {
-      case 'table':
-      case 'classname':
-      case 'validator':
-      case 'table':
-      case 'columns':
-      case 'defaults':
-      case 'order_by':
-      case 'group_by':
-      case 'key':
-      case 'explicit_key':
-      case 'range':
-      case 'index':
-      case 'join':
-      case 'where':
-      case 'having':
-      case 'calculate':
-      case 'exclude':
-      case 'aliased_table':
-      case 'table_prefix':
-      case 'result':
-      case 'lookup_by':
-      case 'search_by':
-      case 'only':
-        throw new Core_ReadOnlyIndexedPropertyException($index);
-      default:
-        return $this->__call($index, array($value));
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Запрещает установку каких-либо опций через интерфейс индексированного доступа
+	 * 
+	 * Для установки свойств опций необходимо использовать соответствующие методы
+	 * 
+	 * @param string $index имя опции
+	 * @param string $value значение опции
+	 * 
+	 * @throws Core_ReadOnlyIndexedPropertyException
+	 */
+	public function offsetSet($index, $value) {
+		switch ($index) {
+			case 'table':
+			case 'classname':
+			case 'validator':
+			case 'table':
+			case 'columns':
+			case 'defaults':
+			case 'order_by':
+			case 'group_by':
+			case 'key':
+			case 'explicit_key':
+			case 'range':
+			case 'index':
+			case 'join':
+			case 'where':
+			case 'having':
+			case 'calculate':
+			case 'exclude':
+			case 'aliased_table':
+			case 'table_prefix':
+			case 'result':
+			case 'lookup_by':
+			case 'search_by':
+			case 'only':
+				throw new Core_ReadOnlyIndexedPropertyException($index);
+			default:
+				return $this->__call($index, array($value));
+		}
+	}
 
-///   <method name="offsetExists" returns="boolean">
-///     <brief>Проверяет факт установки значения опции</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя опции" />
-///     </args>
-///     <details>
-///       <p>В проверке участвуют также опции родительских объектов</p>
-///     </details>
-///     <body>
-  public function offsetExists($index) {
-    switch ($index) {
-      case 'table':
-      case 'classname':
-      case 'validator':
-      case 'columns':
-      case 'defaults':
-      case 'order_by':
-      case 'group_by':
-      case 'key':
-      case 'explicit_key':
-      case 'range':
-      case 'index':
-      case 'join':
-      case 'where':
-      case 'having':
-      case 'calculate':
-      case 'exclude':
-      case 'lookup_by':
-      case 'search_by':
-      case 'only':
-        return $this->has_option($index) || ($this->parent && isset($this->parent[$index]));
-      case 'aliased_table':
-      case 'table_prefix':
-        return isset($this['table']);
-      case 'result':
-        return isset($this['columns']) || isset($this['calculate']);
-      default:
-        return $this->has_option($index) || ($this->parent && $this->parent->has_option($index));
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Проверяет факт установки значения опции
+	 * 
+	 * В проверке участвуют также опции родительских объектов
+	 * 
+	 * @param string $index имя опции
+	 * 
+	 * @return boolean
+	 */
+	public function offsetExists($index) {
+		switch ($index) {
+			case 'table':
+			case 'classname':
+			case 'validator':
+			case 'columns':
+			case 'defaults':
+			case 'order_by':
+			case 'group_by':
+			case 'key':
+			case 'explicit_key':
+			case 'range':
+			case 'index':
+			case 'join':
+			case 'where':
+			case 'having':
+			case 'calculate':
+			case 'exclude':
+			case 'lookup_by':
+			case 'search_by':
+			case 'only':
+				return $this->has_option($index) || ($this->parent && isset($this->parent[$index]));
+			case 'aliased_table':
+			case 'table_prefix':
+				return isset($this['table']);
+			case 'result':
+				return isset($this['columns']) || isset($this['calculate']);
+			default:
+				return $this->has_option($index) || ($this->parent && $this->parent->has_option($index));
+		}
+	}
 
-///   <method name="offsetUnset">
-///     <brief>Удаляет значение опции</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя опции" />
-///     </args>
-///     <details>
-///       <p>Позволяет удалить значение любой опции, кроме aliased_table и result. Удаляются только опции,
-///          принадлежащие данному объекту, соответствующие опции родительского объекта не учитываются.</p>
-///     </details>
-///     <body>
-  public function offsetUnset($index) {
-    switch ($index) {
-      case 'table':
-      case 'classname':
-      case 'validator':
-      case 'columns':
-      case 'defaults':
-      case 'order_by':
-      case 'group_by':
-      case 'key':
-      case 'explicit_key':
-      case 'range':
-      case 'index':
-      case 'join':
-      case 'where':
-      case 'having':
-      case 'calculate':
-      case 'exclude':
-      case 'lookup_by':
-      case 'search_by':
-      case 'only':
-        unset($this->options[$index]);
-        break;
-      case 'aliased_table':
-      case 'table_prefix':
-      case 'result':
-        throw new Core_UndestroyableIndexedPropertyException($index);
-      default:
-        unset($this->options[$index]);
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Удаляет значение опции
+	 * 
+	 * Позволяет удалить значение любой опции, кроме:
+	 * - aliased_table;
+	 * - table_prefix;
+	 * - result. 
+	 * Удаляются только опции, принадлежащие данному объекту, соответствующие 
+	 * опции родительского объекта не учитываются.
+	 * 
+	 * @param string $index имя опции
+	 * 
+	 * @throws Core_UndestroyableIndexedPropertyException Если удаляются не разрещенные опции.
+	 */
+	public function offsetUnset($index) {
+		switch ($index) {
+			case 'table':
+			case 'classname':
+			case 'validator':
+			case 'columns':
+			case 'defaults':
+			case 'order_by':
+			case 'group_by':
+			case 'key':
+			case 'explicit_key':
+			case 'range':
+			case 'index':
+			case 'join':
+			case 'where':
+			case 'having':
+			case 'calculate':
+			case 'exclude':
+			case 'lookup_by':
+			case 'search_by':
+			case 'only':
+				unset($this->options[$index]);
+				break;
+			case 'aliased_table':
+			case 'table_prefix':
+			case 'result':
+				throw new Core_UndestroyableIndexedPropertyException($index);
+			default:
+				unset($this->options[$index]);
+		}
+		return $this;
+	}
 
-///   </protocol>
+	/**
+	 * Возвращает признак наличия опции в данном объекте.
+	 * 
+	 * Этот вызов аналогичен __isset, но работает только с массивом опций данного объекта
+	 * 
+	 * @param mixed $name имя опции - может быть любым значением, которое подходит для индекса массива.
+	 * 
+	 * @return boolean
+	 */
+	protected function has_option($name) { return array_key_exists($name, $this->options); }
 
-///   <protocol name="supporting">
+	/**
+	 * Устанавливает значение опции
+	 * 
+	 * @param string $name имя опции
+	 * @param mixed $value значение опции
+	 * 
+	 * @return self
+	 */
+	protected function option($name, $value) {
+		$this->options[$name] = $value;
+		return $this;
+	}
 
-///   <method name="has_option" returns="boolean" access="protected">
-///     <brief>Возвращает признак наличия опции в данном объекте без учета опций родителького объекта</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя опции" />
-///     </args>
-///     <body>
-///     <details>
-///       <p>Этот вызов аналогичен __isset, но работает только с массивом опций данного объекта</p>
-///     </details>
-  public function has_option($name) { return array_key_exists($name, $this->options); }
-///     </body>
-///   </method>
+	/**
+	 * Уставливает значение для опции, допускающей набор значений
+	 * 
+	 * Если индекс опции не указан, очередное значение просто добавляется в массив значений опции
+	 * @link http://php.ru/manual/function.array-search.html array_search
+	 * 
+	 * @param string $name имя опции
+	 * @param mixed $value значение опции
+	 * @param integer $idx индекс опции по умолчанию null
+	 * 
+	 * @return self
+	 */
+	protected function array_option($name, $value, $idx = null) {
+		if (isset($this->options[$name]) && is_array($this->options[$name]) && array_search($value, $this->options[$name], true) !== FALSE)
+			return $this;
+		is_null($idx) ?
+		$this->options[$name][]     = $value :
+		$this->options[$name][$idx] = $value;
+		return $this;
+	}
 
-///   <method name="option">
-///     <brief>Устанавливает значение опции</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя опции" />
-///       <arg name="value" brief="значение опции" />
-///     </args>
-///     <body>
-  public function option($name, $value) {
-    $this->options[$name] = $value;
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   <method name="array_option" returns="DB.ORM.MapperOptions" access="protected">
-///     <brief>Уставливает значение для опции, допускающей набор значений</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя опции" />
-///       <arg name="value" brief="значение опции "/>
-///       <arg name="idx" type="int" default="null" brief="индекс опции" />
-///     </args>
-///     <details>
-///       <p>Если индекс опции не указан, очередное значение просто добавляется в массив значений опции</p>
-///     </details>
-///     <body>
-  public function array_option($name, $value, $idx = null) {
-    if (is_array($this->options[$name]) && array_search($value, $this->options[$name], true) !== FALSE)
-      return $this;
-    is_null($idx) ?
-      $this->options[$name][]     = $value :
-      $this->options[$name][$idx] = $value;
-    return $this;
-  }
-///     </body>
-///   </method>
-
-///   <method name="use_validator" returns="DB.ORM.MapperOptions">
-///     <brief>Устанавливает значение опции validator с проверкой типа аргумента</brief>
-///     <args>
-///       <arg name="validator" type="Validation.Validator" brief="объект-валидатор" />
-///     </args>
-///     <body>
-  private function use_validator(Validation_Validator $validator) { return $this->option('validator', $validator); }
-///     </body>
-///   </method>
+	/**
+	 * Устанавливает значение опции validator с проверкой типа аргумента
+	 * 
+	 * @param Validation_Validator $validator
+	 */
+	private function use_validator(Validation_Validator $validator) { return $this->option('validator', $validator); }
 
 ///   </protocol>
 
@@ -928,104 +956,115 @@ class DB_ORM_MappingOptions
 ///   <method name="get_parent" returns="DB.ORM.MapperOptions">
 ///     <brief>Возвращает родительский объект опций</brief>
 ///     <body>
-  public function get_parent_() {
-    $options = isset($this->mapper->parent) ? $this->mapper->parent->options : null;
-    return ($options instanceof DB_ORM_MappingOptions) ? $options : null;
-
-  }
+	/**
+	 * Возвращает родительский объект опций
+	 * 
+	 * @deprecated
+	 * 
+	 * @return DB_ORM_MappingOptions|null
+	 */
+	public function get_parent_() {
+		return isset($this->parent) ? $this->parent : null;
+	}
 ///     </body>
 ///   </method>
 
 ///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
+	/**
+	 * Возвращает значение свойства объекта
+	 * 
+	 * Поддерживаются следующие свойства:
+	 * - options возвращает массив значений опций;
+	 * - parent возвращает родительскую коллекцию опций.
+	 * 
+	 * Важно помнить, что родительским объектом является коллекция опций, а не маппер!
+	 * 
+	 * @param string $property имя свойства
+	 * 
+	 * @throws Core_MissingPropertyException Если $property имеет любое неподдерживаемое свойство.
+	 * 
+	 * @return array
+	 */
+	public function __get($property) {
+		switch ($property) {
+			case 'options':
+			case 'parent':
+				return $this->$property;
+			default:
+				throw new Core_MissingPropertyException($property);
+		}
+	}
 
-///   <method name="__get" returns="mixed">
-///     <brief>Возвращает значение свойства объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <details>
-///       <p>Поддерживаются следующие свойства:</p>
-///       <dl>
-///         <dt>options</dt><dd>массив значений опций</dd>
-///         <dt>parent</dt><dd>родительская коллекция опций</dd>
-///       </dl>
-///       <p>Важно помнить, что родительским объектом является коллекция опций, а не маппер!</p>
-///     </details>
-///     <body>
-  public function __get($property) {
-    switch ($property) {
-      case 'options':
-      case 'parent':
-        return $this->$property;
-      default:
-        throw new Core_MissingPropertyException($property);
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Запрещает изменение значений свойств объекта.
+	 * 
+	 * Значение свойства parent не может быть изменено после создания объекта, 
+	 * для изменения значений опций необходимо использовать соответствующие методы.
+	 * 
+	 * @param string $property имя свойства
+	 * @param mixed $value значение свойства
+	 * 
+	 * @throws Core_UndestroyablePropertyException Если $property равно:
+	 * - parent
+	 * - options
+	 * 
+	 * @throws Core_MissingPropertyException Если $property имеет любое другое значение.
+	 */
+	public function __set($property, $value) {
+		switch ($property) {
+		case 'parent':
+		case 'options':
+			throw new Core_ReadOnlyPropertyException($property);
+		default:
+			throw new Core_MissingPropertyException($property);
+		}
+	}
 
-///   <method name="__set" returns="mixed">
-///     <brief>Запрещает изменение значений свойств объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение свойства" />
-///     </args>
-///     <details>
-///       <p>Значение свойства parent не может быть изменено после создания объекта, для изменения значений опций
-///          необходимо использовать соответствующие методы.</p>
-///     </details>
-///     <body>
-  public function __set($property, $value) {
-    switch ($property) {
-      case 'parent':
-      case 'options':
-        throw new Core_ReadOnlyPropertyException($property);
-      default:
-        throw new Core_MissingPropertyException($property);
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Проверяет, установлено ли свойство объекта
+	 * 
+	 * Возвращает true только в том случае, если установлены свойства 
+	 * - options;
+	 * - parent.
+	 * и параметр $property имеет одно из этих значений.
+	 * 
+	 * Для всех других значений $property вощзвращается false.
+	 * 
+	 * @param string $property имя свойства
+	 * 
+	 * @return boolean
+	 */
+	public function __isset($property) {
+		switch ($property) {
+			case 'options':
+			case 'parent':
+				return isset($this->$property);
+			default:
+				return false;
+		}
+	}
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет, установлено ли свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства"/>
-///     </args>
-///     <body>
-  public function __isset($property) {
-    switch ($property) {
-      case 'options':
-      case 'parent':
-        return isset($this->$property);
-      default:
-        return false;
-    }
-  }
-///     </body>
-///   </method>
-
-///   <method name="__unset">
-///     <brief>Запрещает удаление свойств объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
-  public function __unset($property) {
-    switch ($property) {
-      case 'parent':
-      case 'options':
-        throw new Core_UndestroyablePropertyException($property);
-      default:
-        throw new Core_MissingPropertyException($property);
-    }
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/**
+	 * Запрещает удаление свойств объекта.
+	 * 
+	 * @param string $property имя свойства
+	 * 
+	 * @throws Core_UndestroyablePropertyException Если $property равно:
+	 * - parent
+	 * - options
+	 * 
+	 * @throws Core_MissingPropertyException Если $property имеет любое другое значение.
+	 */
+	public function __unset($property) {
+		switch ($property) {
+			case 'parent':
+			case 'options':
+				throw new Core_UndestroyablePropertyException($property);
+			default:
+				throw new Core_MissingPropertyException($property);
+		}
+	}
 }
 /// </class>
 
@@ -1041,53 +1080,72 @@ class DB_ORM_MappingOptions
 ///        в сильно упрощенном виде паттерн data mapper.</p>
 ///     <p></p>
 ///   </details>
+/**
+ * SQL-маппер
+ * 
+ * Объекты этого класса обеспечивают связь между объектами бизнес-логики и 
+ * таблицами реляционной базы, реализуя в сильно упрощенном виде паттерн data mapper.
+ * 
+ * @package DB\ORM
+ */
 class DB_ORM_SQLMapper extends DB_ORM_Mapper
   implements IteratorAggregate,
              Core_IndexedAccessInterface,
              Core_CountInterface,
              DB_ORM_ImmutableMapperInterface,
              Core_StringifyInterface {
+	/**
+	 * @var DB_ORM_MappingOptions Коллекция опций
+	 */
+	protected $options;
 
-  protected $options;
+	/**
+	 * @var boolean Признак неизменяемого состояния объекта 
+	 */
+	protected $is_immutable = false;
 
-  // protected $mode = '';
+	/**
+	 * @var array Внутренний кеш маппера
+	 */
+	protected $cache = array();
+	
+	/**
+	 * @var array список значений параметров отображаемых объектов
+	 */
+	protected $binds = array();
 
-  protected $is_immutable = false;
+	/**
+	 * Конструктор
+	 * 
+	 * @param $parent DB_ORM_SQLMapper родительский маппер
+	 * @param $spawn boolean показывает способ, которым создавался объект: 
+	 * напрямую или через метод spawn(). Обычно этот параметр устанавливается в 
+	 * значение true в методе spawn() класса DB_ORM_Mapper, а по умолчанию имеет 
+	 * значение false. См. описание функции setup()
+	 * 
+	 * @see DB_ORM_SQLMapper::setup()
+	 * 
+	 */
+	public function __construct($parent = null , $spawn = false) {
+		parent::__construct($parent);
 
-  protected $cache = array();
-  protected $binds = array();
+		$parent_options = $parent instanceof DB_ORM_SQLMapper ? $parent->options : null;
+		$this->options = new DB_ORM_MappingOptions($parent_options);
+		if (!$spawn) $this->setup();
+		//if (!($this->parent && ($this instanceof $this->parent))) $this->setup();
+		$this->as_array(false);
+	}
 
-///   <protocol name="creating">
-
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="parent" default="null" brief="родительский маппер" />
-///     </args>
-///     <body>
-  public function __construct($parent = null, $spawn = false) {
-    parent::__construct($parent);
-
-    $this->options = new DB_ORM_MappingOptions($this);
-    if (!$spawn) $this->setup();
-    //if (!($this->parent && ($this instanceof $this->parent))) $this->setup();
-    $this->as_array(false);
-  }
-///     </body>
-///   </method>
-
-///   <method name="setup" access="protected">
-///     <brief>Внутренний метод инициализации</brief>
-///     <details>
-///       <p>Метод предназначен для настройки необходимых опций при создании экземпляра объекта.</p>
-///       <p>Внимание! Если класс маппера совпадает с классом родительского маппера, метод вызван не будет, так как
-///          значения соответствующих опций и так будут наследоваться от родительского маппера. В противном случае
-///          выполнение операции spawn приводило бы к дублированию соответствующих опций.</p>
-///     </details>
-///     <body>
-  protected function setup() {return $this;}
-///     </body>
-///   </method>
+	/**
+	 * Внутренний метод инициализации
+	 * 
+	 * Метод предназначен для настройки необходимых опций при создании экземпляра объекта.
+	 * 
+	 * Внимание! Если класс маппера совпадает с классом родительского маппера, метод вызван не будет, так как 
+	 * значения соответствующих опций и так будут наследоваться от родительского маппера. В противном случае 
+	 * выполнение операции spawn приводило бы к дублированию соответствующих опций.
+	 */
+	protected function setup() {return $this;}
 
   public function __name() {
     if ($this->option('__name'))
@@ -1118,14 +1176,24 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
     return $this;
   }
 
-
-  public function option($name, $value = null) {
-    if (is_null($value)) {
-      return $this->options[$name];
-    }
-    $this->options[$name] = $value;
-    return $this;
-  }
+	/**
+	 * Получение или установка опции.
+	 * 
+	 * Если значение опции не задано, то метод пытается получить значение свойства.
+	 * Если задано, то устанавливает значение свойства.
+	 * 
+	 * @param string $name имя опции
+	 * @param mixed $value значение опции.
+	 * 
+	 * @return self|mixed 
+	 */
+	public function option($name, $value = null) {
+		if (is_null($value)) {
+		  return $this->options[$name];
+		}
+		$this->options[$name] = $value;
+		return $this;
+	}
 
   public function array_option($name, $value, $idx = null) {
     $this->options->array_option($name, $value, $idx);
@@ -1137,18 +1205,15 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
     return $this;
   }
 
-///   <method name="immutable" returns="DB.ORM.SQLMapper">
-///     <brief>Переводит объект в неизменяемое состояние</brief>
-///     <details>
-///       <p>Объект, находящийся в неизменяемом состоянии</p>
-///     </details>
-///     <body>
-  public function immutable() {
-    $this->is_immutable = true;
-    return $this;
-  }
-///     </body>
-///   </method>
+	/**
+	 * Переводит объект в неизменяемое состояние
+	 * 
+	 * @return self
+	 */
+	public function immutable() {
+		$this->is_immutable = true;
+		return $this;
+	}
 
 ///   <method name="preload" returns="DB.ORM.SQLMapper">
 ///     <brief>Загружает все записи таблицы в кеш маппера</brief>
@@ -1540,7 +1605,7 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 ///   </method>
 
   public function search($value) {
-    if ($this->can_cmap('search')) return $this->__call('search', array($value));
+    if ($this->can_cmap('search')) return $this->__call('search', func_get_args());
     $value = str_replace('%', '\%', $value);
     return isset($this->options['search_by']) ?
       $this->spawn()->where($this->options['table_prefix'].'.'.$this->options['search_by'].' LIKE :__val', "$value%") :
@@ -1932,26 +1997,25 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 ///     </body>
 ///   </method>
 
-///   <method name="sql" returns="DB.ORM.SQL.Statement" access="protected">
-///     <brief>Возвращает объект-генератор SQL-выражений, соотаетствующий опциям маппера</brief>
-///     <body>
-  public function sql() { return new DB_ORM_SQLBuilder($this->options); }
-///     </body>
-///   </method>
+	/**
+	 * Возвращает объект-генератор SQL-выражений, соотаетствующий опциям маппера.
+	 * 
+	 * @return DB_ORM_SQLBuilder
+	 */
+	public function sql() { return new DB_ORM_SQLBuilder($this->options); }
 
-///   <method name="cache" returns="DB.ORM.Mapper" access="protected">
-///     <brief>Кеширует бизнес-объект во внутреннем кеше маппера</brief>
-///     <args>
-///       <arg name="index" type="int" />
-///       <arg name="object" type="object" />
-///     </args>
-///     <body>
-  protected function cache($index, $object) {
-    $this->cache[$index] = $object;
-    return $this;
-  }
-///     </body>
-///   </method>
+	/**
+	 * Кеширует бизнес-объект во внутреннем кеше маппера
+	 * 
+	 * @param integer $index индекс объекта в кеше
+	 * @param object $object кешируемый объект
+	 * 
+	 * @return self
+	 */
+	protected function cache($index, $object) {
+		$this->cache[$index] = $object;
+		return $this;
+	}
 
 ///   <method name="collect_binds" returns="DB.ORM.SQLMapper" access="protected">
 ///     <brief>Формирует общий список значений параметров с учетом значений параметров родительских мапперов</brief>
@@ -2222,157 +2286,140 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 ///   </protocol>
 
 
-///   <protocol name="calling">
+	/**
+	 * Выполняет диспетчеризацию вызово динамических методов.
+	 * 
+	 * Метод обрабатывает вызовы методов установки опций маппера. 
+	 * С деталями можно ознакомиться в описаниях соответствующих методов.
+	 * 
+	 * @param string $method имя метода
+	 * @param mixed $args аргументы метода
+	 * 
+	 * @return self
+	 */
+	public function __call($method, $args) {
+		switch ($method) {
+			case 'classname':
+			case 'column':
+			case 'validator':
+			case 'table':
+			case 'calculate':
+			case 'order_by':
+			case 'group_by':
+			case 'range':
+			case 'explicit_key':
+			case 'lookup_by':
+			case 'search_by':
+			case 'index':
+			case 'defaults':
+				$this->is_immutable ?
+					$this->spawn()->__call($method, $args) :
+					$this->options->__call($method, $args);
+				return $this;
+			case 'key':
+			case 'columns':
+			case 'only':
+			case 'exclude':
+				$this->is_immutable ?
+					$this->spawn()->__call($method, $args) :
+					$this->options->$method(Core::normalize_args($args));
+				return $this;
+			case 'having':
+			case 'where':
+				if ($this->is_immutable) return $this->spawn()->__call($method, $args);
 
-///   <method name="__call">
-///     <brief>Выполняет диспетчеризацию вызово динамических методов</brief>
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args"   type="array" />
-///     </args>
-///     <brief>
-///       <p>Метод обрабатывает вызовы методов установки опций маппера. С деталями можно ознакомиться в описаниях
-///          соответствующих методов.</p>
-///     </brief>
-///     <body>
-  public function __call($method, $args) {
-    switch ($method) {
-      case 'classname':
-      case 'column':
-      case 'validator':
-      case 'table':
-      case 'calculate':
-      case 'order_by':
-      case 'group_by':
-      case 'range':
-      case 'explicit_key':
-      case 'lookup_by':
-      case 'search_by':
-      case 'index':
-      case 'defaults':
-        $this->is_immutable ?
-          $this->spawn()->__call($method, $args) :
-          $this->options->__call($method, $args);
-        return $this;
-      case 'key':
-      case 'columns':
-      case 'only':
-      case 'exclude':
-        $this->is_immutable ?
-          $this->spawn()->__call($method, $args) :
-          $this->options->$method(Core::normalize_args($args));
-        return $this;
-      case 'having':
-      case 'where':
-        if ($this->is_immutable) return $this->spawn()->__call($method, $args);
+				$expr = isset($args[0]) ? $args[0] : null;
+				$parms = isset($args[1]) ? $args[1] : null;
 
-        $expr = isset($args[0]) ? $args[0] : null;
-        $parms = isset($args[1]) ? $args[1] : null;
+				if (is_array($expr)) $expr = '('.implode(') AND (', $expr).')';
+				if ($parms !== null) $this->collect_binds($expr, $parms);
 
-        if (is_array($expr)) $expr = '('.implode(') AND (', $expr).')';
-        if ($parms !== null) $this->collect_binds($expr, $parms);
+				$this->options->$method($expr);
+				return $this;
+			case 'join':
+				if ($this->is_immutable) return $this->spawn()->__call($method, $args);
+				$type  = array_shift($args);
+				$table = array_shift($args);
+				$this->options->$method($type, $table, Core::normalize_args($args));
+				return $this;
+			default:
+				return parent::__call($method, $args);
+		}
+	}
 
-        $this->options->$method($expr);
-        return $this;
-      case 'join':
-        if ($this->is_immutable) return $this->spawn()->__call($method, $args);
-        $type  = array_shift($args);
-        $table = array_shift($args);
-        $this->options->$method($type, $table, Core::normalize_args($args));
-        return $this;
-      default:
-        return parent::__call($method, $args);
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Загружает отображаемый объект и сохраняет его в кэше маппера
+	 * 
+	 * Интерфейс индексируемого доступа предназначен загрузки объектов с использованием кэширования.
+	 * 
+	 * Иначе говоря, вызов $mapper[$id] эквивалентен вызову $mapper->find($id), за исключением того, что в первом 
+	 * случае загруженный объект будет сохранен в кэше маппера. Поэтому, повторное обращение $mapper[$id] при 
+	 * том же значении id вернет соответствующий объект без обращения к базе.
+	 * 
+	 * Этот мезанизм может быть использован для реализации загрузки объекта в случае связи "один ко многим". 
+	 * Например, пусть у нас есть статьи и рубрики, причем каждая статья принадлежит рубрике, что определяется 
+	 * полем category_id в таблице статей. Предположим, что метод DB::db() возвращает нам корневой элемент нашего 
+	 * дерева мапперов. В этом случае в объекте предметной области класса Story  мы можем реализовать следующий 
+	 * метод:
+	 * 
+	 * <code>
+	 * class Story {
+	 * 		function get_category() {
+	 *			return DB::db()->categories[$this['category_id']];
+	 *		}
+	 * </code>
+	 * 
+	 * @param string|integer $index значение первичного ключа записи, соответствующей объекту
+	 * 
+	 * return mixed
+	 */
+	public function offsetGet($index) {
+		switch (true) {
+			case is_numeric($index):
+				if (!isset($this->cache[$index]) && ($e = $this->find($index))) $this->cache[$index] = $e;
+				return isset($this->cache[$index])?$this->cache[$index]:null;
+			default:
+				if (($e = $this->lookup((string) $index)) && ($key = $this->options['key'][0])) $this->cache[$e->$key] = $e;
+				return $e;
+		}
+	}
 
-///   </protocol>
+	/**
+	 * Запрещает явную запись объектов в кэш.
+	 * 
+	 * Объект может быть помещен в кэш только при выполнении операции find, инициированной доступом к 
+	 * индексированному свойству. Однако он может быть явно удален из кэша с помощью операции unset.
+	 * 
+	 * @param string|integer $index
+	 * @param mixed $value значение свойства
+	 * 
+	 * @throws Core_ReadOnlyIndexedPropertyException Если объект находится в кеше
+	 * @throws Core_MissingIndexedPropertyException Если объект отсутствует в кеше
+	 */
+	public function offsetSet($index, $value) {
+		throw isset($this->cache[$index]) ?
+			new Core_ReadOnlyIndexedPropertyException($index) :
+			new Core_MissingIndexedPropertyException($index);
+	}
 
+	/**
+	 * Проверяет наличие объекта в кэше маппера
+	 * 
+	 * @param string|integer значение первичного ключа записи, соответствующей объекту
+	 * 
+	 * @return boolean
+	 */
+	public function offsetExists($index) { return isset($this->cache[$index]); }
 
-///   <protocol name="indexing" interface="Core.IndexedAccessInterface">
-
-///   <method name="offsetGet" returns="mixed">
-///     <brief>Загружает отображаемый объект и сохраняет его в кэше маппера</brief>
-///     <args>
-///       <arg name="index" brief="значение первичного ключа записи, соответствующей объекту" />
-///     </args>
-///     <details>
-///       <p>Интерфейс индексируемого доступа предназначен загрузки объектов с использованием кэширования.</p>
-///       <p>Иначе говоря, вызов $mapper[$id] эквивалентен вызову $mapper->find($id), за исключением того, что в первом
-///          случае загруженный объект будет сохранен в кэше маппера. Поэтому, повторное обращение $mapper[$id] при
-///          том же значении id вернет соответствующий объект без обращения к базе.</p>
-///       <p>Этот мезанизм может быть использован для реализации загрузки объекта в случае связи "один ко многим".
-///          Например, пусть у нас есть статьи и рубрики, причем каждая статья принадлежит рубрике, что определяется
-///          полем category_id в таблице статей. Предположим, что метод DB::db() возвращает нам корневой элемент нашего
-///          дерева мапперов. В этом случае в объекте предметной области класса Story  мы можем реализовать следующий
-///          метод:</p>
-///       <pre>
-///         class Story {
-///           function get_category() {
-///             return DB::db()->categories[$this['category_id']];
-///           }
-///         }
-///       </pre>
-///     </details>
-///     <body>
-  public function offsetGet($index) {
-    switch (true) {
-      case is_numeric($index):
-        if (!isset($this->cache[$index]) && ($e = $this->find($index))) $this->cache[$index] = $e;
-        return isset($this->cache[$index])?$this->cache[$index]:null;
-      default:
-        if (($e = $this->lookup((string) $index)) && ($key = $this->options['key'][0])) $this->cache[$e->$key] = $e;
-        return $e;
-    }
-  }
-///     </body>
-///   </method>
-
-///   <method name="offsetSet" returns="mixed">
-///     <brief>Запрещает явную запись объектов в кэш.</brief>
-///     <args>
-///       <arg name="index" brief="значение первичного ключа записи, соответствующей объекту" />
-///       <arg name="value" brief="значение свойства" />
-///     </args>
-///     <details>
-///       <p>Объект может быть помещен в кэш только при выполнении операции find, инициированной доступом к
-///          индексированному свойству. Однако он может быть явно удален из кэша с помощью операции unset.</p>
-///     </details>
-///     <body>
-  public function offsetSet($index, $value) {
-    throw isset($this->cache[$index]) ?
-      new Core_ReadOnlyIndexedPropertyException($index) :
-      new Core_MissingIndexedPropertyException($index);
-  }
-///     </body>
-///   </method>
-
-///   <method name="offsetExists" returns="boolean">
-//      <brief>Проверяет наличие объекта в кэше маппера</brief>
-///     <args>
-///       <arg name="index" brief="значение первичного ключа записи, соответствующей объекту" />
-///     </args>
-///     <body>
-  public function offsetExists($index) { return isset($this->cache[$index]); }
-///     </body>
-///   </method>
-
-///   <method name="offsetUnset">
-///     <brief>Удаляет объект из кэша маппера</brief>
-///     <args>
-///       <arg name="index" brief="значение первичного ключа записи, соответствующей объекту" />
-///     </args>
-///     <details>
-///       <p>Повторное обращение по индексу, соответствующему удаленному объекту, приведет к новому обращению к
-///          базе данных.</p>
-///     </details>
-///     <body>
-  public function offsetUnset($index) { unset($this->cache[$index]);  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/**
+	 * Удаляет объект из кэша маппера
+	 * 
+	 * Повторное обращение по индексу, соответствующему удаленному объекту, 
+	 * приведет к новому обращению к базе данных.
+	 * 
+	 * @param string|integer значение первичного ключа записи, соответствующей объекту
+	 */
+	public function offsetUnset($index) { unset($this->cache[$index]);  }
 
 
 ///   <protocol name="accessing">
@@ -2394,98 +2441,139 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 ///       </dl>
 ///     </details>
 ///     <body>
-  public function __get($property) {
-    switch ($property) {
-      case 'mode':
-        return $this->option($property);
-      case 'connection':
-        return $this->session->connection_for($this->options['table'][0]);
-      case 'schema':
-        return $this->connection->get_schema();
-      case 'options':
-        return $this->$property;
-      case 'cache':
-        return new ArrayObject($this->cache);
-      case 'binds':
-        return array_merge((array)$this->parent->__get('binds'), $this->binds);
-      default:
-        return parent::__get($property);
-    }
-  }
+	/**
+	 * Возвращает значение свойства объекта
+	 * 
+	 * @todo Дописать коммент для возвращаемых свойств.
+	 * 
+	 * Поддерживаются следующие свойства:
+	 * - mode ;
+	 * - connection ;
+	 * - schema ;
+	 * - options объект класса DB.ORM.MapperOptions, содержащий значения опций маппера;
+	 * - cache ArrayObject кэш отображаемых объектов;
+	 * - binds array список значений параметров отображаемых объектов (учитывая родителя);
+	 * 
+	 * Для остальных значений вызывается parent::__get($property)
+	 * 
+	 * @param string $property имя свойства
+	 * 
+	 * @return mixed
+	 */
+	public function __get($property) {
+		switch ($property) {
+			case 'mode':
+				return $this->option($property);
+			case 'connection':
+				return $this->session->connection_for($this->options['table'][0]);
+			case 'schema':
+				return $this->connection->get_schema();
+			case 'options':
+				return $this->$property;
+			case 'cache':
+				return new ArrayObject($this->cache);
+			case 'binds':
+				return array_merge((array)$this->parent->__get('binds'), $this->binds);
+			default:
+				return parent::__get($property);
+		}
+	}
 ///     </body>
 ///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Запрещает изменение свойств объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value"    type="значение свойства" />
-///     </args>
-///     <body>
-  public function __set($property, $value) {
-    switch ($property) {
-      case 'mode':
-        $this->option($property, $value);
-        if ($this->parent && method_exists($this->parent, 'option')) $this->parent->option($property, $value);
-        return $this;
-      case 'options':
-      case 'cache':
-      case 'binds':
-      case 'connection':
-      case 'schema':
-        throw new Core_ReadOnlyIndexedPropertyException($property);
-      default:
-        return parent::__set($property, $value);
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Изменение свойств объекта.
+	 * 
+	 * Для свойства mode если у текущего объекта существует родитель и у родителя 
+	 * есть метод option, то выполняется установка свойства не только текущего объекта, 
+	 * но и родителя.
+	 * 
+	 * @throws Core_ReadOnlyIndexedPropertyException При попытке установки свойств:
+	 * - options,
+	 * - cache,
+	 * - binds,
+	 * - connection, 
+	 * - schema.
+	 * 
+	 * Для всех остальных свойств вызывается parent::__set($property, $value)
+	 * 
+	 * @param string $property имя свойства
+	 * @param mixed $value значение свойства
+	 * 
+	 * @return self
+	 */
+	public function __set($property, $value) {
+		switch ($property) {
+			case 'mode':
+				$this->option($property, $value);
+				if ($this->parent && method_exists($this->parent, 'option')) 
+					$this->parent->option($property, $value);
+				return $this;
+			case 'options':
+			case 'cache':
+			case 'binds':
+			case 'connection':
+			case 'schema':
+				throw new Core_ReadOnlyIndexedPropertyException($property);
+			default:
+				return parent::__set($property, $value);
+		}
+	}
 
-///   <method name="__isset" returns="mixed">
-///     <brief>Проверяет установку свойства объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
-  public function __isset($property) {
-    switch ($property) {
-      case 'connection': case 'schema':
-        return (bool) $this->__get($property);
-      case 'options':
-      case 'cache':
-      case 'binds':
-        return true;
-      default:
-        return parent::__isset($property);
-    }
-  }
-///     </body>
-///   </method>
+	/**
+	 * Проверяет установку свойства объекта
+	 * 
+	 * Для значений connection и schema пробует получить их значения через 
+	 * __get и возвращает булев результат выполнения.
+	 * 
+	 * Для options, cache, binds возвращает true.
+	 * 
+	 * Для всех остальных значений выполняет проверку в родителе.
+	 * 
+	 * @param string $property имя свойства
+	 * 
+	 * @return boolean
+	 */
+	public function __isset($property) {
+		switch ($property) {
+			case 'connection': case 'schema':
+				return (bool) $this->__get($property);
+			case 'options':
+			case 'cache':
+			case 'binds':
+				return true;
+			default:
+				return parent::__isset($property);
+		}
+	}
 
-///   <method name="__unset" returns="mixed">
-///     <brief>Запрещает удаление свойства объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
-  public function __unset($property) {
-    switch ($property) {
-      case 'options':
-      case 'cache':
-      case 'binds':
-      case 'connection':
-      case 'schema':
-        throw new Core_UndestroyablePropertyException($property);
-      default:
-        return parent::__unset($property);
-    }
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/**
+	 * Запрещает удаление свойства объекта
+	 * 
+	 * @param string $property имя свойства
+	 * 
+	 * @throws Core_UndestroyablePropertyException Если $property имеет одно из значений:
+	 * - options
+	 * - cache
+	 * - binds
+	 * - connection
+	 * - schema
+	 * 
+	 * Для всех остальных значений вызывает parent::__unset($property)
+	 */
+	public function __unset($property) {
+		switch ($property) {
+			case 'options':
+			case 'cache':
+			case 'binds':
+			case 'connection':
+			case 'schema':
+				throw new Core_UndestroyablePropertyException($property);
+			default:
+				return parent::__unset($property);
+		}
+	}
 }
-/// </class>
 
 
 /// <class name="DB.ORM.SQLBuilder">
@@ -3070,6 +3158,12 @@ abstract class DB_ORM_Entity
     }
     return $this['id'];
   }
+
+  public function is_phantom()
+  {
+    $id = $this->id();
+    return empty($id);
+  }
   
   public function key() {
     if ($mapper = $this->get_mapper()) {
@@ -3229,7 +3323,7 @@ abstract class DB_ORM_Entity
 ///     </args>
 ///     <body>
   public function offsetExists($index) {
-    return (isset($this->attrs[$index]) ||
+    return (array_key_exists($index    , $this->attrs) ||
             method_exists($this, "row_get_$index"));
   }
 ///     </body>

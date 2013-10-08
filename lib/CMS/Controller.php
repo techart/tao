@@ -1,6 +1,7 @@
 <?php
 /// <module name="CMS.Controller" maintainer="gusev@techart.ru" version="0.0.0">
 Core::load('CMS.Controller.Base');
+Core::load('CMS.PageNavigator');
 
 
 /// <class name="CMS.Controller" stereotype="module" extends="CMS.Controller.Base">
@@ -45,6 +46,7 @@ class CMS_Controller extends CMS_Controller_Base implements Core_ModuleInterface
 		parent::setup()
 			->use_urls_from(CMS::$current_mapper)
 			->use_views_from("../app/components/$name/views")
+			->use_views_from("../app/components/$name/app/views")
 			->use_layout(CMS::$layouts[$name])
 		;
 		
@@ -281,28 +283,7 @@ class CMS_Mapper extends WebKit_Controller_AbstractMapper {
 }
 /// </class>
 
-
-
-class CMS_StdControlsMapper extends CMS_Mapper {
-
-	public function route($request) {
-		if (CMS::is_admin_request($request)) {
-			$url = $this->clean_url($request->urn);
-			if ($m = Core_Regexps::match_with_results('{^'.CMS::admin_path().'(flush_caches)$}',$url)) {
-				return array(
-					'controller' => 'CMS.Controller.AdminStd',
-					'action' => $m[1],
-				);
-			}
-			
-		}
-		return false;
-	}
-
-
-}
-
-
+class CMS_Router extends CMS_Mapper {}
 
 
 /// </module>

@@ -4,27 +4,57 @@
 	list-style: none;
 	overflow: hidden;
 	height: 100%;
-	clear: both;
+	padding-top: 5px;
 }
 
 .field-content-selection-tabs li {
 	float: left;
-	margin-right: 3px;
+	margin-right: 5px;
 	background-color: #EEE;
 	cursor: pointer;
-	font-size: 10px;
+	font-size: 12px;
+	border-radius: 5px;
+	padding: 3px;
+	-webkit-transition: all 0.7s ease;
+	-moz-transition: all 0.7s ease;
+	transition: all 0.7s ease;
+}
+
+.field-content-selection-tabs li:hover {
+	background-color: #8AFCE8;
 }
 
 .field-content-selection-tabs li.active {
 	background-color: #8ADCE8;
 }
 
+
 .field-content-item {
-	display: none;
+	position: absolute;
+	visibility: hidden;
+	display: block;
+	/* display: none; */
 }
 
-.field-content-item:first-child {
+
+/*.field-content-item:first-child {
+	visibility: visible;
+	position:relative;
 	display: block;
+}*/
+
+.field-content-pane-current {
+	position: relative;
+	visibility: visible;
+	display: block;
+}
+
+.field-content-selection-caption {
+	float: left;
+	font-size: 12px;
+	padding: 3px;
+	padding-top: 8px;
+	padding-bottom: 15px;
 }
 
 .field-content-selection-label ,.field-content-selection-list *, .field-content-selection-list {

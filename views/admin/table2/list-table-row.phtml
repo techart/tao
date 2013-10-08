@@ -14,11 +14,13 @@ $tr_class = $tr_class=='odd'? 'even' : 'odd';
 
 		$template_table_row_td = $controller->template('list-table-row-td');
 		
-		foreach($list_fields as $field => $data) {
-			if ($td_tpl = $list_fields_templates_tds[$field]) {
-				include($td_tpl);
-			} else {
-				include($template_table_row_td);
+		if (!empty($list_fields)) {
+			foreach($list_fields as $field => $data) {
+				if ($td_tpl = $list_fields_templates_tds[$field]) {
+					include($td_tpl);
+				} else {
+					include($template_table_row_td);
+				}
 			}
 		}
 

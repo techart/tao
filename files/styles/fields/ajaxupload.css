@@ -15,7 +15,7 @@ div.file-field {
 	div.file-field div.file-load-indicator {
 		width: 214px;
 		height: 15px;
-		background-image: url(/files/_assets/images/hloading.gif);
+		background-image: url(/tao/images/hloading.gif);
 		background-repeat: no-repeat;
 		display: none;
 	}
@@ -40,6 +40,6 @@ div.file-field {
 		}
 
 			div.file-field div.file-info div.file-button-del {
-				background-image: url(/files/_assets/images/del.png);
+				background-image: url(/tao/images/del.png);
 				left: 5px;
 			}

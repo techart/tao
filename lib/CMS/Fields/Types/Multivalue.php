@@ -134,6 +134,13 @@ class CMS_Fields_Types_Multivalue extends CMS_Fields_AbstractField implements Co
 		$res = parent::stdunset($data);
 		return $this->punset($res, 'assoc', 'widget');
 	}
+
+	public function search_subfield($name, $data, $field) {
+		if (preg_match('!(_[\d]+)$!', $field, $m) && ($name == str_replace($m[1], '', $field))) {
+			return $data['widget'];
+		}
+		return parent::search_subfield($name, $data, $field);
+	}
 	
 	protected function get_assoc_mapper($name, $data) {
 		$key = $name . ':' . serialize($data['assoc']);
@@ -218,6 +225,7 @@ class CMS_Fields_Types_Multivalue extends CMS_Fields_AbstractField implements Co
 	}
 	
 	public function action_delete($name, $data, $action, $item = false, $fields = array()) {
+		if (!$item) return json_encode(array('success' => true));
 		$r = WS::env()->request;
 		$iname = $r['item_name'];
 		$data['__item'] = $item;

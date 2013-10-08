@@ -30,7 +30,7 @@ if (isset($massupdate_fields[$field])) {
 }
 
 else {
-	$value = $type->view_value($row,$field,$data);
+	$value = $type->view_value($row,$field,$data,$row);
 	if ($tpl = $list_fields_templates_values[$field]) {
 		ob_start();
 		include($tpl);

@@ -1625,7 +1625,7 @@ class CMS_AdminTable_LayoutElement {
 class CMS_AdminTable_LayoutTree extends CMS_AdminTable_LayoutElement {
 
 	public function styles() { return array(CMS::stdfile_url('styles/tree.css')); }
-	public function scripts() { return array('jquery.js',CMS::stdfile_url('scripts/tree.js')); }
+	public function scripts() { return array('jquery.js',CMS::stdfile_url('scripts/admin/tree.js')); }
 
 	public function generate() {
 		$tree = $this->data;

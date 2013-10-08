@@ -1,0 +1,13 @@
+<?php
+$this->use_styles(CMS::stdfile_url('styles/stockroom.css'));
+$this->use_scripts(CMS::stdfile_url('scripts/admin/table-edit.js'));
+$title = 'Установка компонента '.$item->title;
+?>
+<?php include($controller->template('prepare')); ?>
+<?php include($controller->template('header')); ?>
+<?php if ($error) { ?>
+<p class="error"><?= $error ?></p>
+<?php } else { ?>
+<p>Вы действительно желаете установить этот компонент?</p>
+<form method="post" action="<?= $controller->action_url('install',$item) ?>"><input type="submit" class="submit-button" value="Начать установку"></form>
+<?php } ?>

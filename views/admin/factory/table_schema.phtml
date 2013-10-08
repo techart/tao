@@ -1,0 +1,29 @@
+<? print '&lt;?php'; ?>
+
+
+Core::load('CMS.Fields');
+
+class <?= str_replace('.','_',$this->schema_module) ?> implements Core_ModuleInterface
+{
+	public static function run()
+	{
+		CMS_Fields::process_schema('<?= $table ?>',self::fields());
+	}
+
+	public static function fields()
+	{
+		return array(
+<?= $this->draw_array($this->fields_data,"\t\t\t") ?>
+		);
+	}
+<?php if ($this->admin_tabs&&$this->admin_fields=='schema') { ?>
+
+	public function tabs()
+	{
+		return array(
+			'default' => 'Свойства',
+		);
+	}
+<?php } ?>
+}
+

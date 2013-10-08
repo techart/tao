@@ -25,34 +25,47 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 			switch (count($this->check_schema($data))) {
 				case 0:
 					$val_string = "";
-					$value = parent::view_value($value,$name,$data);
+					$view_value = parent::view_value($value,$name,$data);
 					break;
 				case 1:
 					$val_string = $value[$fields_names[0]];
-					$value = $this->floatize_string($val_string);
+					$view_value = $this->floatize_string($val_string);
 					break;
 				case 2:
-					$val_string = $value[$fields_names[0]].';'.$value[$fields_names[1]];
-					$value = $this->floatize_string($val_string);
+					$view_value = null;
+					if (!is_null($value[$fields_names[0]])) {
+						$val_string = $value[$fields_names[0]].';'.$value[$fields_names[1]];
+						$view_value = $this->floatize_string($val_string);
+					}
 					break;
 				case 3:
-					$val_string = $value[$fields_names[0]].';'.$value[$fields_names[1]].';'.$value[$fields_names[2]];
-					$value = $this->floatize_string($val_string);
+					$view_value = null;
+					if (!is_null($value[$fields_names[0]])) {
+						$val_string = $value[$fields_names[0]].';'.$value[$fields_names[1]].';'.$value[$fields_names[2]];
+						$view_value = $this->floatize_string($val_string);
+					}
 					break;
 			}
 		}
 		else {
-			$value = parent::view_value($value,$name,$data);
+			$view_value = parent::view_value($value,$name,$data);
 		}
-		return $value;
+		return $view_value;
 	}	
 
 	public function check_schema($data) {
-		if (isset($data['sqltypes'])) {
-			$this->schema = array_keys(array_slice((array)$data['sqltypes'], 0, 3));
+		if (isset($data['schema'])) {
+			$func = create_function('$el', 'return $el["name"];');
+			$this->schema = array_map($func, $data['schema']['columns']);
 		}
 		else {
-			$this->schema = array();
+			if (isset($data['sqltypes'])) {
+				$this->schema = array_keys(array_slice((array)$data['sqltypes'], 0, 3));
+				
+			}
+			else {
+				$this->schema = array();
+			}
 		}
 		return $this->schema;
 	}
@@ -77,7 +90,7 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 			$value = array_values(array_slice($value,0,3));
 			foreach ($value as $k => $field) {
 				if ($field===null) {
-					$value[$k] = 0;
+					$value[$k] = $field;
 				}
 				else {
 					if (is_string($field)) {
@@ -90,10 +103,16 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 					}
 				}
 			}
-			$coords = array('lat' => $value[0], 'lng' => $value[1], 'zoom' => $value[2]);
+			if (!is_null($value[0])) {
+				$coords = array('lat' => $value[0], 'lng' => $value[1], 'zoom' => $value[2]);
+			}
 		}
-		else if (preg_match('/(.*);(.*);(.*)/',$value,$m)) {
-			$coords = array('lat' => floatval($this->floatize_string($m[1])), 'lng' => floatval($this->floatize_string($m[2])), 'zoom' => (int)$m[3]);
+		else {
+			if (preg_match('/(.*);(.*);(.*)/',$value,$m)) {
+				if ($m[1]!='') {
+					$coords = array('lat' => floatval($this->floatize_string($m[1])), 'lng' => floatval($this->floatize_string($m[2])), 'zoom' => (int)$m[3]);
+				}
+			}
 		}
 		return $coords;
 	}
@@ -130,31 +149,36 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 
 	public function degrees_to_decimals($degree) {
 		$degree = $this->floatize_string($degree);
-		if (is_numeric($degree)) {
-			return floatval($degree);
+		if ($degree=='') {
+			$decimal = null;
 		}
 		else {
-			$pattern = "/^(?:(-?\d+)°)*\s*(?:(\d+)')*\s*(?:(\d+)'')*$/";
-			if (preg_match($pattern,trim($degree),$m)) {
-		
-				$deg = (int)$m[1];
-				$min = (int)$m[2];
-				$sec = (int)$m[3];
-
-				$sign = 1;
-				if ($deg<0) {
-					$deg *= -1;
-					$sign = -1;
-				}
-
-				$decimal = $sign*($deg + $min/60 + $sec/3600);
-	
-				return $decimal;
+			if (is_numeric($degree)) {
+				$decimal = floatval($degree);
 			}
 			else {
-				return 0;
+				$pattern = "/^(?:(-?\d+)°)*\s*(?:(\d+)')*\s*(?:(\d+)'')*$/";
+				if (preg_match($pattern,trim($degree),$m)) {
+			
+					$deg = (int)$m[1];
+					$min = (int)$m[2];
+					$sec = (int)$m[3];
+
+					$sign = 1;
+					if ($deg<0) {
+						$deg *= -1;
+						$sign = -1;
+					}
+
+					$decimal = $sign*($deg + $min/60 + $sec/3600);
+		
+				}
+				else {
+					$decimal = 0;
+				}
 			}
 		}
+		return $decimal;
 	}
 
 	protected function js_injection($template, $field_name, $type, $url_class = false, $method_name = null) {
@@ -177,8 +201,8 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 		$id = $this->url_class();
 		$this->js_injection($l, $name, $data['type'], $id);
 
-		$l->use_scripts(CMS::stdfile_url('scripts/fields/map_coords.js'));
-		$l->use_styles(CMS::stdfile_url('styles/fields/map_coords.css'));
+		$l->use_scripts(CMS::stdfile_url('scripts/fields/map-coords.js'));
+		$l->use_styles(CMS::stdfile_url('styles/fields/map-coords.css'));
 		return parent::layout_preprocess($l, $name, $data);
 	}
 
@@ -215,28 +239,21 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 				$value = is_object($object) ? array($object[$this->schema[0]], $object[$this->schema[1]], $object[$this->schema[2]]) : $object;
 				break;
 		}
-		
-		if ($coords = $this->parse_field($value)) {
+
+		$coords = $this->parse_field($value);
+		if (!is_null($coords)) {
 			$form[$name] = $coords['lat'];
 			$form[$name.'_add'] = $coords['lng'];
 			if ($this->use_zoom_check($data)) {
 				$form[$name.'_zoom'] = $coords['zoom'];
 			}
-		}
-		else {
-			$form[$name] = '0';
-			$form[$name.'_add'] = '0';
-			if ($this->use_zoom_check($data)) {
-				$form[$name.'_zoom'] = 0;
-			}
-		}
-
-		if (isset($data['format'])) {
-			switch ($data['format']) {
-				case 'degrees':
-					$form[$name] = $this->decimals_to_degrees(floatval($this->floatize_string($form[$name])));
-					$form[$name.'_add'] = $this->decimals_to_degrees(floatval($this->floatize_string($form[$name.'_add'])));
-				break;
+			if (isset($data['format'])) {
+				switch ($data['format']) {
+					case 'degrees':
+						$form[$name] = $this->decimals_to_degrees(floatval($this->floatize_string($form[$name])));
+						$form[$name.'_add'] = $this->decimals_to_degrees(floatval($this->floatize_string($form[$name.'_add'])));
+					break;
+				}
 			}
 		}
 	}
@@ -244,31 +261,31 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 	public function assign_to_object($form,$object,$name,$data) {
 		$lat = $form[$name];
 		$lng = $form[$name.'_add'];
-		$lat = $this->degrees_to_decimals($lat);
-		$lng = $this->degrees_to_decimals($lng);
-		$lat = round($lat, 6);
-		$lng = round($lng, 6);
+		if ($lat!=''&&$lng!='') {
+			$lat = $this->degrees_to_decimals($lat);
+			$lng = $this->degrees_to_decimals($lng);
 
-		if ($this->use_zoom_check($data)) {
-			$zoom = (int)$form[$name.'_zoom'];
-		}
+			if ($this->use_zoom_check($data)) {
+				$zoom = (int)$form[$name.'_zoom'];
+			}
 
-		switch (count($this->check_schema($data))) {
-			case 0:
-				$object[$name] = ($lat.';'.$lng.';'.$zoom);
-				break;
-			case 1:
-				$object[$this->schema[0]] = ($lat.';'.$lng.';'.$zoom);
-				break;
-			case 2:
-				$object[$this->schema[0]] = $lat;
-				$object[$this->schema[1]] = $lng;
-				break;
-			case 3:
-				$object[$this->schema[0]] = $lat;
-				$object[$this->schema[1]] = $lng;
-				$object[$this->schema[2]] = $zoom;
-				break;
+			switch (count($this->check_schema($data))) {
+				case 0:
+					$object[$name] = ($lat.';'.$lng.';'.$zoom);
+					break;
+				case 1:
+					$object[$this->schema[0]] = ($lat.';'.$lng.';'.$zoom);
+					break;
+				case 2:
+					$object[$this->schema[0]] = $lat;
+					$object[$this->schema[1]] = $lng;
+					break;
+				case 3:
+					$object[$this->schema[0]] = $lat;
+					$object[$this->schema[1]] = $lng;
+					$object[$this->schema[2]] = $zoom;
+					break;
+			}
 		}
 	}
 
@@ -296,7 +313,10 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 				break;
 			case 3:
 				$zoom_name = $this->schema[2];
-				$options['properties']['zoom'] = $data['__item']->$zoom_name;
+				$zoom = $data['__item']->$zoom_name;
+				if (!is_null($zoom)) {
+					$options['properties']['zoom'] = $zoom;
+				}
 				break;
 		}
 

@@ -11,12 +11,12 @@ class Service_Google_API implements Core_ConfigurableModuleInterface {
 
 	static protected $cache;
 	static protected $stdin;
-	static protected $options = array('lib_path' => '../extern/google-api-php-client/', 'cache_path' => 'fs://../cache/google_api');
+	static protected $options = array('lib_path' => '../vendor/google-api-php-client/', 'cache_path' => 'fs://../cache/google_api');
 
 	static function initialize(array $options = array()) {
 		self::options($options);
-		if (set_include_path(get_include_path() . PATH_SEPARATOR . self::option('lib_path').'src/')) {
-			if (! @include_once('Google_Client.php')) {
+		if ( !class_exists('Google_Client') && set_include_path(get_include_path() . PATH_SEPARATOR . self::option('lib_path').'src/')) {
+			if (!@include_once('Google_Client.php')) {
 				throw new Service_Google_API_ClientLibraryModuleNotFoundException('src/Google_Client.php', self::option('lib_path'));
 			}
 		}
@@ -37,10 +37,10 @@ class Service_Google_API implements Core_ConfigurableModuleInterface {
 	}
 
 	static function Analytics() {
-		if (! @include_once('contrib/Google_AnalyticsService.php')) {
+		if (!class_exists('Google_AnalyticsService') && !@include_once('contrib/Google_AnalyticsService.php')) {
 			throw new Service_Google_API_ClientLibraryModuleNotFoundException('src/contrib/Google_AnalyticsService.php', self::option('lib_path'));
 		}
-		return new Service_Google_API_Analytics(&self::$cache, &self::$stdin);
+		return new Service_Google_API_Analytics(self::$cache, self::$stdin);
 	}
 
 }
@@ -55,7 +55,7 @@ abstract class Service_Google_API_AbstractService {
 	protected $client_class_name = 'Service_Google_API_AbstractClient';
 	protected $cache_subfolder = 'base';
 
-	function __construct($cache, $stdin) {
+	function __construct(&$cache, &$stdin) {
 		$this->cache = $cache;
 		$this->stdin = $stdin;
 	}

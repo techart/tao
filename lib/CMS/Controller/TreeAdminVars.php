@@ -106,7 +106,7 @@ class CMS_Controller_TreeAdminVars extends CMS_Controller_TreeTable implements C
 	}
 
 	public function app_js_file() {
-		return CMS::stdfile_url('scripts/admin-vars.js');
+		return CMS::stdfile_url('scripts/admin/vars.js');
 	}
 	
 	protected function render_tree() {
@@ -162,7 +162,7 @@ class CMS_Controller_TreeAdminVars extends CMS_Controller_TreeTable implements C
 			'_change' => $this->make_url('change', $id), 
 			'_addfile' => $this->make_url('addfile', $id), 
 			'_up' => $this->make_url(), 
-		))->use_style(CMS::stdfile_url('styles/admin-table.css'));
+		))->use_style(CMS::stdfile_url('styles/admin/table.css'));
 	}
 	
 	public function action_change() {

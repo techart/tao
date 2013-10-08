@@ -1,6 +1,6 @@
 div.addattache {
 	position: relative;
-	background-image: url(/files/_assets/images/icons/plus-button.png);
+	background-image: url(/tao/images/icons/plus-button.png);
 	background-repeat: no-repeat;
 	background-position: 0 1px;
 	width: 150px;
@@ -25,7 +25,7 @@ div.addattache {
 		width: 214px;
 		height: 15px;
 		position: absolute;
-		background-image: url(/files/_assets/images/hloading.gif);
+		background-image: url(/tao/images/hloading.gif);
 		background-repeat: no-repeat;
 		top: 2px;
 		left: 20px;
@@ -58,7 +58,7 @@ table.attaches-list {
 		}
 
 		.attaches-list .delete-attachment {
-			background-image: url(/files/_assets/images/del.png);
+			background-image: url(/tao/images/del.png);
 			background-repeat: no-repeat;
 			background-position: center center;
 			width: 16px;

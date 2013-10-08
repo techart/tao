@@ -1,1 +1,11 @@
-<?= $this->forms->input($_name,$tagparms) ?>
+<?php
+if (isset($data['obligatory_prefix'])) {
+	$prefix = trim($data['obligatory_prefix']);
+	unset($tagparms['obligatory_prefix']);
+	if ($prefix!='') {
+		$tagparms['data-obligatory-prefix'] = $prefix;
+		$this->use_scripts(CMS::stdfile_url('scripts/fields/obligatory-prefix.js'));
+	}
+}
+
+?><?= $this->forms->input($_name,$tagparms) ?>

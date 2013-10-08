@@ -19,17 +19,17 @@ class CMS_Vars_ORM_Mapper extends CMS_ORM_Mapper {
 			columns('id', 'parent_id', 'site', 'component', 'code', 'title', 'value', 'valuesrc', 'vartype', 'parms', 'parmsrc', 'full', 'ord')->
 			key('id')->
 			order_by("IF(vartype='dir',0,1),id")->
-			types()
-				->vartype(array('type' => 'select', 'caption' => 'Тип', 'items' => CMS::vars()->types()))
-				->parent_id(array('type' => 'tree_select', 'caption' => 'Родитель', 
+			schema_fields(array(
+				'vartype' => array('type' => 'select', 'caption' => 'Тип', 'items' => CMS::vars()->types()),
+				'parent_id' => array('type' => 'tree_select', 'caption' => 'Родитель', 
 							'items' => array(
 								0 => 'Нет',
 								Core::Call($this->spawn()->only('id', 'parent_id', 'title', 'ord')->where('vartype = :t', 'dir'), 'select_component', null)->cache(true)
-							), 'flat' => true, /*'prefix' => '*'*/))
-				->code(array('caption' => 'Идентификатор', 'type' => 'varcode'))
-				->title(array('type' => 'input', 'caption' => 'Комментарий','tagparms' => array('style' => 'width: 98%')))
-				->full(array('type' => 'checkbox', 'caption' => 'Ограниченный доступ'))
-			->end();
+							), 'flat' => true, /*'prefix' => '*'*/),
+				'code' => array('caption' => 'Идентификатор', 'type' => 'varcode'),
+				'title' => array('type' => 'input', 'caption' => 'Комментарий','tagparms' => array('style' => 'width: 98%')),
+				'full' => array('type' => 'checkbox', 'caption' => 'Ограниченный доступ'),
+			));
 	}
 	
 	protected function map_for_code($parms) {

@@ -7,11 +7,15 @@ TAO.fields.attaches = TAO.fields.attaches || {}
 TAO.fields.attaches.list_reload = function(field_name, field) {
 	var $list = $("#attaches-list-"+field_name, field);
 	var url = $('.addattache', field).attr('data-url-reload');
-	$list.load(url,{},
-	 function() {
+	var callback = function() {
 	 	TAO.fields.attaches.binds_delete_attachment(field_name, field);
 	 	$list.trigger('reload', [$list, 'upload']);
-	 });
+	};
+	if (url) {
+		$list.load(url, {}, callback);
+	} else {
+		callback();
+	}
 	TAO.fields.attaches.binds_delete_attachment(field_name, field);
 }
 

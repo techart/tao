@@ -14,7 +14,8 @@ class Text_Process implements Core_ModuleInterface /*Core_ConfigurableModuleInte
       'wiki' => 'Text.Parser.Wiki',
       'plaintext' => 'Text.Filter.PlainText',
       'html' => 'Text.Filter.HTML',
-      'typographer' => 'Text.Processor.Typographer'
+      'typographer' => 'Text.Processor.Typographer',
+      'htmlpurifier' => 'Text.Filter.HTMLPurifier'
     ));
     if (isset($config['process'])) self::add_process($config['process']);
   }

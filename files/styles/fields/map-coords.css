@@ -1,0 +1,38 @@
+.map-block {
+	display: inline-block;
+	height: 100%; 
+	overflow: hidden;
+	border: 1px solid black; 
+	padding: 5px; 
+}
+	.map-controls {
+		float: left;
+		margin: 0 5px 10px 0;
+	}
+		.map-coords {}
+			.map-coords-lat, .map-coords-lng, .map-coords-zoom {
+				margin-bottom: 5px;
+			}
+				.map-coords-label {
+					margin-bottom: 2px;
+				}
+				.map-coords-input input {
+					width: 200px;
+				}
+		.map-settings {
+			height: 100%;
+			overflow: hidden;
+			margin-top: 8px;
+		}
+			.map-coords-format {
+				float: left;
+			}
+				.map-coords-format-degrees {}
+				.map-coords-format-decimal {}
+			.map-to-marker {
+				float: right;
+			}
+				.map-button-to-marker {}
+	.map-view {
+		float: left;
+	}

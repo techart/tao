@@ -4,11 +4,10 @@ Core::load('CMS.Fields.Types.Multilink');
 class CMS_Fields_Types_StaticMultilink extends CMS_Fields_Types_Multilink implements Core_ModuleInterface {
 	const VERSION = '0.0.0';
 	
-	protected function add_to_form($name, $key, $form, $object) {
+	protected function assign_item_from_object($form, $object, $name, $parms, $key) {
 		$selected_items = explode(',', $object->$name);
-		$n = $name.$key;
-		$form->checkbox($name.$key);
-		$form[$n] = in_array($key, $selected_items);
+		$k = str_replace($name, '', $key);
+		$form[$key] = in_array($k, $selected_items);
 	}
 	
 	public function assign_to_object($form,$object,$name,$data) {

@@ -6,8 +6,8 @@ $lyb = $c->get_layout('bottom');
 $lyl = $c->get_layout('left');
 $lyr = $c->get_layout('right');
 
-$this->use_styles('/files/_assets/styles/jquery.ui.css','/files/_assets/styles/layout.css');
-$this->use_scripts('jquery.js','/files/_assets/scripts/ui.js','/files/_assets/scripts/layout.js','/files/_assets/scripts/cookie.js');
+$this->use_styles('/tao/styles/jquery/ui.css','/tao/styles/layout.css');
+$this->use_scripts('jquery.js','/tao/scripts/jquery/ui.js','/tao/scripts/jquery/layout.js','/tao/scripts/jquery/cookie.js');
 
 $lsize = isset($_COOKIE[$calias.'_size_west'])?(int)$_COOKIE[$calias.'_size_west']:false;
 //if (!$lsize) $lsize = "'auto'";

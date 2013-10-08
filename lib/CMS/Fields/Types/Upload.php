@@ -41,33 +41,10 @@ class CMS_Fields_Types_Upload extends CMS_Fields_AbstractField implements Core_M
 		if (!isset($uploads[$name])) return;
 		$file = $uploads[$name];
 
-		if($extra) {
-			$dir = $extra['homedir'];
-			if (isset($parms['private']) && $parms['private']) $dir = $extra['private_homedir'];
-		}
-
-		if (isset($parms['dir'])) $dir = $parms['dir'];
-		$dir = rtrim($dir,'/');
-		if (isset($parms['subdir'])) $dir .= '/'.$parms['subdir'];
-		$dir = rtrim($dir,'/');
+		$dir = $this->uploaded_file_dir($parms, $item, (bool)$params['private']);
 		CMS::mkdirs($dir);
 
-		$filename = '%{field}-%{id}-%{time}%{dotext}';
-		if (isset($parms['filename'])) $filename = $parms['filename'];
-
-		$original_name = $file['original_name'];
-		$original_name_we = $file['original_name_we'];
-		$ext = $file['ext'];
-		$dotext = $file['dotext'];
-
-		$newfile = $filename;
-		$newfile = str_replace('%{field}',$name,$newfile);
-		$newfile = str_replace('%{id}',$item->id(),$newfile);
-		$newfile = str_replace('%{time}',time(),$newfile);
-		$newfile = str_replace('%{ext}',$ext,$newfile);
-		$newfile = str_replace('%{dotext}',$dotext,$newfile);
-		$newfile = str_replace('%{name}',$this->validate_filename($original_name),$newfile);
-		$newfile = str_replace('%{namewe}',$this->validate_filename($original_name_we),$newfile);
+		$newfile = $this->uploaded_file_name($file, $parms, $item, $name);
 		$newfile = "$dir/$newfile";
 
 		$newpath = $this->uploaded_path($newfile);
@@ -120,6 +97,109 @@ class CMS_Fields_Types_Upload extends CMS_Fields_AbstractField implements Core_M
 			$file->copy_to($to_value);
 		}
 		return $this;
+	}
+
+	public function uploaded_file_name($file, $params, $item, $name) {
+		$filename = '%{field}-%{id}-%{time}%{dotext}';
+		if (isset($parms['filename'])) {
+			$filename = $parms['filename'];
+		}
+
+		$original_name = $file['original_name'];
+		$original_name_we = $file['original_name_we'];
+		$ext = $file['ext'];
+		$dotext = $file['dotext'];
+
+		$newfile = $filename;
+		$newfile = str_replace('%{field}',$name,$newfile);
+		$newfile = str_replace('%{id}',$item->id(),$newfile);
+		$newfile = str_replace('%{time}',time(),$newfile);
+		$newfile = str_replace('%{ext}',$ext,$newfile);
+		$newfile = str_replace('%{dotext}',$dotext,$newfile);
+		$newfile = str_replace('%{name}',$this->validate_filename($original_name),$newfile);
+		$newfile = str_replace('%{namewe}',$this->validate_filename($original_name_we),$newfile);
+
+		return $newfile;
+	}
+
+	public function uploaded_file_dir($parms, $item, $private = false) {
+		$dir = $item->homedir($private);
+
+		if (isset($parms['dir'])) {
+			$dir = $parms['dir'];
+		}
+		$dir = rtrim($dir,'/');
+		if (isset($parms['subdir'])) {
+			$dir .= '/'.$parms['subdir'];
+		}
+		$dir = rtrim($dir,'/');
+
+		return $dir;
+	}
+
+	public function remove_existed_file($item, $name, $file = false) {
+		$oldfile = isset($item->$name) ? trim($item->$name) : '';
+		$oldpath = $this->uploaded_path($oldfile);
+		if ($oldpath && $oldfile != $file) {
+			IO_FS::rm($oldpath);
+		}
+		return;
+	}
+
+}
+
+class CMS_Fields_Types_Upload_ValueContainer extends CMS_Fields_ValueContainer implements Core_ModuleInterface {
+
+	public function set($file) {
+		if (!IO_FS::exists($file)) {
+			return $this;
+		}
+
+		$private = (isset($this->data['private']) && $this->data['private']);
+		$dir = $this->type->uploaded_file_dir($this->data, $this->item, $private);
+		$filename = $this->type->uploaded_file_name($this->get_file_info($file), $this->data,$this->item,$this->name);
+
+		if (!$dir) {
+			return $this;
+		}
+		if (!IO_FS::exists($dir)) {
+			CMS::mkdirs($dir);
+		}
+
+		$_dir = preg_replace('{^\./}','',$dir);
+
+
+		copy($file,"$dir/$filename");
+		CMS::chmod_file("$dir/$filename");
+		$this->remove($file);
+
+
+		$file = "$_dir/$filename";
+		return parent::set($file);
+	}
+
+	public function remove($file = false) {
+		$this->type->remove_existed_file($this->item, $this->name, $file);
+		return parent::set('');
+	}
+
+	protected function get_file_info($file) {
+		$original_name = $file;
+		$original_name_we = $file;
+		$ext = '';
+		$dotext = '';
+		if ($m = Core_Regexps::match_with_results('{^(.*)\.([a-z0-9_]+)$}i',$original_name)) {
+			$original_name_we = strtolower($m[1]);
+			$ext = $m[2];
+			$dotext = ".$ext";
+		}
+
+		return array(
+			'original_name' => $original_name,
+			'original_name_we' => $original_name_we,
+			'ext' => $ext,
+			'dotext' => $dotext,
+		);
 	}
 
 }

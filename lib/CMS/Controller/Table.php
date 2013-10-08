@@ -16,6 +16,9 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	// Имя таблицы в БД (устарело, не рекомендуется к использованию)
 	protected $dbtable		= false;
 
+	// Модуль схемы
+	protected $schema_module	= false;
+
 	// Имя основного ORM-маппера
 	protected $orm_name		= false;
 
@@ -26,19 +29,31 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 	// Мнемокод контроллера/экшна (для генерации евентов)
 	protected $mnemocode = 'cms.table';
+	protected $mnemocode_prefix = 'cms.table';
 
 	protected $add_in_list	= false;
 
 	protected $title_add_in_list	= 'Быстрое добавление записи';
 
-	protected function mnemocode() {
+	protected function mnemocode($name = null) {
+		if (is_null($name)) {
+			$name = $this->action;
+		}
 		$m = get_class($this);
 		$m = str_replace('Component_','',$m);
 		$m = strtolower($m);
 		$m = preg_replace('{[^a-z0-9]+}','.',$m);
 		$m = trim($m,'.');
-		$m = "cms.table.{$m}.{$this->action}";
-		return $m;
+		$m = "{$this->mnemocode_prefix}.{$m}.{$name}";
+		return trim($m, '.');
+	}
+
+	public function assign($options = array())
+	{
+		foreach ($options as $k => $v) {
+			$this->$k = $v;
+		}
+		return $this;
 	}
 
 	// Возвращает основной ORM-маппер
@@ -70,13 +85,36 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return $this->storage_name ? $this->storage_name : $this->orm_name();
 	}
 
+	public function schema_fields() {
+		if (!$this->schema_module) {
+			return false;
+		}
+		Core::load($this->schema_module);
+		$class = str_replace('.','_',$this->schema_module);
+		return call_user_func(array($class,'fields'));
+	}
+
+	public function schema_tabs() {
+		if (!$this->schema_module) {
+			return false;
+		}
+		Core::load($this->schema_module);
+		$class = str_replace('.','_',$this->schema_module);
+		if (method_exists($class,'tabs')) {
+			return call_user_func(array($class,'tabs'));
+		}
+		return false;
+	}
+
 	// Возвращает ORM-маппер для выборки строк
 	protected function orm_mapper_for_select($parms=array()) {
 		$mapper = $this->orm_mapper();
 		if (!$mapper) return false;
 		if ($sub = $this->orm_for_select) $mapper = $mapper->downto($sub);
 		$mapper = $this->orm_mapper_for_parms($mapper,$parms);
-		if ($mapper->auto_add()) $mapper = $mapper->auto_add_mapper_created();
+		if ($mapper->auto_add()) {
+			$mapper = $mapper->auto_add_mapper_created();
+		}
 		return $mapper;
 	}
 
@@ -370,8 +408,7 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 		if ($t = $this->redefined_template($template)) return $t;
 
-		$dir = CMS::views_path('admin/table2');
-		$tpl = "$dir/$template";
+		$tpl = CMS::views_path('admin/table2/'.$template);
 		
 		if (is_file($tpl)) return $tpl;
 		if ($this->view_exists($template)) return $this->view_path_for($template);
@@ -440,6 +477,11 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	}
 
 	public function index($action,$args) {
+		$rc = Events::call($this->mnemocode('start_action'), $action, $args, $this);
+		if (!empty($rc)) {
+			return $rc;
+		}
+
 		if ($action == 'default' || $action == 'index')
 			$action = $this->default_action($action, $args);
 		
@@ -449,7 +491,7 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 		if (strpos($action,'-')!==false) {
 			$args = "$action/$args";
-			$action = 'list';
+			$action = $this->default_action($action, $args);
 		}
 
 		$this->action = $action == 'default'? $this->action : $action;
@@ -486,20 +528,50 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 			return $this->field_action($field,$this->action);
 		}
 
-
 		$r = $this->on_before_action($this->action);
 		if (is_string($r)||is_object($r)) return $r;
 		if ($r===false) return $this->page_not_found();
 		$method = "action_{$this->action}";
 
+		$rc = Events::call($this->mnemocode('before_execute_action'), $method, $action, $args, $this);
+		if (!empty($rc)) {
+			return $rc;
+		}
 
-		return $this->$method();
-
+		if (!empty($method)) {
+			return $this->$method();
+		} else {
+			return $this->page_not_found();
+		}
 	}
 
 
 	////////////////////////////////////////////////////////////////////////
 	// Urls
+
+	protected function args_for_urls() {
+		$out = array();
+		foreach($this->args as $k => $v) {
+			if (!is_int($k)&&$k!='page'&&$k!='id') {
+				$out[] = $k;
+			}
+		}
+		return $out;
+	}
+	
+	protected function args_string() {
+		$out = '';
+		$args = $this->args_for_urls();
+		foreach($args as $arg) {
+			if (isset($this->args[$arg])) {
+				$value = trim($this->args[$arg]);
+				if ($value!='') {
+					$out .= "$arg-$value/";
+				}
+			}
+		}
+		return $out;
+	}
 
 	public function action_url($action,$p=false,$args=false,$extra=false) {
 		$url = $this->urls->admin_url();
@@ -529,6 +601,8 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 			$sort = $_direction=='desc'?'sortdesc':'sort';
 			$url .= "$sort-$_sort/";
 		}
+		
+		$url .= $this->args_string();
 
 		$qs = $this->args_to_query_string($args);
 		return $url.$qs;
@@ -577,11 +651,25 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return $this->list_style;
 	}
 
-	protected $list_fields = array('id' => array('caption' => 'ID'),'title' => array('caption' => 'Title'));
+	protected $list_fields = array();
 	protected function list_fields() {
-		return $this->search_fields($this->form_fields('list'), $this->list_fields, 'in_list');
+		$fields = $this->schema_fields();
+		if (!$fields) {
+			if ($mapper = $this->orm_mapper()) {
+				$fields = $mapper->schema_fields();
+				if (!is_array($fields)||count($fields)==0) {
+					$fields = false;
+				}
+			}
+		}
+		if ($fields) {
+			$fields = $this->search_fields($fields,array(),'in_list','weight_in_list','caption_in_list');
+			return Core_Arrays::merge($this->list_fields, $fields);
+		} else {
+			return $this->list_fields;
+		}
 	}
-
+	
 	protected $per_page = 20;
 	protected function per_page() {
 		return $this->per_page;
@@ -719,12 +807,15 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 	protected function massupdate_form($rows) {
 		if (count($rows)==0) return false;
-		foreach($this->list_fields() as $field => $parms) {
-			if (isset($parms['edit'])) {
-				$data = $parms['edit'];
-				if ($data===true) $data = array('type' => 'input');
-				if (is_string($data)) $data = array('type' => $data);
-				$this->massupdate_fields[$field] = $data;
+		$fields = $this->list_fields();
+		if ($fields) {
+			foreach($this->list_fields() as $field => $parms) {
+				if (isset($parms['edit'])) {
+					$data = $parms['edit'];
+					if ($data===true) $data = array('type' => 'input');
+					if (is_string($data)) $data = array('type' => $data);
+					$this->massupdate_fields[$field] = $data;
+				}
 			}
 		}
 		if (count($this->massupdate_fields)==0) return false;
@@ -746,6 +837,16 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 		return $form;
 
+	}
+
+	protected function prepare_filter_forms() {
+		$filters_form_fields = $this->filters_form();
+		list($filter_item, $attrs) = $this->filter_object();
+		foreach ($filters_form_fields as $k => $f) {
+			$f['__item'] = $filter_item;
+			$filters_form_fields[$k] = $f;
+		}
+		return $filters_form_fields;
 	}
 
 	protected function action_list() {
@@ -813,12 +914,7 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 			$filters_buttons[$caption] = $url;
 		}
 
-		$filters_form_fields = $this->filters_form();
-		list($filter_item, $attrs) = $this->filter_object();
-		foreach ($filters_form_fields as $k => $f) {
-			$f['__item'] = $filter_item;
-			$filters_form_fields[$k] = $f;
-		}
+		$filters_form_fields = $this->prepare_filter_forms();
 
 		if ($this->add_in_list && $this->access_add()) {
 			$this->create_form($this->action_url('add',$this->page), 'add');
@@ -856,8 +952,32 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 	protected $filtered_form_fields = array();
 
+	protected function form_fields($action = 'edit') {
+		$fields = $this->schema_fields();
+		if (!$fields) {
+			if ($mapper = $this->orm_mapper()) {
+				$fields = $mapper->schema_fields();
+				if (!is_array($fields)||count($fields)==0) {
+					$fields = false;
+				}
+			}
+		}
+		if ($fields) {
+			return $this->search_fields($fields,array(),'in_form','weight_in_form','caption_in_form', true);
+		}
+		return parent::form_fields($action);
+	}
+
 	protected $form_tabs = array();
-	protected function form_tabs($action,$item=false) {
+	protected function form_tabs($action='edit',$item=false) {
+		if ($tabs = $this->schema_tabs()) {
+			return $tabs;
+		}
+		if ($mapper = $this->orm_mapper()) {
+			if ($tabs = $mapper->schema_tabs($action)) {
+				return $tabs;
+			}
+		}
 		return $this->form_tabs;
 	}
 

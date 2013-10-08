@@ -105,11 +105,11 @@
 	display: block;
 	width: 16px;
 	height:16px;
-	background: url('../../images/icons/zoom.png') 0 0 no-repeat;
+	background: url('/tao/images/icons/zoom.png') 0 0 no-repeat;
 }
 
 .gallery-image-caption-button {
-	background: url('../../images/icons/edit.png') 0 0 no-repeat;
+	background: url('/tao/images/icons/edit.png') 0 0 no-repeat;
 	width: 16px;
 	height:16px;
 }
@@ -117,13 +117,13 @@
 .gallery-button-rotate.image-button-left {
 	width: 16px;
 	height:16px;
-	background-image: url(/files/_assets/images/turn-left.png);
+	background-image: url(/tao/images/turn-left.png);
 }
 
 .gallery-button-rotate.image-button-right {
 	width: 16px;
 	height:16px;
-	background-image: url(/files/_assets/images/turn-right.png);
+	background-image: url(/tao/images/turn-right.png);
 }
 
 .gallery-user-mods {

@@ -230,8 +230,6 @@ class CMS_Handlers_Configure extends WS_MiddlewareService {
 		CMS::$cfg = $env->config;
 		if ($env->db->default) {
 			CMS::$db = $env->db->default;
-			//if (class_exists('DB_SQL', false))
-				DB_SQL::db()->connect(CMS::$db);
 		}
 		Templates_HTML::use_helper('fields','CMS.Fields.Helper');
 		Templates_HTML::use_helper('cms','CMS.Helper');

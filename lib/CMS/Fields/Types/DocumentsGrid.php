@@ -15,17 +15,29 @@ class CMS_Fields_Types_DocumentsGrid extends CMS_Fields_Types_Documents_Base imp
 	}
 	
 	protected function layout_preprocess($l, $name, $data) {
-		$l->use_styles(CMS::stdfile_url('styles/custom-ext-theme.css'));
-		$l->use_styles(CMS::stdfile_url('styles/fields/documents-grid.css'));
+
+		$l->use_styles(
+			CMS::stdfile_url('scripts/SlickGrid/slick.grid.css'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.css'),
+			CMS::stdfile_url('styles/jquery/ui.css'),
+			CMS::stdfile_url('styles/fields/documents-grid.css')
+		);
 		$l->use_scripts(
-			CMS::stdfile_url('scripts/ext-all.js'),
-			CMS::stdfile_url('scripts/ext-lang-ru.js'),
-			CMS::stdfile_url('scripts/fields/documents-grid.js')
-			//CMS::stdfile_url('scripts/jquery.tablednd.0.7.min.js')
-			);
+			CMS::stdfile_url('scripts/fields/documents-grid.js'),
+			CMS::stdfile_url('scripts/jquery/ui.js'),
+			CMS::stdfile_url('scripts/jquery/event.drag.js'),
+			CMS::stdfile_url('scripts/jquery/event.drop.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.core.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.formatters.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.editors.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.grid.js'),
+			CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowmovemanager.js'),
+			CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowselectionmodel.js'),
+			CMS::stdfile_url('scripts/tao/data.js')
+		);
 		$id = $this->url_class();
 		$code = <<<JS
-		$(function () { $('.{$id}.field-$name').each(function() {TAO.fields.documents_grid.process($(this))}) })
+		$(window).load(function () { $('.{$id}.field-$name').each(function() {TAO.fields.documents_grid.process($(this))}) })
 JS;
 		$l->append_to('js', $code);
 		$l->with('url_class', $id);
@@ -45,6 +57,11 @@ JS;
 	
 	protected function action_load($name, $data, $action, $item = false, $fields = array()) {
 		return json_encode($this->load_data($name, $data, $item));
+	}
+
+	protected function files_from_request()
+	{
+		return WS::env()->request->content;
 	}
 	
 	protected function load_data($name, $data, $item) {
@@ -68,7 +85,6 @@ JS;
 		$single = isset($fdatas['name']);
 		$fdatas = $single ? array($fdatas) : $fdatas;
 		$files = $single ? $this->files_data($name, $data, $item) : array('files');
-		//var_dump($fdatas);die('!');
 		foreach ($fdatas as $fk => $fdata) {
 			if (isset($fdata['date'])) $fdata['date'] = date('d.m.Y', strtotime($fdata['date']));
 			if ($single) {
@@ -95,7 +111,7 @@ JS;
 		return array_merge($this->default_fields($name, $data), isset($data['fields']) ? $data['fields'] : array());
 	}
 	
-	protected function default_fields($name, $data) {
+	protected function default_fields___($name, $data) {
 		return array(
 			'name' => array(),
 			'path' => array(),
@@ -118,6 +134,26 @@ JS;
 				'column' => array(
 					'text' => 'Название',
 					'editor' => 'textfield',)
+			),
+		);
+	}
+
+	protected function default_fields($name, $data)
+	{
+		return array(
+			'name' => array(),
+			'path' => array(),
+			'date' => array(
+				'caption' => 'Дата',
+				'type' => 'date',
+				'editorOptions' => array('dateFormat' => 'dd.mm.yy'),
+				'editor' => 'Slick.Editors.Date',
+				'maxWidth' => 120,
+				'resizable' => false
+			),
+			'caption' => array(
+				'caption' => 'Название',
+				'editor' => 'Slick.Editors.Text',
 			),
 		);
 	}

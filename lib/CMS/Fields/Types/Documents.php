@@ -72,7 +72,9 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 	
 	protected function update_files_data($files, $name, $data, $item) {
 		$files['files'] = array_values($files['files']);
-		IO_FS::File($this->files_data_path($name, $data, $item))->update(serialize($files));
+		$file = IO_FS::File($this->files_data_path($name, $data, $item));
+		$file->update(serialize($files));
+		$file->set_permission();
 	}
 	
 	protected function add_file_to_data($file, $name, $data, $item) {
@@ -126,13 +128,13 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 		else {
 			$dir = $file->dir_name;
 			if (!IO_FS::exists($dir)) IO_FS::mkdir($dir, null, true);
-			$file->open('w');
 			$files = $this->read_dir($file->dir_name);
 			$fdata = array();
 			foreach ($files as $path) {
 				$fdata['files'][] = array('name' => pathinfo($path, PATHINFO_BASENAME));
 			}
 			$file->update(serialize($fdata));
+			$file->set_permission();
 		}
 
 		if (isset($fdata['files']) && !empty($fdata['files']) && !empty($this->filters))
@@ -179,9 +181,14 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 			return $this->$m($name, $data, $action, $item, $fields);
 		return parent::action($name, $data, $action, $item, $fields);
 	}
+
+	protected function files_from_request()
+	{
+		return $this->request('data');
+	}
 	
 	public function action_save($name, $data, $action, $item = false, $fields = array()) {
-		$files = json_decode($this->request('data'), true);
+		$files = json_decode($this->files_from_request(), true);
 		if (!empty($files)) $this->update_files_data($files, $name, $data, $item);
 		Events::call('admin.change');
 		return 'ok';
@@ -250,14 +257,22 @@ class CMS_Fields_Types_Documents extends CMS_Fields_Types_Documents_Base impleme
 	}
 	
 	protected function layout_preprocess($l, $name, $data) {
-		$l->use_styles(CMS::stdfile_url('styles/custom-ext-theme.css'));
-		$l->use_styles(CMS::stdfile_url('styles/fields/documents.css'));
+		$l->use_styles(
+			CMS::stdfile_url('styles/fields/documents.css')
+		);
 		$l->use_scripts(
-			CMS::stdfile_url('scripts/ext-all.js'),
-			CMS::stdfile_url('scripts/ext-lang-ru.js'),
+			CMS::stdfile_url('scripts/jquery/dform.js'),
+			CMS::stdfile_url('scripts/tao/popup.js'),
 			CMS::stdfile_url('scripts/fields/documents.js'),
-			CMS::stdfile_url('scripts/jquery-json.js'),
-			CMS::stdfile_url('scripts/jquery.tablednd.0.7.min.js'));
+			CMS::stdfile_url('scripts/jquery/json.js'),
+			CMS::stdfile_url('scripts/jquery/tablednd.js'));
+		$doc_fields = $this->get_doc_fields($name, $data);
+		foreach ($doc_fields as $dname => $ddata) {
+			if ($ddata['xtype'] == 'datefield' || $ddata['type'] == 'date') {
+				$l->use_script(CMS::stdfile_url('scripts/jquery/ui.js'), array('weight' => -1));
+				$l->use_style(CMS::stdfile_url('styles/jquery/ui.css'));
+			}
+		}
 		$id = $this->url_class();
 		$code = <<<JS
 		$(function () { $('.{$id}.field-$name').each(function() {TAO.fields.documents.process($(this))}) })
@@ -269,7 +284,7 @@ JS;
 		$l->with('url_class', $id);
 		Templates_HTML::add_scripts_settings(array('fields' => array(
 			$name => array(
-				'fields' => $this->get_doc_fields($name, $data),
+				'fields' => $doc_fields,
 				'autoedit_on_upload' => isset($data['autoedit_on_upload']) ? $data['autoedit_on_upload'] : $this->autoedit_on_upload,
 				)
 		)));

@@ -1,0 +1,121 @@
+div.stockroom-item {
+	border: 1px solid #ccc;
+	margin: 0 0 10px 0;
+	padding: 10px;
+	border-radius: 10px;
+	position: relative;
+}
+
+	div.installed {
+		background-color: #efe;
+	}
+
+	div.update {
+		background-color: #fee;
+	}
+
+	div.stockroom-item .version {
+		position: absolute;
+		top: 5px;
+		right: 10px;
+		font-size: 14px;
+	}
+
+	div.stockroom-item .title {
+		color: #842b5b;
+		font-size: 16px;
+	}
+
+	div.stockroom-item .announce {
+		font-size: 12px;
+		padding: 5px 20px 5px 0;
+	}
+
+	div.stockroom-item .bottom {
+		height: 100%;
+		overflow: hidden;
+		border-top: 1px dotted #ccc;
+		padding: 5px 0 0 0;
+	}
+
+		div.stockroom-item .bottom .button {
+			display: block;
+			float: left;
+			border: 1px solid #ccc;
+			text-decoration: none;
+			padding: 2px 5px;
+			font-size: 12px;
+			background-color: #8adce8;
+		}
+
+		div.stockroom-item .bottom .installed-version {
+			float: left;
+			font-size: 10px;
+			color: #888;
+			padding: 3px 5px 0 0;
+		}
+
+			div.stockroom-item .bottom .installed-version em {
+				font-size: 10px;
+				color: #000;
+				font-style: normal;
+			}
+
+div.tags {
+	border: 1px solid #ccc;
+	padding: 10px;
+	border-radius: 10px;
+	width: 170px;
+	min-height: 400px;
+}
+
+	div.tags a {
+		color: #3e79a1;
+	}
+
+	div.tags a.all-components {
+		display: block;
+		padding: 0 0 10px 0;
+		margin: 0 0 10px 0;
+		border-bottom: 1px dotted #ccc;
+		color: #3e79a1;
+	}
+
+	div.tags a.current {
+		color: #600;
+		font-weight: normal;
+	}
+
+
+	div.tags ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+		div.tags ul li {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+
+table.stockroom-layout {
+	width: 100%;
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+		table.stockroom-layout td.left {
+			padding: 0;
+			vertical-align: top;
+			width:200px;
+		}
+
+		table.stockroom-layout td.right {
+			padding: 0;
+			vertical-align: top;
+		}
+
+ul.filelist {
+	margin: 0 0 20px 20px;
+}

@@ -1,0 +1,20 @@
+<?php
+$this->use_styles(CMS::stdfile_url('styles/stockroom.css'));
+$this->use_scripts(CMS::stdfile_url('scripts/admin/table-edit.js'));
+$title = 'Установка компонента '.$item->title;
+?>
+<?php include($controller->template('prepare')); ?>
+<?php include($controller->template('header')); ?>
+
+<?php
+$text = trim($item['instext']);
+if ($text!='') {
+	print $text;
+} else {
+	?><p>Компонент успешно установлен</p><?php
+	$coreload = trim($item['coreload']);
+	if ($coreload!='') {
+		?><p>Не забудьте включить его в <b>index.php</b> директивой <b><?= $coreload ?></b></p><?php
+	}
+
+}

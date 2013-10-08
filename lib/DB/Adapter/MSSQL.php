@@ -1,181 +1,238 @@
 <?php
-/// <module name="DB.Adapter.MSSQL" version="0.2.1" maintainer="svistunov@techart.ru">
-///   <brief>MSSQL адаптер</brief>
+/**
+ * Набор классов для валидации объектов
+ * 
+ * @author Svistunov Sergey <svistunov@techart.ru>
+ * 
+ * @version 0.2.1
+ * @deprecated
+ * 
+ * @package DB\Adapter\MSSQL
+ */
 
 Core::load('Time');
 
-/// <class name="DB.Adapter.MSSQL" stereotype="module">
-class DB_Adapter_MSSQL implements Core_ConfigurableModuleInterface {
-///   <constants>
-  const VERSION = '0.2.1';
-///   </constants>
+/**
+ * Класс модуля
+ * 
+ * @package DB\Adapter\MSSQL 
+ */
+class DB_Adapter_MSSQL implements Core_ConfigurableModuleInterface 
+{
+	/**
+	 * Версия модуля
+	 */
+	const VERSION = '0.2.1';
 
-  static protected $options = array(
-    'convert'         => true,
-    'server_charset'  => 'CP1251',
-    'client_charset'  => 'UTF-8');
+	/**
+	 * @var array Набор опций
+	 */
+	static protected $options = array(
+		'convert'         => true,
+		'server_charset'  => 'CP1251',
+		'client_charset'  => 'UTF-8'
+    );
 
-///   <protocol name="creating">
+	/**
+	 * Инициализация
+	 * 
+	 * @param array $options Массив опций по умолчанию array()
+	 * 
+	 * @throws Core_Exception Если отсутствует Microsoft SQL Server Driver for PHP.
+	 */
+	static public function initialize(array $options = array()) 
+	{
+		if (! extension_loaded('sqlsrv')) {
+			throw new Core_Exception('Sqlsrv is not supported');
+		}
+		self::options($options);
+	}
 
-///   <method name="initialize" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
-  static public function initialize(array $options = array()) {
-    if (!extension_loaded('sqlsrv')) throw new Core_Exception('Sqlsrv is not supported');
-    self::options($options);
-  }
-///     </body>
-///   </method>
+	/**
+	 * Изменение и получение опций.
+	 * 
+	 * Изменяются уже существующие опции. Новые опции не добавляются.
+	 * 
+	 * @param array $options Массив опций по умолчанию array()
+	 * 
+	 * @return array self::$options
+	 */
+	static public function options(array $options = array()) 
+	{
+		if (count($options)) {
+			Core_Arrays::update(self::$options, $options);
+		}
+		return self::$options;
+	}
 
-///   </protocol>
-
-///   <protocol name="configuring">
-
-///   <method name="options" returns="mixed" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
-  static public function options(array $options = array()) {
-    if (count($options)) Core_Arrays::update(self::$options, $options);
-    return self::$options;
-  }
-///     </body>
-///   </method>
-
-///   <method name="option" returns="mixed">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="value" default="null" />
-///     </args>
-///     <body>
-  static public function option($name, $value = null) {
-    $prev = isset(self::$options[$name]) ? self::$options[$name] : null;
-    if ($value !== null) self::options(array($name => $value));
-    return $prev;
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
-
+	/**
+	 * Установка и получение значения опции.
+	 * 
+	 * Возвращается предыдущее значение опции.
+	 * 
+	 * @param string $name Имя опции
+	 * @param string $value Значение опции по умолчанию null
+	 * 
+	 * @return null|string
+	 */
+	static public function option($name, $value = null) 
+	{
+		$prev = isset(self::$options[$name]) ? 
+			self::$options[$name] : 
+			null;
+			
+		if ($value !== null) {
+			self::options(array($name => $value));
+		}
+		
+		return $prev;
+	}
 }
-/// </class>
 
-/// <class name="Db.Adapter.MSSQL.Exception" extends="DB.Exception">
-class DB_Adapter_MSSQL_Exception extends DB_Exception {
+/**
+ * Класс исключения
+ * 
+ * @package DB\Adapter\MSSQL 
+ */
+class DB_Adapter_MSSQL_Exception extends DB_Exception 
+{
+	/** 
+	 * Конструктор
+	 * 
+	 * Если параметр $error не передан, то сообщение будет состоять из 
+	 * всех ошибок и предупреждений, полученных в ходе последней операции.
+	 * 
+	 * @param string $error Сообщение об ошибке по умолчанию null
+	 */
+	public function __construct($error = null)
+	{
+		if (is_null($error)) {
+			foreach (sqlsrv_errors() as $e) {
+				$error .= $e[2]."\n";
+			}
+		}
 
-///   <protocol name="creating">
-
-///   <method name="__construct">
-///     <args>
-///       <arg name="error" type="string" default="null" />
-///     </args>
-///     <body>
-  public function __construct($error = null) {
-    if (is_null($error))
-      foreach (sqlsrv_errors() as $e) $error .= $e[2]."\n";
-
-    parent::__construct("MSSQL Error: ".((string) $error));
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+		parent::__construct("MSSQL Error: ".((string) $error));
+	}
 }
-/// </class>
 
-/// <class name="DB.Adapter.MSSQL.ConnectionException" extends="DB.Adapter.MSSQL.Exception">
-class DB_Adapter_MSSQL_ConnectionException extends DB_Adapter_MSSQL_Exception {}
-/// </class>
+/**
+ * Класс исключения 
+ * 
+ * @package DB\Adapter\MSSQL 
+ */
+class DB_Adapter_MSSQL_ConnectionException extends DB_Adapter_MSSQL_Exception
+{
+}
 
-/// <class name="DB.Adapter.MSSQL.Connection">
-///   <implements interface="DB.Adapter.ConnectionInterface" />
-///   <brief>Класс подключения к БД</brief>
+/**
+ * Класс подключения к БД
+ * 
+ * @package DB\Adapter\MSSQL 
+ */
 class DB_Adapter_MSSQL_Connection implements DB_Adapter_ConnectionInterface {
 
-  protected $connection;
-  protected $attrs = array();
+	/**
+	 * @var resource Ресурс соединения с БД
+	 */
+	protected $connection;
+	
+	/**
+	 * @var array Атрибуты
+	 */
+	protected $attrs = array();
 
-///   <protocol name="creating">
+	/**
+	 * Конструктор
+	 * 
+	 * @param DB_DSN $dsn Объект строки параметров подключения к БД
+	 * 
+	 * @throws DB_Adapter_MSSQL_ConnectionException Если подключение не удалось
+	 */
+	public function __construct(DB_DSN $dsn)
+	{
+		try {
+			$this->connection = sqlsrv_connect(
+				$dsn->host,
+				array(
+					'UID'      => $dsn->user,
+					'PWD'      => $dsn->password,
+					'Database' => $dsn->database
+				) + (count($dsn->parms) > 0 ? $dsn->parms : array())
+			);
+		} catch (Exception $e) {
+			throw new DB_Adapter_MSSQL_ConnectionException($e->getMessage());
+		}
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="dsn" type="DB.DSN" brief="параметра доступа к БД" />
-///     </args>
-///     <body>
-  public function __construct(DB_DSN $dsn) {
-    try {
-      $this->connection = sqlsrv_connect(
-        $dsn->host,
-        array('UID'      => $dsn->user,
-              'PWD'      => $dsn->password,
-              'Database' => $dsn->database) +
-          (count($dsn->parms) > 0 ? $dsn->parms : array()));
-    } catch (Exception $e) {
-      throw new DB_Adapter_MSSQL_ConnectionException($e->getMessage());
-    }
+		if (!$this->connection) {
+			throw new DB_Adapter_MSSQL_ConnectionException();
+		}
+	}
 
-    if (!$this->connection) throw new DB_Adapter_MSSQL_ConnectionException();
-  }
-///     </body>
-///   </method>
+	/**
+	 * Устанавливает атрибут
+	 * 
+	 * @param integer $id идентификатор
+	 * @param mixed $value
+	 * 
+	 * @throws Core_NotImplementedException Всегда
+	 */
+	public function set_attribute($id, $value)
+	{
+		throw new Core_NotImplementedException();
+	}
 
-///   </protocol>
+	/**
+	 * Возвращает атрибут
+	 * 
+	 * @param integer $id идентификатор
+	 * 
+	 * @throws Core_NotImplementedException Всегда
+	 * 
+	 * @return mixed
+	 */
+	public function get_attribute($id)
+	{
+		throw new Core_NotImplementedException();
+	}
 
-///   <protocol name="processing">
-
-///   <method name="set_attribute" returns="boolean">
-///     <brief>Устанавливает атрибут</brief>
-///     <args>
-///       <arg name="id" brief="идентификатор"  />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
-  public function set_attribute($id, $value) { throw new Core_NotImplementedException(); }
-///     </body>
-///   </method>
-
-///   <method name="get_attribute" returns="mixed">
-///     <brief>Возвращает атрибут</brief>
-///     <args>
-///       <arg name="id" type="int" brief="идентификатор" />
-///     </args>
-///     <body>
-  public function get_attribute($id) { throw new Core_NotImplementedException(); }
-///     </body>
-///   </method>
-
-///   <method name="transaction">
-///     <brief>Открывает транзакцию</brief>
-///     <body>
-  public function transaction() {
-    if (sqlsrv_begin_transaction($this->conn) === false);
-      throw new DB_Adapter_MSSQL_Exception();
-  }
-///     </body>
-///   </method>
+	/**
+	 * Открывает транзакцию
+	 * 
+	 * @throws DB_Adapter_MSSQL_Exception Если транзакция не удалась.
+	 */
+	public function transaction() 
+	{
+		if (sqlsrv_begin_transaction($this->connection) === false) {
+			throw new DB_Adapter_MSSQL_Exception();
+		}
+	}
 
 ///   <method name="commit">
 ///     <brief>Фиксирует транзакцию</brief>
 ///     <body>
-  public function commit() {
-  if (sqlsrv_commit($this->conn) === false)
-    throw new DB_Adapter_MSSQL_Exception();
-  }
+	/**
+	 * Фиксирует транзакцию
+	 * 
+	 * @throws DB_Adapter_MSSQL_Exception Если транзакция не удалась.
+	 */
+	public function commit()
+	{
+		if (sqlsrv_commit($this->connection) === false) {
+			throw new DB_Adapter_MSSQL_Exception();
+		}
+	}
 ///     </body>
 ///   </method>
 
 ///   <method name="rollback">
 ///     <brief>Откатывает транзакцию</brief>
 ///     <body>
-  public function rollback() {
-  if (sqlsrv_rollback($this->conn) === false)
-    throw new DB_Adapter_MSSQL_Exception();
-  }
+	public function rollback()
+	{
+		if (sqlsrv_rollback($this->conn) === false)
+		throw new DB_Adapter_MSSQL_Exception();
+	}
 ///     </body>
 ///   </method>
 

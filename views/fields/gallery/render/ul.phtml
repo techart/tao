@@ -1,7 +1,10 @@
 <?php
 foreach ($container as $i => $data) {
 			$sz = CMS_Images::size($data['path']);
-			print $this->tags->content_tag('a',$this->tags->tag('img',
-				array_merge(array('src' => $data['url']), $sz[0] > 0 && $sz[1] > 0 ?  array('width' => $sz[0], 'height' => $sz[1]) : array() )), 
-				array('href' => $data['orig_url'], 'target' => '_blank'));
+			$img_args = array_merge(array('src' => $data['url']), $sz[0] > 0 && $sz[1] > 0 ?  array('width' => $sz[0], 'height' => $sz[1]) : array() );
+			$link_args = array('href' => $data['orig_url'], 'target' => '_blank');
+			if ($container->lazy) {
+				$img_args = $container->lazy_tagargs($img_args);
+			}
+			print $this->tags->content_tag('a',$this->tags->tag('img', $img_args), $link_args);
 		}

@@ -1,0 +1,172 @@
+<?php include('top.phtml'); ?>
+
+<?php
+
+	$component_name = '';
+	foreach(explode('_',$table) as $ch) {
+		$ch = trim($ch);
+		if ($ch!='') {
+			$ch[0] = strtoupper($ch[0]);
+		}
+		$component_name .= $ch;
+	}
+
+?>
+
+
+<div class="factory-mode">
+	<h2 class="component">Компонент</h2>
+
+	<fieldset>
+		<label class="factory-label">Имя:</label>
+		<input type="text" name="factory_component_name" id="factory_component_name" value="<?= $component_name ?>" style="width:300px">
+	</fieldset>
+
+	<fieldset>
+		<label class="factory-label">&nbsp;</label>
+		<a class="submit-button" id="factory_button_component">Сгенерировать</a>
+	</fieldset>
+</div>
+
+
+<div class="factory-mode">
+	<h2 class="model">Модель</h2>
+
+	<fieldset>
+		<label class="factory-label">Имя модуля:</label>
+		<input type="text" name="factory_orm_name" id="factory_orm_name" value="Component.<?= $component_name ?>.DB.<?= $component_name ?>" style="width: 300px;">
+	</fieldset>
+
+	<fieldset>
+		<label class="factory-label">Набор полей:</label>
+		<select name="factory_orm_fields" id="factory_orm_fields">
+			<option value="native">Собственный</option>
+			<option value="schema">Из схемы</option>
+		</select>
+	</fieldset>
+
+	<fieldset>
+		<label class="factory-label">&nbsp;</label>
+		<a class="submit-button" id="factory_button_orm">Сгенерировать</a>
+	</fieldset>
+
+	<div class="factory-result" id="factory_result_container_orm">
+		<textarea name="factory_result_orm" id="factory_result_orm" wrap="off" readonly></textarea>
+	</div>
+</div>
+
+<div class="factory-mode">
+	<h2 class="model">Административный контроллер</h2>
+
+	<fieldset>
+		<label class="factory-label">Имя модуля:</label>
+		<input type="text" name="factory_admin_name" id="factory_admin_name" value="Component.<?= $component_name ?>.Admin.<?= $component_name ?>" style="width:300px">
+	</fieldset>
+
+	<fieldset>
+		<label class="factory-label">Набор полей:</label>
+		<select name="factory_admin_fields" id="factory_admin_fields">
+			<option value="native">Собственный</option>
+			<option value="schema">Из схемы</option>
+		</select>
+	</fieldset>
+
+	<fieldset>
+		<label class="factory-label">Многовкладочная форма:</label>
+		<input type="checkbox" value="1" name="factory_admin_tabs" id="factory_admin_tabs">
+	</fieldset>
+
+	<fieldset>
+		<label class="factory-label">&nbsp;</label>
+		<a class="submit-button" id="factory_button_admin">Сгенерировать</a>
+	</fieldset>
+
+	<div class="factory-result" id="factory_result_container_admin">
+		<textarea name="factory_result_admin" id="factory_result_admin" wrap="off" readonly></textarea>
+	</div>
+</div>
+
+<div class="factory-mode">
+	<h2 class="model">Схема данных</h2>
+
+	<fieldset>
+		<label class="factory-label">Имя модуля:</label>
+		<input type="text" name="factory_schema_name" id="factory_schema_name" value="Component.<?= $component_name ?>.Schema.<?= $component_name ?>" style="width:300px">
+	</fieldset>
+
+	<fieldset>
+		<label class="factory-label">&nbsp;</label>
+		<a class="submit-button" id="factory_button_schema">Сгенерировать</a>
+	</fieldset>
+
+	<div class="factory-result" id="factory_result_container_schema">
+		<textarea name="factory_result_schema" id="factory_result_schema" wrap="off" readonly></textarea>
+	</div>
+</div>
+
+<script type="text/javascript">
+<!--
+
+
+	$(function() {
+
+		function qs() {
+			var schema_module = $('#factory_schema_name').attr('value');
+			var orm_module = $('#factory_orm_name').attr('value');
+			var orm_fields = $('#factory_orm_fields').get(0).value;
+			var admin_fields = $('#factory_admin_fields').get(0).value;
+			var admin_module = $('#factory_admin_name').attr('value');
+			var component = $('#factory_component_name').attr('value');
+			var q = '?component='+component+'&orm_module='+orm_module+'&admin_module='+admin_module+'&schema_module='+schema_module+'&orm_fields='+orm_fields+'&admin_fields='+admin_fields;
+			if ($('#factory_admin_tabs').get(0).checked) {
+				q += '&admin_tabs=1';
+			}
+			return q;
+		}
+
+		$('#factory_component_name').change(function() {
+			var name = $(this).attr('value');
+			$('#factory_orm_name').attr('value','Component.'+name+'.DB.<?= $component_name ?>');
+			$('#factory_admin_name').attr('value','Component.'+name+'.Admin.<?= $component_name ?>');
+			$('#factory_schema_name').attr('value','Component.'+name+'.Schema.<?= $component_name ?>');
+		});
+
+		$('#factory_button_component').click(function() {
+			var url = '<?= $urls->component_url($table) ?>'+qs();
+			//alert(url);
+			$.get(url,function(data) {
+				alert(data);
+			});
+		});
+
+		$('#factory_button_orm').click(function() {
+			var url = '<?= $urls->orm_url($table) ?>'+qs();
+			$.get(url,function(data) {
+				$('#factory_result_orm').empty().append(data);
+				$('#factory_result_container_orm').slideDown();
+			});
+		});
+
+		$('#factory_button_admin').click(function() {
+			var url = '<?= $urls->admin_url($table) ?>'+qs();
+			//alert(url);
+			$.get(url,function(data) {
+				$('#factory_result_admin').empty().append(data);
+				$('#factory_result_container_admin').slideDown();
+			});
+		});
+
+		$('#factory_button_schema').click(function() {
+			var url = '<?= $urls->schema_url($table) ?>'+qs();
+			//alert(url);
+			$.get(url,function(data) {
+				$('#factory_result_schema').empty().append(data);
+				$('#factory_result_container_schema').slideDown();
+			});
+		});
+	});
+//-->
+</script>
+
+<?php include('bottom.phtml'); ?>
+

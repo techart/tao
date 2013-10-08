@@ -8,13 +8,18 @@ class CMS_Component implements Core_ModuleInterface {
 	protected $cconfig = array();
 
 	protected $config_dir = 'config';
-	protected $user_config_dir = 'user/config';
+	protected $user_config_dir = 'app/config';
 
 	protected $process_schema = true;
 
 	public function __construct($name) {
 		$this->name = $name;
 		//TODO: config source (file, cache, vars ...)
+	}
+
+	public function is_auto_schema()
+	{
+		return true;
 	}
 
 	public function dir() {
@@ -68,6 +73,12 @@ class CMS_Component implements Core_ModuleInterface {
 		foreach ($schema as $name => &$table) {
 			if (!empty($fields->$name)) {
 				CMS_Fields::fields_to_schema($fields->$name, $name, $table);
+			}
+		}
+
+		foreach ($schema as $name => $ttable) {
+			if (empty($ttable)) {
+				unset($schema->$name);
 			}
 		}
 		

@@ -79,26 +79,31 @@ class CMS_ORM_Root extends DB_ORM_ConnectionMapper {
 class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 
 	protected $fields = false;
+	protected $fields_data = array();
+	protected $schema_module = false;
 	protected $__component;
 
-	public function setup_config() {
+	public function setup_config()
+	{
 		$fields = $this->fields();
 		$schema = $this->schema();
 		if (!empty($fields) || !empty($schema)) {
 			Core::load('CMS.Fields');
 			$this
 				->columns(CMS_Fields::fields_to_columns($fields, self::table_from($this), $schema))
-				->types()->build($fields)->end();
+				->schema_fields($fields);
 		}
 	}
 
-	protected function setup() {
+	protected function setup()
+	{
 		$this->setup_auto_add();
 		$this->setup_config();
 		return parent::setup();
 	}
 
-	public function setup_auto_add() {
+	public function setup_auto_add()
+	{
 		$this->options(array(
 			'auto_add' => false,
 			'auto_add_field_created' => '_created',
@@ -106,70 +111,150 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 			'auto_add_lifetime' => 86400,
 
 		));
+		return $this;
 	}
 
-	public function auto_add($v = null) {
-		if (is_null($v)) return $this->option('auto_add');
+	public function auto_add($v = null)
+	{
+		if (is_null($this->option('auto_add'))) {
+			$this->setup_auto_add();
+		}
+		if (is_null($v)) {
+			return $this->option('auto_add');
+		}
 		$this->option('auto_add', $v);
 		return $this;
 	}
 
-	public function auto_add_field_created($v = null) {
+	public function auto_add_field_created($v = null)
+	{
+		if (is_null($this->option('auto_add'))) {
+			$this->setup_auto_add();
+		}
 		if (is_null($v)) return $this->option('auto_add_field_created');
 		$this->option('auto_add_field_created', $v);
 		return $this;
 	}
 
-	public function auto_add_field_time($v = null) {
+	public function auto_add_field_time($v = null)
+	{
+		if (is_null($this->option('auto_add'))) {
+			$this->setup_auto_add();
+		}
 		if (is_null($v)) return $this->option('auto_add_field_time');
 		$this->option('auto_add_field_time', $v);
 		return $this;
 	}
 
-	public function auto_add_mapper_created() {
+	public function auto_add_mapper_created()
+	{
+		if (is_null($this->option('auto_add'))) {
+			$this->setup_auto_add();
+		}
 		$fc = $this->auto_add_field_created();
 		return $this->spawn()->where("{$fc}=1");
 	}
 
-	public function auto_add_lifetime($v = null) {
+	public function auto_add_lifetime($v = null)
+	{
+		if (is_null($this->option('auto_add'))) {
+			$this->setup_auto_add();
+		}
 		if (is_null($v)) return $this->option('auto_add_lifetime');
 		$this->option('auto_add_lifetime', $v);
 		return $this;
 	}
 
-	public function auto_add_delete_old() {
+	public function auto_add_delete_old()
+	{
+		if (is_null($this->option('auto_add'))) {
+			$this->setup_auto_add();
+		}
 		$fc = $this->auto_add_field_created();
 		$ft = $this->auto_add_field_time();
 		$this->spawn()->where("{$fc}=0")->where("{$ft}<:$ft",date('Y-m-d H:i:s',time()-$this->auto_add_lifetime()))->delete_all();
 	}
 
-//FIXME: циклическая ссылка
-	public function types() {
-		if (!$this->fields) $this->fields = new CMS_ORM_Fields($this);
-		return $this->fields;
+	public function schema_fields($data=false)
+	{
+		if ($data) {
+			if (is_callable($data)) {
+				$this->fields_data = call_user_func($data);
+			} elseif (is_array($data)) {
+				$this->fields_data = array_merge_recursive($this->fields_data, $data);
+			} elseif (is_string($data)) {
+				$module = $data;
+				$method = 'fields';
+				if ($m = Core_Regexps::match_with_results('{^(.+)::(.+)$}',$data)) {
+					$module = trim($m[1]);
+					$method = trim($m[2]);
+				}
+				$this->schema_module = $module;
+				if (strpos($module,'.')>0) {;
+					Core::load($module);
+					$module = str_replace('.','_',$module);
+				}
+				$this->fields_data = call_user_func(array($module,$method));
+			}
+			foreach($this->fields_data as $field => $data) {
+				if ((isset($data['type'])&&$data['type']=='serial')||(isset($data['sqltype'])&&$data['sqltype']=='serial')) {
+					$this->key($field);
+					break;
+				}
+			}
+			$schema = CMS_Fields::fields_to_schema($this->fields_data);
+			if (!empty($schema)) {
+				$columns = array_keys($schema['columns']);
+				$this->columns($columns);
+			}
+			return $this;
+		} else {
+			if ($this->fields_data===false) {
+				$this->fields_data = array();
+			}
+			return $this->fields_data;
+		}
 	}
 
-	public function type_of($name) {
-		return $this->types()->type_of($name);
+	public function schema_tabs($action='edit') {
+		if (!$this->schema_module) {
+			return false;
+		}
+		$module = $this->schema_module;
+		if (strpos($module,'.')>0) {;
+			Core::load($module);
+			$module = str_replace('.','_',$module);
+		}
+		if (method_exists($module,'tabs')) {
+			return call_user_func(array($module,'tabs'),$action);
+		}
+		return false;
 	}
 
-	public function type_object_of($name) {
-		return $this->types()->type_object_of($name);
+	public function type_of($name)
+	{
+		if (is_array($this->fields_data)&&isset($this->fields_data[$name])&&isset($this->fields_data[$name]['type'])) {
+			return $this->fields_data[$name]['type'];
+		}
+		return 'input';
 	}
 
-	public function type_data_of($name) {
-		$data = $this->types()->type_data_of($name);
-		$data['__table'] = $this->__name();
-		return $data;
+	public function type_object_of($name)
+	{
+		Core::load('CMS.Fields');
+		return CMS_Fields::type($this->type_of($name));
 	}
 
-	public function fields_object() {
-		if (!$this->fields) $this->fields = new CMS_ORM_Fields($this);
-		return $this->fields;
+	public function type_data_of($name)
+	{
+		if (is_array($this->fields_data)&&isset($this->fields_data[$name])) {
+			return $this->fields_data[$name];
+		}
+		return array();
 	}
 
-
-	public function component($c = null) {
+	public function component($c = null)
+	{
 		if (!is_null($c)) {
 			$this->__component = $c;
 			return $this;
@@ -179,19 +264,22 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 		return $this->__component;
 	}
 	
-	public function fields() {
+	public function fields()
+	{
 		$name = $this->__name();
 		$c = $this->component();
 		$data = $c && $c->config('fields') && isset($c->config('fields')->$name) ? $c->config('fields')->$name : array();
-		return $data ? $data : array();
+		return $data ? array_merge_recursive($this->fields_data, $data) : array();
 	}
 
-	public function schema() {
+	public function schema()
+	{
+		$schema = CMS_Fields::fields_to_schema($this->fields_data);
 		$name = $this->__name();
 		$component = $this->component();
 		$data = $component && $component->config('schema') && isset($component->config('schema')->$name) ?
 			$component->config('schema')->$name : array();
-		return $data ? $data : array();
+		return $data ? array_merge_recursive($data, $schema) : $schema;
 	}
 
 }
@@ -207,8 +295,27 @@ class CMS_ORM_Entity extends DB_ORM_Entity {
 
 	protected $clear_cache = true;
 
-	static function db() {
+	static function db()
+	{
 		return CMS::orm();
+	}
+
+	public function setup()
+	{
+		parent::setup();
+		if ($this->mapper) {
+			$fields = $this->mapper->schema_fields();
+			if (is_array($fields)) {
+				foreach($fields as $field => $data) {
+					$value = '';
+					if (isset($data['init_value'])) {
+						$value = $data['init_value'];
+					}
+					$this[$field] = $value;
+				}
+			}
+		}
+		return $this;
 	}
 
 	public function auto_add() {
@@ -228,6 +335,7 @@ class CMS_ORM_Entity extends DB_ORM_Entity {
 
 	public function type_of($name) {
 		if (!$this->mapper) return false;
+		return $this->mapper->type_of($name);
 	}
 
 	public function type_object_of($name) {
@@ -241,38 +349,9 @@ class CMS_ORM_Entity extends DB_ORM_Entity {
 		return $this->mapper->type_data_of($name);
 	}
 
-	public function fields() {
-		if (!$this->mapper) return array();
-		return $this->mapper->fields_object();
-	}
-
 	public function all_fields() {
 		if (!$this->mapper) return array();
-		return $this->mapper->fields_object()->all_fields();
-	}
-
-	public function fields_by_group($group) {
-		if (!$this->mapper) return array();
-		$fields = array();
-		foreach ($this->mapper->fields_object()->by_group($group) as $name => $data) {
-			$type = $this->type_object_of($name);
-			$fields[$name] = $type->container($name, $data, $this);
-		}
-		return $fields;
-	}
-
-	public function fields_by_groups() {
-		if (!$this->mapper) return array();
-		$groups = array();
-		foreach ($this->mapper->fields_object()->by_groups() as $gname => $gdata) {
-			$fields = array();
-			foreach ($gdata as $name => $data) {
-				$type = $this->type_object_of($name);
-				$fields[$name] = $type->container($name, $data, $this);
-			}
-			$groups[$gname] = $fields;
-		}
-		return $groups;
+		return $this->mapper->schema_fields();
 	}
 
 	public function field($name) {
@@ -423,103 +502,6 @@ class CMS_ORM_Entity extends DB_ORM_Entity {
 /// </class>
 
 
-
-/// <class name="CMS.ORM.Entity">
-
-class CMS_ORM_Fields {
-
-	protected $mapper = false;
-	protected $fields = array();
-	protected $fields_parms = array();
-
-	public function __construct($mapper=false) {
-		$this->mapper = $mapper;
-		return $this;
-	}
-
-	public function end() {
-		$m = $this->mapper;
-		unset($this->mapper);
-		return $m;
-	}
-
-	public function all_fields() {
-		return $this->fields;
-	}
-
-	public function type($name,$data) {
-		if (is_string($data)) $data = array('type' => $data);
-		$this->fields[$name] = $data;
-		return $this;
-	}
-
-	public function by_group($group) {
-		$f = Object::Filter($group, 'group');
-		return array_filter($this->fields, array($f, 'filter'));
-	}
-
-	public function by_groups() {
-		$res = array();
-		foreach ($this->groups() as $g)
-			$res[$g] = $this->by_group($g);
-		return $res;
-	}
-
-	public function groups() {
-		return $this->fields_parms('group');
-	}
-
-	public function tabs() {
-		return $this->fields_parms('tabs');
-	}
-
-	public function fields_parms($name) {
-		if (empty($this->fields_parms[$name])) {
-			$res = array();
-			foreach ($this->fields as $fname => $data)
-				if (isset($data[$name])) $res[] = $data[$name];
-			$this->fields_parms[$name] = array_unique($res);
-		}
-		return $this->fields_parms[$name];
-	}
-
-
-	public function type_of($name) {
-		if (!isset($this->fields[$name])) return false;
-		return $this->fields[$name]['type'];
-	}
-
-	public function type_data_of($name) {
-		if (!isset($this->fields[$name])) return array('type' => 'input');
-		return $this->fields[$name];
-	}
-
-	public function type_object_of($name) {
-		Core::load('CMS.Fields');
-		return CMS_Fields::type($this->type_of($name));
-	}
-	
-	public function build(array $fields = array()) {
-		foreach ($fields as $name => $data)
-			$this->type($name, $data);
-		return $this;
-	}
-
-	public function __call($name,$args) {
-		if (count($args)==0) return $this;
-		$this->type($name,$args[0]);
-		return $this;
-	}
-
-	public function __get($name) {
-		if (isset($this->fields[$name])) return $this->fields[$name];
-		if ($name == 'fields') return $this->$name;
-		return null;
-	}
-
-}
-
-/// </class>
 
 
 /// </module>

@@ -37,7 +37,7 @@ Core::load('WS', 'Events');
 class CMS implements Core_ModuleInterface {
 ///   <constants>
 	const MODULE  = 'CMS';
-	const VERSION = '1.0.195';
+	const VERSION = '2.0.3';
 ///   </constants>
 
 	static $libpath		= '';
@@ -65,7 +65,7 @@ class CMS implements Core_ModuleInterface {
 	static $parser_module	= 'Text.Parser.Parms';//'CMS.Parser';
 	static $wiki_parser_module	= 'Text.Parser.Wiki';//'CMS.WikiParser';
 	static $nav_module	= 'CMS.Navigation';
-	static $vars_module	= 'CMS.Vars';
+	static $vars_module	= 'CMS.Vars2';
 	static $admin		= 'admin';
 	static $admin_realm	= 'admin';
 	static $www		= 'www';
@@ -90,8 +90,8 @@ class CMS implements Core_ModuleInterface {
 	static $config_path	= '../config';
 	static $logs_path	= '../logs';
 	static $stdfiles_path	= '';
-	static $stdfiles_cache	= '%files%/_stdcache';
-	static $assets_dir	= '%files%/_assets';
+	static $stdfiles_cache	= 'stdcache';
+	static $assets_dir	= 'tao';
 	static $check_assets	= true;
 	static $globals;
 	static $force_layout	= false;
@@ -194,10 +194,15 @@ class CMS implements Core_ModuleInterface {
 
 	static protected function configure_loader() {
 		Core::load('Core.Loader');
-		if (self::$enable_dev_components)
-			Core::loader(Core_Loader::extended())->paths(array('-Component.{name}' => "../(dev|app)" .'/components(/{name}/lib)?'));
-		else
-			Core::loader(Core_Loader::extended())->paths(array('-Component.{name}' => self::$app_path .'/components(/{name}/lib)?'));
+		$base_path = self::$app_path;
+		if (self::$enable_dev_components) {
+			$base_path = str_replace('app', '(dev|app)', $base_path);
+		}
+		Core::loader(Core_Loader::extended())->paths(array(
+			'---Component.{name}.App' => $base_path . '/components/{name}/app(/lib)?',
+			'-Component.{name}' => array($base_path . '/components(/{name}/lib)?', $base_path . '/components/{name}(/lib)?'),
+			'--Component.{name}' => $base_path . '/components/{name}/lib',
+		));
 	}
 
 	static public function ws_status_listener($response) {
@@ -285,7 +290,7 @@ class CMS implements Core_ModuleInterface {
 ///   </method>
 
 	static public function spl_autoload($class) {
-  		if (in_array($class, array('CMS_Mapper', 'CMS_StdControlsMapper')))
+  		if (in_array($class, array('CMS_Mapper','CMS_Router')))
   			Core::loader()->load('CMS.Controller');
 	}
 
@@ -314,10 +319,8 @@ class CMS implements Core_ModuleInterface {
 		Core::load('Templates.HTML.Forms');
 		Core::load('Templates.HTML.Assets');
 		Core::load('Forms');
-		Core::load('DB.SQL');
 		Core::load('IO.FS');
 		Core::load('CMS.Controller');
-		Core::load('CMS.Entity');
 		Core::load('CMS.Dumps');
 		Core::load('CMS.Admin');
 		Core::load('Text.Insertions');
@@ -345,7 +348,6 @@ class CMS implements Core_ModuleInterface {
 		if (!self::$check_assets) return;
 		if (!isset($_SERVER['HTTP_HOST'])&&!isset($_SERVER['REQUEST_URI'])) return;
 		self::check_assets_symlink('./'.self::$assets_dir);
-		if (Core::option('files_name')!='files') self::check_assets_symlink('./files/_assets');
 	}
 
 	static function copy_assets() {
@@ -355,7 +357,6 @@ class CMS implements Core_ModuleInterface {
 	//TODO: сделать callback
 	static protected function before_run($env) {
 		Events::call('cms.run');
-		self::add_component('__STD', new CMS_StdControlsMapper);
  		$env->urls = WebKit_Controller::Mapper();
 		foreach(CMS::$mappers as $name => $mapper) $env->urls->map(strtolower($name),$mapper);
 	}
@@ -376,7 +377,13 @@ class CMS implements Core_ModuleInterface {
 	public function run() {
 
 		try {
-		  self::before_run(CMS::env());
+			if (!isset(self::$component_names['CMSStockroom'])) {
+				Core::load('CMS.Stockroom');
+			}
+			if (!isset(self::$component_names['CMSFSPages'])) {
+				Core::load('CMS.FSPages');
+			}
+			self::before_run(CMS::env());
 			// Если скрипт запущен из командной строки, то веб-приложение не запускается
 			//TODO: create cli_application
 			if (!isset($_SERVER['HTTP_HOST'])&&!isset($_SERVER['REQUEST_URI'])) {
@@ -418,15 +425,18 @@ class CMS implements Core_ModuleInterface {
 ///   <method scope="class" name="cached_run">
 ///     <brief>Кешированный вызов. Метод run переданного модуля вызывается только один раз после модификации файла модуля.</brief>
 ///     <body>
-	public function cached_run($module) {
+	public function cached_run($module,$method='run') {
 		$class = Core_Types::real_class_name_for($module);
 		$key = "cms:cached_run:{$class}";
+		if ($method!='run') {
+			$key .= "_{$method}";
+		}
 		$tc = (int)WS::env()->cache->get($key);
 		$module_file = Core::loader()->file_path_for($module);
 		$tm = filemtime($module_file);
 		if ($tc<$tm) {
 			Core::load($module);
-			Core::call($class,'run')->invoke();
+			Core::call($class,$method)->invoke();
 			WS::env()->cache->set($key,$tm,0);
 		}
 	}
@@ -783,10 +793,14 @@ class CMS implements Core_ModuleInterface {
 ///     <brief>Возвращает URL для скачивания статического файла из каталога текущего компонента</brief>
 ///     <body>
 	static function static_url($file,$component=false) {
-		if (!$component) $component = self::$current_component_name;
-		$path = self::component_dir($component)."/$file";
-		$m = IO_FS::exists($path)? filemtime($path) : "0";
-		return "/component-static/$component/$file/$m/";
+		$path = self::component_static_path($file, $component);
+		$url = Templates_HTML::extern_filepath($path);
+		return $url;
+		// OLD
+		// if (!$component) $component = self::$current_component_name;
+		// $path = self::component_dir($component)."/$file";
+		// $m = IO_FS::exists($path)? filemtime($path) : "0";
+		// return "/component-static/$component/$file/$m/";
 	}
 ///     </body>
 ///   </method>
@@ -796,8 +810,12 @@ class CMS implements Core_ModuleInterface {
 ///     <body>
 	static function component_static_path($file,$component=false) {
 		if (!$component) $component = self::$current_component_name;
+		$app_path = self::component_dir($component)."/app/$file";
+		if (is_file($app_path)) {
+			return "file://".$app_path;
+		}
 		$path = self::component_dir($component)."/$file";
-		return "file://".self::component_dir($component)."/$file";
+		return "file://".$path;
 	}
 ///     </body>
 ///   </method>
@@ -978,6 +996,9 @@ class CMS implements Core_ModuleInterface {
 		$name = $obj->name;
 		self::$components[$name] = $obj;
 		self::add_component($name, $mapper, $layout);
+		if ($obj->is_auto_schema()) {
+			$obj->process_schema();
+		}
 	}
 
 	static public function get_component_name_for($object) {
@@ -1498,6 +1519,8 @@ class CMS implements Core_ModuleInterface {
 ///     </body>
 ///   </method>
 
+/** --------------------------------------------------------------- */
+
 ///   <method scope="class" name="s2date" returns="int">
 ///     <brief>Переводит дату из строкового представления в timestamp</brief>
 ///     <details>
@@ -1509,10 +1532,7 @@ class CMS implements Core_ModuleInterface {
 ///     </args>
 ///     <body>
 	static function s2date($in) {
-		$date = Time_DateTime::parse($in, 'd.m.Y');
-		if (!$date) $date = Time_DateTime::parse($in, 'd.m.Y - G:i');
-		if (!$date) $date = Time_DateTime::parse($in, 'd.m.Y - G:i:s');
-		return $date ? $date->ts : 0;
+		return Time_DateTime::s2date($in);
 	}
 ///     </body>
 ///   </method>
@@ -1522,7 +1542,7 @@ class CMS implements Core_ModuleInterface {
 		$d = (int)$d; if ($d>31) $d = 1; if ($d<10) $d = "0$d";
 		$m = (int)$m; if ($m>12) $m = 1; if ($m<10) $m = "0$m";
 		$y = (int)$y;
-		if ($y<20) $y = 2000+$y;
+		if ($y<=20) $y = 2000+$y;
 		if ($y>=21&&$y<100) $y = 1900+$y;
 		if ($y<1000) $y = "0$y";
 	}
@@ -1545,12 +1565,7 @@ class CMS implements Core_ModuleInterface {
 ///     </args>
 ///     <body>
 	static function s2sqldate($in) {
-		$in = trim($in);
-		$date = Time::DateTime($in);
-		$res = '0000-00-00';
-		if ($date)
-			$res = str_replace(' 00:00:00', '', $date->as_string());
-		return $res;
+		return Time_DateTime::s2sqldate($in);
 	}
 ///     </body>
 ///   </method>
@@ -1558,15 +1573,17 @@ class CMS implements Core_ModuleInterface {
 ///   <method scope="class" name="datetime2timestamp" returns="int">
 ///     <brief>Переводит дату/время в timestamp</brief>
 ///     <details>
-///       Функция, более широкого формата, чем s2date. Принимает также дату/время в том виде, в каком они приходят из БД в полях типа DATE, DATETIME.
-///       Если передано целочисленное значение, то считается, что это timestamp - в этом случае он возвращается в том же виде, в котором получен.
+///       Функция, более широкого формата, чем s2date. 
+///		  Принимает также дату/время в том виде, в каком они приходят из БД в полях типа DATE, DATETIME.
+///       Если передано целочисленное значение, то считается, что это timestamp - 
+///		  в этом случае он возвращается в том же виде, в котором получен.
 ///     </details>
 ///     <args>
 ///       <arg name="source" type="string|int" />
 ///     </args>
 ///     <body>
 	static function datetime2timestamp($time) {
-		return self::s2date($time);
+		return Time_DateTime::datetime2timestamp($time);
 	}
 ///     </body>
 ///   </method>
@@ -1580,10 +1597,7 @@ class CMS implements Core_ModuleInterface {
 ///     </args>
 ///     <body>
 	static function datetime_add($datetime,$sec) {
-		$date = Time::DateTime($datetime);
-		if (!$date) return false;
-		$date->add($sec);
-		return $date->as_string();
+		return Time_DateTime::datetime_add($datetime,$sec);
 	}
 ///     </body>
 ///   </method>
@@ -1601,10 +1615,7 @@ class CMS implements Core_ModuleInterface {
 ///     </args>
 ///     <body>
 	static function sqldateformat($format,$time) {
-		$date = Time::DateTime($time);
-		if ($date)
-			return $date->format($format);
-		return null;
+		return Time_DateTime::sqldateformat($format,$time);
 	}
 ///     </body>
 ///   </method>
@@ -1642,10 +1653,12 @@ class CMS implements Core_ModuleInterface {
 ///     <brief>Возвращает timestamp, соответствующий началу сегодняшних суток</brief>
 ///     <body>
 	static function today() {
-		return Time::now()->setTime(0,0,0)->as_string();
+		return Time::now()->setTime(0,0,0)->ts;
 	}
 ///     </body>
 ///   </method>
+
+/** --------------------------------------------------------------- */
 
 ///   <method scope="class" name="admin_path" returns="string">
 ///     <brief>Возвращает URI, приведенный в соответствие с текущим местоположением админа</brief>
@@ -1708,7 +1721,8 @@ class CMS implements Core_ModuleInterface {
 ///     </args>
 ///     <body>
 	static function views_path($path=false) {
-		return self::$views_path.($path?"/$path":"");
+		return Templates::get_path($path);
+		// return self::$views_path.($path?"/$path":"");
 	}
 ///     </body>
 ///   </method>
@@ -1732,7 +1746,8 @@ class CMS implements Core_ModuleInterface {
 ///     </args>
 ///     <body>
 	static function view($name) {
-		return self::$views_path . "/$name";
+		return Templates::get_path($name);
+		// return self::$views_path . "/$name";
 	}
 ///     </body>
 ///   </method>

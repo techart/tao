@@ -265,6 +265,8 @@ class CMS_Image_GD extends CMS_Image {
 				break;
 			case 'png':
 				$this->ih = @imagecreatefrompng($file);
+				imagealphablending($this->ih, false);
+				imagesavealpha($this->ih, true);
 				break;
 			case 'bmp':
 				$this->ih = @imagecreatefromwbmp($file);
@@ -300,7 +302,7 @@ class CMS_Image_GD extends CMS_Image {
 				imagewbmp($this->ih,$file);
 				break;
 			case 'png':
-				imagegif($this->ih,$file,CMS_Images::$png_quality,CMS_Images::$png_filters);
+				imagepng($this->ih,$file,CMS_Images::$png_quality,CMS_Images::$png_filters);
 				break;
 			default:
 				imagejpeg($this->ih,$file,CMS_Images::$jpeg_quality);
@@ -324,7 +326,7 @@ class CMS_Image_GD extends CMS_Image {
 				break;
 			case 'png':
 				header("Content-type: image/png");
-				imagegif($this->ih,null,CMS_Images::$png_quality,CMS_Images::$png_filters);
+				imagepng($this->ih,null,CMS_Images::$png_quality,CMS_Images::$png_filters);
 				break;
 			default:
 				header("Content-type: image/jpg");
@@ -350,6 +352,11 @@ class CMS_Image_GD extends CMS_Image {
 		if ($w==$_w&&$h==$_h) return $this;
 
 		$new = imagecreatetruecolor($w,$h);
+		imagecolortransparent($new,imagecolortransparent($this->ih));
+		if ($this->loaded_format=='png') {
+			imagealphablending($new, false);
+			imagesavealpha($new, true);
+		}
 		imagecopyresampled($new,$this->ih,0,0,0,0,$w,$h,$_w,$_h);
 		imagedestroy($this->ih);
 		$this->ih = $new;
@@ -361,7 +368,6 @@ class CMS_Image_GD extends CMS_Image {
 		$_w = $this->width();
 		$_h = $this->height();
 		if (($w>=$_w||0==$w)&&($h>=$_h||0==$h)) return $this;
-		//if ($w>=$_w&&$h>=$_h) return $this;
 
 		$nw = $_w;
 		$nh = $_h;
@@ -379,9 +385,15 @@ class CMS_Image_GD extends CMS_Image {
 		}
 
 		$new = imagecreatetruecolor($nw,$nh);
+		imagecolortransparent($new,imagecolortransparent($this->ih));
+		if ($this->loaded_format=='png') {
+			imagealphablending($new, false);
+			imagesavealpha($new, true);
+		}
 		imagecopyresampled($new,$this->ih,0,0,0,0,$nw,$nh,$_w,$_h);
 		imagedestroy($this->ih);
 		$this->ih = $new;
+		
 
 		return $this;
 	}
@@ -437,6 +449,11 @@ class CMS_Image_GD extends CMS_Image {
 		$nt = floor(($h - $nh)/2);
 		
 		$new = imagecreatetruecolor($w,$h);
+		imagecolortransparent($new,imagecolortransparent($this->ih));
+		if ($this->loaded_format=='png') {
+			imagealphablending($new, false);
+			imagesavealpha($new, true);
+		}
 		if(!$crop) imagefilledrectangle($new,0,0,$w,$h,$c);
 		imagecopyresampled($new,$this->ih,$nl,$nt,0,0,$nw,$nh,$_w,$_h);
 		imagedestroy($this->ih);

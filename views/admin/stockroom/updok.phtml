@@ -1,0 +1,26 @@
+<?php
+$this->use_styles(CMS::stdfile_url('styles/stockroom.css'));
+$this->use_scripts(CMS::stdfile_url('scripts/admin/table-edit.js'));
+$title = 'Обновление компонента '.$item->title;
+?>
+<?php include($controller->template('prepare')); ?>
+<?php include($controller->template('header')); ?>
+
+<p>Обновление компонента завершено<p>
+
+<?php if ($updated) { ?>
+<h2>Обновлены файлы</h2>
+<ul class="filelist"><?php foreach($updated as $file) {
+	?><li><?= $file ?></li><?php
+}?></ul>
+<?php } ?>
+
+
+<?php if ($not_updated) { ?>
+<h2>Не удалось обновить файлы</h2>
+<ul class="filelist"><?php foreach($not_updated as $file) {
+	?><li><?= $file ?></li><?php
+}?></ul>
+<p>Эти файлы изменились в новой версии компонента. Однако в ранее установленной версии они редактировались. Поэтому в случае обновления файлов могут произойти непредсказуемые последствия.</p>
+<p>Предлагаем решить эту проблему вручную. Для этого новые версии вышеупомянутых файлов были сохранены в тех же каталогах, но с добавлением расширения <b>.upd</b></p>
+<?php } ?>

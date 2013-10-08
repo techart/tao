@@ -1,0 +1,8 @@
+<?php
+
+if ((int)$item_id==0) {
+	print CMS::lang()->_common->unable_in_add;
+} else {
+	print $this->forms->textarea($_name,$tagparms); 
+}
+

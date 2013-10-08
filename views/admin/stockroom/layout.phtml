@@ -1,0 +1,29 @@
+<?php
+	$this->use_styles(CMS::stdfile_url('styles/stockroom.css'));
+	$tid = 0;
+	if (isset($_GET['tag'])) {
+		$tid = $_GET['tag'];
+	}
+?>
+<table class="stockroom-layout"><tr>
+		<td class="left">
+			<div class="tags">
+				<a class="all-components<?= ($tid==0? ' current':'') ?>" href="<?= $c->action_url('list',1,array()) ?>">Все компоненты</a>
+				<ul>
+					<?php if (is_array($tags)) foreach($tags as $tag) { ?>
+						<li><a class="tag<?= ($tid==$tag->id? ' current':'') ?>" href="<?= $c->action_url('list',1,array('tag' => $tag->id)) ?>"><?= $tag->title ?></a></li>
+					<?php } ?>
+				</ul>
+			</div>
+		</td>
+
+		<td class="right">
+			<?php
+				ob_start();
+				include($controller->template("$template-inner"));
+				$main = ob_get_contents();
+				ob_end_clean();
+				print $main;
+			?>
+		</td>
+</tr></table>

@@ -25,7 +25,11 @@ class CMS_Insertions extends CMS_Insertions_Base implements Core_ModuleInterface
 			else if (preg_match('/^-(.+)$/',$f,$m)) {
 				$id = self::file_id($m[1]);
 				if ($id) $except[] = $id;
-			}	
+			}
+			else if (preg_match('/(\d+)-(\d+)$/',$f,$m)) {
+				for ($i=(int)$m[1] ; $i<=$m[2] ; $i++)
+					if (isset($fsrc[$i])) $files[$i] = $fsrc[$i];
+			}
 			else {
 				if (isset($fsrc[$f])) $files[$f] = $fsrc[$f];
 				else {

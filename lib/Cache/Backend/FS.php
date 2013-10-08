@@ -37,6 +37,12 @@ class Cache_Backend_FS implements Core_ModuleInterface {
 class Cache_Backend_FS_Backend extends Cache_Backend {
 
   private $path;
+  protected $prefix = 'fs';
+
+  protected $use_array_cache = true;
+  protected $values = array();
+  protected $timestamps = array();
+
 ///   <protocol name="creating">
 
 ///   <method name="__construct">
@@ -47,7 +53,7 @@ class Cache_Backend_FS_Backend extends Cache_Backend {
 ///     </args>
 ///     <body>
   public function __construct($dsn, $timeout = Cache_Backend_FS::DEFAULT_TIMEOUT) {
-    $m1 = Core_Regexps::match_with_results('{^fs://(.*)}', $dsn);
+    $m1 = Core_Regexps::match_with_results("|^{$this->prefix}://(.*)|", $dsn);
     if (!$m1) throw new Cache_BadDSNException($dsn);
     $this->path = rtrim($m1[1], DIRECTORY_SEPARATOR);
     if (!IO_FS::exists($this->path)) {
@@ -57,6 +63,13 @@ class Cache_Backend_FS_Backend extends Cache_Backend {
   }
 ///     </body>
 ///   </method>
+
+
+  public function use_array_cache($v = true)
+  {
+    $this->use_array_cache = $v;
+    return $this;
+  }
 
 ///   </protocol>
 
@@ -72,12 +85,23 @@ class Cache_Backend_FS_Backend extends Cache_Backend {
  public function get($key, $default = null) {
     $res = $default;
     try {
-      if (!$this->has($key)) $res = $default;
-      else $res = unserialize($this->get_content($key));
+      if (!$this->has($key)) {
+        $res = $default;
+      }
+      else {
+        if ($this->use_array_cache && isset($this->values[$key])) {
+          return $this->values[$key];
+        } else {
+          $res = unserialize($this->get_content($key));
+        }
+      }
     } catch(Exception $e) {
       $res = $default;
     }
     Events::call('cache.get', $key, $default, $res);
+    if ($this->use_array_cache) {
+      $this->values[$key] = $res;
+    }
     return $res;
   }
 ///     </body>
@@ -95,13 +119,18 @@ class Cache_Backend_FS_Backend extends Cache_Backend {
     try {
       $timeout = is_null($timeout) ? $this->timeout : $timeout;
       Events::call('cache.set', $key, $value, $timeout);
+      $t = $timeout === 0 ? $timeout :
+          (time() + Core::if_null($timeout, $this->timeout));
       $f = IO_FS::File($this->path($key));
       $s = $f->open('w+')->text();
-      $s->write_line(Core_Strings::format('%10d', $timeout === 0 ? $timeout :
-          (time()+Core::if_null($timeout, $this->timeout))))->
+      $s->write_line(Core_Strings::format('%10d', $t))->
         write(serialize($value))->
         close();
       $f->set_permission();
+      if ($this->use_array_cache) {
+        $this->values[$key] = $value; 
+        $this->timestamps[$key] = $t;
+      }
       return true;
     } catch (Exception $e) {
       return false;
@@ -118,7 +147,16 @@ class Cache_Backend_FS_Backend extends Cache_Backend {
 ///     <body>
   public function delete($key) {
     Events::call('cache.delete',$key);
-    return IO_FS::rm($this->path($key));
+    $res = IO_FS::rm($this->path($key));
+    if ($this->use_array_cache) {
+      if (isset($this->values[$key])) {
+        unset($this->values[$key]);
+      }
+      if (isset($this->timestamps[$key])) {
+        unset($this->timestamps[$key]);
+      }
+    }
+    return $res;
   }
 ///     </body>
 ///   </method>
@@ -131,14 +169,25 @@ class Cache_Backend_FS_Backend extends Cache_Backend {
 ///     <body>
   public function has($key) {
     Events::call('cache.has', $key);
-    if (!IO_FS::exists($this->path($key))) return false;
-    $timestamp = $this->get_timestamp($key);
-    if ($timestamp === 0) return true;
-      if ($timestamp <= time()) {
-        $this->delete($key);
-        return false;
+    $res = true;
+    $timestamp = null;
+    if ($this->use_array_cache && isset($this->timestamps[$key])) {
+      $timestamp = $this->timestamps[$key];
+    } else {
+      if (!IO_FS::exists($this->path($key))) {
+        $res = false;
+      } else {
+        $timestamp = $this->get_timestamp($key);
+        if ($this->use_array_cache) {
+          $this->timestamps[$key] = $timestamp;
+        }
       }
-    return true;
+    }
+    if (!is_null($timestamp) && $timestamp !== 0 && $timestamp <= time()) {
+      $this->delete($key);
+      $res = false;
+    }
+    return $res;
   }
 ///     </body>
 ///   </method>
@@ -149,7 +198,12 @@ class Cache_Backend_FS_Backend extends Cache_Backend {
   public function flush() {
     Events::call('cache.flush');
     Events::call('cache.delete',$s = '*');
-    return IO_FS::clear_dir($this->path);
+    $res = IO_FS::clear_dir($this->path);
+    if ($this->use_array_cache) {
+      $this->timestamps = array();
+      $this->values = array();
+    }
+    return $res;
   }
 ///     </body>
 ///   </method>

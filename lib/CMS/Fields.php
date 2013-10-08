@@ -27,6 +27,7 @@ class CMS_Fields implements Core_ModuleInterface {
 		CMS::field_type('image',	'CMS.Fields.Types.Image');
 		CMS::field_type('protect',	'CMS.Fields.Types.Protect');
 		CMS::field_type('html',		'CMS.Fields.Types.HTML');
+		CMS::field_type('wiki',		'CMS.Fields.Types.Wiki');
 		CMS::field_type('gallery',	'CMS.Fields.Types.Gallery');
 		CMS::field_type('parms',	'CMS.Fields.Types.Parms');
 		CMS::field_type('tree_select',	'CMS.Fields.Types.TreeSelect');
@@ -42,6 +43,7 @@ class CMS_Fields implements Core_ModuleInterface {
 		CMS::field_type('map_coords',	'CMS.Fields.Types.MapCoords');
 		CMS::field_type('fieldset',	'CMS.Fields.Types.FieldSet');
 		CMS::field_type('array',	'CMS.Fields.Types.Array');
+		CMS::field_type('tags',		'CMS.Fields.Types.Tags');
 	}
 
 	static function type_by_class($class) {
@@ -126,41 +128,90 @@ class CMS_Fields implements Core_ModuleInterface {
 		}
 	}
 
+	static function process_schema($table,$fields,$engine=false)
+	{
+		Core::load('DB.Schema');
+		$table_schema = self::fields_to_schema($fields,$table);
+		if ($engine) {
+			$table_schema['mysql_engine'] = $engine;
+		}
+		DB_Schema::process(array($table => $table_schema));
+		foreach($fields as $name => $data) {
+			$type = self::type($data);
+			$type->process_schema($name,$data,$table,$fields);
+		}
+	}
+
 	static public function fields_to_columns($fields, $table_name = null, &$schema = array()) {
 		$schema = self::fields_to_schema($fields, $table_name, $schema);
 		$res = array();
-		if (isset($schema['columns'])) {
-			foreach ($schema['columns'] as $name => $data) {
+		$columns = isset($schema['columns']) ? $schema['columns'] : array();
+		if (empty($columns) && !empty($table_name) && isset($schema[$table_name]) && isset($schema[$table_name]['columns'])) {
+			$columns = $schema[$table_name]['columns'];
+		}
+		if (!empty($columns)) {
+			foreach ($columns as $name => $data) {
 				if (is_string($name)) $res[] = $name;
 				else if (isset($data['name'])) $res[] = $data['name'];
 			}
 		}
 		return $res;
-		return isset($schema['columns']) ? array_keys($schema['columns']) : array();
 	}
 
+
+	private static function merge_schema($schema, $fschema, $table_name = null, $field_name = null)
+	{
+		// mark columns
+		if ($field_name && isset($fschema['columns'])) {
+			foreach($fschema['columns'] as $idx => $column) {
+				$fschema['columns'][$idx]['__from_field'] = $field_name;
+			}
+		}
+		//extract data
+		$default_table = array();
+		$other = array();
+		foreach ($fschema as $name => $value) {
+			if (in_array($name, array('columns', 'indexes'))) {
+				$default_table[$name] = $value;
+			} else {
+				$other[$name] = $value;
+			}
+		}
+		// write data
+		if (!empty($table_name) && isset($schema[$table_name])) {
+			$schema[$table_name] = array_merge_recursive($schema[$table_name], $default_table);
+			$schema = array_merge_recursive($schema, $other);
+		} else {
+			$schema = array_merge_recursive($schema, $default_table);
+		}
+		return $schema;
+	}
 
 	static public function fields_to_schema($fields, $table_name = null, &$schema = array()) {
 		//TODO: cache
 		//$schema = array();
 		foreach($fields as $field_name => $data) {
 			$type = self::type($data);
+			if (isset($data['sqltype'])&&$data['sqltype']===false) {
+				continue;
+			}
 			$sqltype = isset($data['sqltype'])? $data['sqltype'] : $type->sqltype();
+			$fschema = $type->schema($field_name,$data);
 			if (isset($data['sqltypes'])) {
 				foreach ($data['sqltypes'] as $sub_name => $sub_type) {
 					self::column_schema($sub_name, $sub_type, $schema, $table_name, $field_name);
 				}
 			}
-			else if (isset($data['schema'])) {
-				$schema = array_merge_recursive($schema, $data['schema']);
+			elseif ($sqltype) {
+				self::column_schema($field_name, $sqltype, $schema, $table_name, $field_name);
 			}
-			else if ($sqltypes = $type->sqltypes($field_name,$data)) {
+			elseif (!empty($fschema)) {
+				$schema = self::merge_schema($schema, $fschema, $table_name, $field_name);
+			}
+			elseif ($sqltypes = $type->sqltypes($field_name,$data)) {
 				foreach ($sqltypes as $sub_name => $sub_type) {
 					self::column_schema($sub_name, $sub_type, $schema, $table_name, $field_name);
 				}
-			}
-			else if ($sqltype) {
-				self::column_schema($field_name, $sqltype, $schema, $table_name, $field_name);
 			}
 		}
 		return $schema;
@@ -211,8 +262,17 @@ class CMS_Fields implements Core_ModuleInterface {
 			$default = '0000-00-00 00:00:00';
 		}
 
-		if ($type=='int'||$type=='serial') {
-			$default = '0';
+
+		if ($type=='date') {
+			$default = '0000-00-00';
+		}
+
+		if ($type=='int') {
+			$default = 0;
+		}
+
+		if ($type=='serial') {
+			$default = null;
 		}
 
 		if ($type=='float'||$type=='double') {
@@ -227,12 +287,17 @@ class CMS_Fields implements Core_ModuleInterface {
 		if ($scale) $rc['scale'] = $scale;
 
 
-		if ($rc['index']) {
+		if ($idx = $rc['index']) {
 			$index_name = "idx_" . ($table_name ? str_replace('_', '', $table_name) : '') . "_{$db_name}";
 			$icolumns = $index_length ? array(array($db_name, (int) $index_length)) : array($db_name);
 			$schema['indexes'][] = array('name' => $index_name,'columns' => $icolumns);
-			unset($rc['index']);
 		}
+		unset($rc['index']);
+		
+		if ($type=='serial') {
+			$schema['indexes'][] = array('type' => 'primary key', 'columns' => array($db_name));
+		}
+		
 		$rc['__from_field'] = $field_name;
 		$schema['columns'][$db_name] = $rc;
 
@@ -264,6 +329,16 @@ abstract class CMS_Fields_AbstractField {
 
 	public function sqltypes($name,$data) {
 		return false;
+	}
+
+	public function schema($name, $data)
+	{
+		return isset($data['schema']) ? $data['schema'] : array();
+	}
+
+	public function process_schema($name,$data,$table,&$fields)
+	{
+		return $this;
 	}
 //--------------------------------------------------
 //END CONFIGURE
@@ -472,6 +547,7 @@ abstract class CMS_Fields_AbstractField {
 
 			if (!is_dir($dir)) CMS::mkdirs($dir);
 			CMS::copy($old,$new);
+			CMS::chmod_file($new);
 
 			return $this->upload_return($name, $data, $new, $dir, $filename);
 		}
@@ -500,7 +576,7 @@ abstract class CMS_Fields_AbstractField {
 	public function dir_path($item,$code,$name,$data) {
 		$item_id = $item ? $item->id() : 0;
 		$dir = false;
-		if ($item_id==0) {
+		if (empty($item_id)) {
 			$dir = CMS::temp_dir()."/dir-$code";
 		}
 		else {
@@ -518,11 +594,16 @@ abstract class CMS_Fields_AbstractField {
 //SUPPORT
 //--------------------------------------------------
 
+
+	public function search_subfield($name, $data, $field) {
+		return false;
+	}
+
 	public function input_formats_name($name, $data) {
 		return $name. '_formats';
 	}
 
-	protected function url_class() {
+	public function url_class() {
 		return 'field-url-' . WS::env()->request->id;
 	}
 
@@ -539,7 +620,8 @@ abstract class CMS_Fields_AbstractField {
 		return $this->punset($data,'type','caption','rcaption','comment','match','tab','help','error_message','edit_only','if_component_exists','__item','__item_id','__items','template','layout','hidden','ajax'
 			,'validate_presence','validate_email','validate_match','validate_match_message','validate_confirmation','validate_confirmation_message','validate_ajax','validate_ajax_message','validate_error_message',
 			'input formats', 'default input format', 'allow select format', 'template name', 'layout preprocess', 'preprocess', 'attach', 'items', 'tagparms', 'multilang',
-			'in_list', 'group', 'in_filters', 'weight', '__table', 'access', 'sqltype'
+			'in_list', 'group', 'in_filters', 'weight', '__table', 'access', 'sqltype', 'in_form', 'weight_in_list', 'weight_in_form', 'init_value', 'datepicker', 'view_preprocess',
+			'validation'
 		);
 	}
 
@@ -647,8 +729,10 @@ abstract class CMS_Fields_AbstractField {
 
 		foreach ($types as $t) {
 			if (empty($t)) continue;
-			if (IO_FS::exists($file = Templates::get_path('fields/' . $t . '/' . $name, '.phtml')))
+			if (IO_FS::exists($file = Templates::get_path('fields/' . $t . '/' . $name, '.phtml'))) {
+
 				return $template[$key] = $file;
+			}
 		}
 
 		if (IO_FS::exists($file = Templates::get_path('fields/' . $name, '.phtml')))
@@ -885,10 +969,13 @@ abstract class CMS_Fields_AbstractField {
 
 //DISPLAY
 //--------------------------------------------------
-	public function view_value($value,$name,$data) {
+	public function view_value($value,$name,$data,$row=false) {
 		if (is_object($value)) $value = $value[$name];
 		if (is_string($value)&&$value!=''&&$this->enable_multilang()) {
 			$value = CMS::lang($value);
+		}
+		if (isset($data['view_preprocess'])&&is_callable($data['view_preprocess'])) {
+			$value = call_user_func($data['view_preprocess'],$value,$row);
 		}
 		return $value;
 	}

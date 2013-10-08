@@ -98,7 +98,6 @@ class CMS_Controller_Base extends WebKit_Controller_AbstractController implement
 ///   <method name="setup_filter">
 ///     <body>
 	protected function setup_filter() {
-		CMS::process_navigation();
 	}
 ///     </body>
 ///   </method>

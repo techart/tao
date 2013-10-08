@@ -14,7 +14,11 @@ class Cache implements Core_ModuleInterface {
   const DEFAULT_TIMEOUT = 60;
 ///   </constants>
 
-  static private $backends = array('dummy' => 'Dummy', 'memcache' => 'MemCache', 'fs' => 'FS', 'apc' => 'APC');
+  static private $backends = array(
+      'dummy' => 'Cache.Backend.Dummy.Backend',
+      'memcache' => 'Cache.Backend.MemCache.Backend',
+      'fs' => 'Cache.Backend.FS.Backend',
+      'apc' => 'Cache.Backend.APC.Backend');
 
 ///   <protocol name="building">
 
@@ -27,13 +31,19 @@ class Cache implements Core_ModuleInterface {
   static public function connect($dsn, $timeout = Cache::DEFAULT_TIMEOUT) {
     if (($m = Core_Regexps::match_with_results('{^([a-zA-Z]+)://}', (string) $dsn)) &&
         isset(self::$backends[$m[1]])) {
-      Core::load($module = 'Cache.Backend.'.self::$backends[$m[1]]);
-      return Core::make("$module.Backend", $dsn, $timeout);
+      $module = self::$backends[$m[1]];
+      // Core::load($module = 'Cache.Backend.'.self::$backends[$m[1]]);
+      return Core::make($module, $dsn, $timeout);
     } else
       throw new Cache_BadDSNException($dsn);
   }
 ///     </body>
 ///   </method>
+
+  static public function add_backend($prefix, $class)
+  {
+    self::$backends[$prefix] = $class;
+  }
 
 ///   </protocol>
 }

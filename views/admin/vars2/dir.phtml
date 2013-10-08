@@ -1,0 +1,24 @@
+<?php
+
+//$vars = $dir->
+
+
+?>
+<div class="vars-dir vars-dir-<?= str_replace('.','-',$dir->id()) ?>">
+	<div class="header">
+		<?php if ($controller->is_admin()) { ?>
+		<div class="add-var" data-url="<?= $env->urls->adminvars->add_var_url($dir->id()) ?>">&nbsp;</div>
+		<?php } ?>
+		<p data-url="<?= $env->urls->adminvars->edit_url($dir->id()) ?>"><?= $dir->title() ?></p>
+	</div>
+	<table width="100%">
+		<?php foreach($dir->vars as $name => $var) { ?>
+		<tr class="var-edit" data-url="<?= $env->urls->adminvars->edit_url($name) ?>">
+			<td class="var var-name" style="background-image: url(<?= $var->icon() ?>)"><?= $name ?></td>
+			<td class="var var-title"><?= $var->title() ?></td>
+			<td class="var var-value"><?= $var->preview() ?></td>
+		</tr>
+		<?php } ?>
+	</table>
+	<?php ?>
+</div>

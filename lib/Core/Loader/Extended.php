@@ -12,16 +12,31 @@ class Core_Loader_Extended_Loader extends Core_ModuleLoader {
 
   protected $replace_parms = array();
   
-  public function file_path_for($module) {
-    foreach ($this->paths as $name => $root) {
+  public function file_path_for($module, $first = false) {
+    $file = null;
+    foreach ($this->paths as $name => $roots) {
+      if (!is_array($roots)) {
+        $roots = array($roots);
+      }
       $drop_prefix = $this->extract_prefix_from($name);
       $parms = $this->parse_params_from($name);
-      $module_template = $this->create_module_template_from($name);
-      if (preg_match($module_template, $module, $module_match)) {
-        $root = $this->set_parms_to($root, $parms, $module_match);
-        $file = $this->compose_file_path_for($module, $root, $drop_prefix);
-        return $this->process_not_necessarily_part($file);
+      foreach ($roots as $root) {
+        $module_template = $this->create_module_template_from($name);
+        if (preg_match($module_template, $module, $module_match)) {
+          $prefix = $this->set_parms_to($drop_prefix, $parms, $module_match);
+          $root = $this->set_parms_to($root, $parms, $module_match);
+          $file = $this->compose_file_path_for($module, $root, $prefix);
+          $file = $this->process_not_necessarily_part($file);
+          if (!is_file($file) && !$first) {
+            continue;
+          } else {
+            return $file;
+          }
+        }
       }
+    }
+    if (!is_null($file)) {
+      return $file;
     }
     if (Core::option('spl_autoload')) return false;
     else throw new Core_ModuleNotFoundException($module);
@@ -40,19 +55,21 @@ class Core_Loader_Extended_Loader extends Core_ModuleLoader {
           }
         }
       }
-      foreach ($files as $fk => $fv) {
-         if (preg_match_all('{\(([^)|]+)\|([^)|]+)\)}', $fv, $matches)) {
-            $files[$fk] = str_replace($matches[0], $matches[2], $fv);
-            $files[] = str_replace($matches[0], $matches[1], $fv);
-         }
-      }
-      foreach (array_reverse($files) as $f) 
-        if ( ($path = realpath($f)) && is_file($path) ) {
-          $file = $path;
-          break;
-        }
-      if ($orig_file == $file) $file = $f;
+    } else {
+      $files = array($file);
     }
+    foreach ($files as $fk => $fv) {
+       if (preg_match_all('{\(([^)|]+)\|([^)|]+)\)}', $fv, $matches)) {
+          $files[$fk] = str_replace($matches[0], $matches[2], $fv);
+          $files[] = str_replace($matches[0], $matches[1], $fv);
+       }
+    }
+    foreach (array_reverse($files) as $f) 
+      if ( ($path = realpath($f)) && is_file($path) ) {
+        $file = $path;
+        break;
+      }
+    if ($orig_file == $file) $file = $f;
     return $file;
   }
   
@@ -82,8 +99,9 @@ class Core_Loader_Extended_Loader extends Core_ModuleLoader {
   }
   
   protected function set_parms_to($root, $parms, $values) {
-    foreach ($parms as $i => $n)
+    foreach ($parms as $i => $n) {
       $root = str_replace("{{$n}}", $values[$i+1], $root);
+    }
     return $root;
   }
   

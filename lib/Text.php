@@ -32,6 +32,12 @@ class Text implements Core_ModuleInterface {
 ///     </body>
 ///   </method>
 
+  static public function process($source, $process = array())
+  {
+    Core::load('Text.Process');
+    return Text_Process::process($source, $process);
+  }
+
 ///   </protocol>
 }
 /// </class>

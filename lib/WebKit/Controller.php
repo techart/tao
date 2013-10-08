@@ -787,7 +787,7 @@ abstract class WebKit_Controller_AbstractController
     return Templates_HTML::Template($this->view_path_for($template))->exists();
   }
   
-  protected function view_path_for($template) {
+  public function view_path_for($template) {
     if (Templates::is_absolute_path($template)) return $template;
     foreach ((array) $this->views_path as $path) {
       $controller_path  = Templates::add_extension("$path/$template", '.phtml');
@@ -809,6 +809,7 @@ abstract class WebKit_Controller_AbstractController
       $template :
       Templates_HTML::Template($this->view_path_for($template));
     if (!empty($layout)) $t->within_layout($layout);
+    $t->partial_paths($this->views_path, $template);
     $t->root->
       with(array(
         'c'           => $this,

@@ -12,8 +12,8 @@ class Service_Yandex_Direct implements Core_ModuleInterface {
 
   static protected $options = array(
     'delay' => 5,
-    'default_wsdl' => 'http://soap.direct.yandex.ru/wsdl/v4/',
-    'wsdl' => 'http://soap.direct.yandex.ru/wsdl/v4/'
+    'default_wsdl' => 'https://api.direct.yandex.ru/wsdl/v4/',
+    'wsdl' => 'https://api.direct.yandex.ru/wsdl/v4/'
   );
 
   static private $api;

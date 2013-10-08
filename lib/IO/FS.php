@@ -7,7 +7,7 @@
 ///          объектный интерфейс для запроса списка объектов файловой системы по определенным
 ///          критериям.</p>
 ///     </details>
-Core::load('Time', 'IO.Stream', 'MIME');
+Core::load('Time', 'IO.Stream', 'MIME', 'Events');
 
 /// <class name="IO.FS" stereotype="module">
 ///   <brief>Класс модуля</brief>
@@ -43,7 +43,14 @@ class IO_FS implements  Core_ConfigurableModuleInterface {
 ///       <arg name="options" type="array" default="array()" brief="массив опций" />
 ///     </args>
 ///     <body>
-  static public function initialize(array $options = array()) { self::options($options); }
+  static public function initialize(array $options = array())
+  {
+    Events::add_listener('ws.config', function($conf) {
+      $opts = (array) $conf->iofs;
+      IO_FS::options($opts);
+    });
+    self::options($options);
+  }
 ///     </body>
 ///   </method>
 
@@ -58,7 +65,9 @@ class IO_FS implements  Core_ConfigurableModuleInterface {
 ///     </args>
 ///     <body>
   static public function options(array $options = array()) {
-    if (count($options)) Core_Arrays::update(self::$options, $options);
+    if (count($options)) {
+      Core_Arrays::update(self::$options, $options);
+    }
     return self::$options;
   }
 ///     </body>
@@ -191,7 +200,7 @@ class IO_FS implements  Core_ConfigurableModuleInterface {
 ///       <p>В случае, если каталог не может быть создан, возвращает null.</p>
 ///     </details>
 ///     <body>
-  static public function mkdir($path, $mode = null, $recursive = false) {
+  static public function mkdir($path, $mode = null, $recursive = true) {
     $mode = self::get_permision_for(null, $mode, 'mod', 'dir');
     $old = umask(0);
     $rs =  (self::exists((string) $path) || mkdir((string) $path, $mode, $recursive)) ?
@@ -1737,12 +1746,12 @@ class IO_FS_DirIterator
     do {
       $name = readdir($this->id);
       $path = $this->dir->path.'/'.$name;
-    } while ($name &&
+    } while ($name !== FALSE &&
               ($name == '.'  ||
                $name == '..' ||
                $this->query->forbids($path = $this->dir->path.'/'.$name)
                ));
-    if ($name) {
+    if ($name !== FALSE) {
       $this->current = IO_FS::file_object_for($path);
     } else {
       @closedir($this->id);

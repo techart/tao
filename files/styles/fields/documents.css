@@ -7,11 +7,11 @@
 }
 
 .attachment-icon-edit {
-	background-image: url(/files/_assets/images/edit.gif);
+	background-image: url(/tao/images/edit.gif);
 }
 
 .attachment-icon-order {
-	background-image: url(/files/_assets/images/icons/transform_move.png);
+	background-image: url(/tao/images/icons/transform_move.png);
 	cursor: move;
 }
 

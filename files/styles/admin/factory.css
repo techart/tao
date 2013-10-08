@@ -1,0 +1,84 @@
+.factory-layout {
+	float: none;
+	clear: both;
+}
+
+	.factory-left {
+		float: left;
+		width: 30%;
+	}
+	
+		.factory-tables {
+		}
+		
+			.factory-tables a {
+				display: block;
+				font-size: 14px;
+				color: #4A7C88;
+				padding: 2px 5px;
+				border-radius: 5px;
+			}
+
+				.factory-tables a:hover {
+					color: #800;
+				}
+
+				.factory-tables a.current {
+					color: #444;
+					background-color: #eee;
+					font-weight: normal;
+				}
+
+	.factory-right {
+		float: left;
+		width: 70%;
+	}
+
+
+	.factory-mode {
+		padding: 0 0 30px 20px;
+	}
+
+		.factory-mode h2 {
+			background-color: #eee;
+			padding: 8px 10px;
+			margin: 0 0 10px 0;
+			border-radius: 8px;
+		}
+
+		.factory-mode fieldset {
+			padding: 0 0 5px 5px;
+			height: 100%;
+			overflow: hidden;
+		}
+
+			.factory-mode fieldset label {
+				display: block;
+				float: left;
+				width: 200px;
+			}
+
+			.factory-mode fieldset .submit-button {
+				float: left;
+			}
+
+		.factory-result {
+			padding: 0 0 5px 5px;
+			display: none;
+		}
+
+			.factory-result textarea {
+				width: 90%;
+				height: 300px;
+				border: 1px solid #ccc;
+				padding: 10px;
+				font-family: monospace;
+				font-size: 12px;
+				color: #666;
+				overflow: auto;
+			}
+
+.clear {
+	float: none;
+	clear: both;
+}

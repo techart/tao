@@ -1,48 +1,135 @@
 <?php
-//TODO: refactoring!!!!!!!!! + optimize link references
-//TODO: insersions
+/**
+ * Работа с навигацией сайта
+ *
+ * Очередная попытка ускорить/улучшить работу навигации.
+ * 
+ * @author Svistunov <svistunov@techart.ru>
+ * 
+ * @package Navigation
+ */
+
+
+/** 
+ * Класс модуля
+ * 
+ * Реализует набор фабричных методов для создания объектов 
+ * и несколько вспомогательных методов.
+ * 
+ * @package Navigation
+ */
 class Navigation implements Core_ModuleInterface {
+
   const VERSION = '0.0.1';
   
-  static protected $options = array('navigation_set_class' => 'Navigation.Set',
-    'navigation_set_state_class' => 'Navigation.SetState');
+  static protected $options = array(
+    'navigation_set_class' => 'Navigation.Set',
+    'navigation_set_state_class' => 'Navigation.SetState',
+    'navigation_link_class' => 'Navigation.Link',
+    'navigation_controller_class' => 'Navigation.Controller'
+  );
+
+  protected static $current_controller = null;
   
-  static public function initialize($conf) {self::$options = array_merge(self::$options, $conf);}
-  static public function option($name, $value = null) {
+  static public function initialize($conf)
+  {
+    self::$options = array_merge(self::$options, $conf);
+  }
+
+  static public function option($name, $value = null)
+  {
     if (is_null($value)) return self::$options[$name];
     else return self::$options[$name] = $value;
   }
-  
-  static public function controller() {return new Navigation_Controller();}
-  
-  static public function Set() { return Core::make(self::option('navigation_set_class')); }
 
-  static public function SetState(Navigation_Set $set) {return Core::make(self::option('navigation_set_state_class'), $set);}
+  public static function get_current_controller()
+  {
+    return self::$current_controller;
+  }
 
-  static public function Link($values = array()) {return new Navigation_Link($values);}
+  public function set_current_controller(Navigation_Controller $c)
+  {
+    return self::$current_controller = $c;
+  }
+
+  
+  public static function controller()
+  {
+    return self::$current_controller ? self::$current_controller : self::$current_controller = Core::make(self::option('navigation_controller_class'));
+  }
+  
+  public static function Set()
+  {
+    return Core::make(self::option('navigation_set_class'));
+  }
+
+  public static function SetState(Navigation_Set $set)
+  {
+    return Core::make(self::option('navigation_set_state_class'), $set);
+  }
+
+  public static function Link($values = array())
+  {
+    return Core::make(self::option('navigation_link_class'), $values);
+  }
+
+  public static function draw($template_name, $parms = array())
+  {
+    return Templates_HTML::Template('navigation/' . $template_name)
+      ->with($parms)
+      ->option('links', $parms['links'])
+      ->option('level_num', $parms['level_num'])
+      ->as_string();
+  }
+
 }
 
 interface Navigation_SetInterface {}
 
+/** 
+ * Класс для загрузки и хранения данных (ссылок)
+ * 
+ * @package Navigation
+ */
 class Navigation_Set implements Navigation_SetInterface {
 
-  //protected $data;
   protected $uri;
   protected $flags = array();
   protected $root;
   protected $current_link = false;
   protected $current_path = array();
-  //protected $items_by_ulrs = array();
   protected $items_by_ids = array();
   
   public function __construct() {
-    $this->root = (object) array('sublinks' => array(), 'root' => true);
+    $this->setup();
+  }
+
+  protected function setup()
+  {
+    $this->root = Navigation::Link(array('sublinks' => array(), 'root' => true, 'level' => 0));
+  }
+
+  public function set_root($links)
+  {
+    $this->root->sublinks = $links;
+    return $this;
+  }
+
+  public function __clone()
+  {
+    $this->setup();
+  }
+
+  public function clone_to($links)
+  {
+    $new = clone $this;
+    $new->set_root($links);
+    //TODO: ?? Look araound $this->flags, $this->items_by_ids
+    return $new;
   }
   
   public function __destruct() {
-    //unset($this->data);
     unset($this->root);
-    //unset($this->items_by_ulrs);
     unset($this->flags);
     unset($this->items_by_ids);
   }
@@ -78,8 +165,9 @@ class Navigation_Set implements Navigation_SetInterface {
     return $this->items_by_ids[$id];
   }
   
-  public function link_set_by_id($id) {
-    return $this->link_by_id($id)->sublinks;
+  public function linkset_by_id($id) {
+    $link = $this->link_by_id($id);
+    return $link ? $link->sublinks : null;
   }
   
   public function is_flag($name, $value = true) {
@@ -103,13 +191,15 @@ class Navigation_Set implements Navigation_SetInterface {
   
   public function load_data($data, $level = 0, $parent = null) {
     //TODO: cache
-    if (is_null($parent))
+    if (is_null($parent)) {
       $parent = $this->root;
+    }
     foreach ($data as $title => $item) {
-      $link = $this->read_item($title, $item);
-      if (isset($link->sublinks)) {
-        /*&& $this->current_level >= $level*/
-        $this->load_data($link->sublinks, $level + 1, $link);
+      if (!$item instanceof Navigation_Link) {
+        $link = $this->read_item($title, $item);
+      }
+      if (count($link->sublinks_array) > 0) {
+        $this->load_data($link->sublinks_array, $level + 1, $link);
       }
       //if (isset($this->items_by_ulrs[$link->url])) continue;//????????
       $this->add_item($link, $level, $parent);
@@ -123,19 +213,28 @@ class Navigation_Set implements Navigation_SetInterface {
     $url = !empty($item['url']) ? $item['url'] : $item['uri'];
     $item['url'] = $item['uri'] = $url;
     if (isset($item['sub'])) {
-      $item['sublinks'] = $item['sub'];
+      $sublinks = $item['sub'];
       unset($item['sub']);
-    } else $item['sublinks'] = array();
+    } else $sublinks = array();
+    $item['sublinks'] = array();
+    foreach ($sublinks as $key => $value) {
+      $title = is_string($key) ? $key : $value['title'];
+      $item['sublinks'][$title] = $value;
+    }
+    if (!isset($item['level'])) $item['level'] = 0;
     $link = Navigation::Link($item);
     return $link;
   }
   
   public function add_item($link, $level, $parent = null) {
     //$this->items_by_ulrs[$link->url] = true;
+    if (is_null($parent)) {
+      $parent = $this->root;
+    }
+    $link->level = $level;
     if ($link->disabled) return $this;
     if ($parent) {
-      if (!is_array($parent->sublinks)) $parent->sublinks = array();
-      $parent->sublinks[$link->title] = $link;
+      $parent->add_sublink($link->title, $link);
       $link->parent = $parent;
       if ($link->selected) $this->set_current_link($parent);
     }
@@ -157,19 +256,79 @@ class Navigation_Set implements Navigation_SetInterface {
 
 }
 
+/** 
+ * Класс представляющий собой ссылку
+ * 
+ * @package Navigation
+ */
 class Navigation_Link extends stdClass {
+
+  protected $sublinks;
 
   public function __construct($values = array()) {
     foreach ($values as $k => $v)
       $this->$k = $v;
+    $this->sublinks = new ArrayObject($this->sublinks ? $this->sublinks : array());
   }
 
   public function is_selected() {
     return $this->selected;
   }
 
+  public function option($name) {
+    return $this->$name;
+  }
+
+  public function sublinks() {
+    if (count($this->sublinks)) {
+      return Navigation::SetState(Navigation::get_current_controller()->get_current_set()->clone_to($this->sublinks));
+    }
+    return null;
+  }
+
+  public function add_sublink($title, $link)
+  {
+    $this->sublinks[$title] = $link;
+    return $this;
+  }
+
+  public function __get($name) {
+    switch ($name) {
+      case 'sublinks':
+        return $this->sublinks();
+      case 'sublinks_array':
+        return $this->sublinks;
+      default:
+        return null;
+    }
+  }
+
+  public function __set($name, $value) {
+    $this->$name = $value;
+    return $this;
+  }
+
+  public function __unset($name) {
+    return $this->$name = null;
+  }
+
+  public function __isset($name) {
+    return isset($this->$name);
+  }
+
+
+  public function draw($template_name = 'simple', $params = array()) {
+    return Navigation::draw($template_name, array_merge(
+        array('links' => new ArrayObject(array($this)), 'level_num' => $this->level), $params));
+  }
+
 }
 
+/** 
+ * Класс работающий с данными (Navigation_Set): фильтрация, отрисовка и т.п.
+ * 
+ * @package Navigation
+ */
 class Navigation_SetState {
 
   protected $set;
@@ -195,6 +354,8 @@ class Navigation_SetState {
   public function __get($name) {
     if ($name == 'set')
       return $this->set;
+    if ($name == 'level')
+      return $this->current_level;
     return $this->set->__get($name);
   }
 
@@ -223,11 +384,8 @@ class Navigation_SetState {
   }
 
   public function draw($template_name = 'simple', $params = array()) {
-    $links = new ArrayObject($this->get_links());
-    return Templates_HTML::Template('navigation/' . $template_name)->
-      with($params)->
-      option('links', $links)->
-      with('links', $links)->as_string();
+    return Navigation::draw($template_name, array_merge(
+        array('links' => new ArrayObject($this->get_links()), 'level_num' => $this->current_level), $params));
   }
 
   public function route() {
@@ -250,8 +408,10 @@ class Navigation_SetState {
       return array_merge($values, $this->to_route);
     }
     $links = $this->current_level == 0 ?
-        $this->set->root->sublinks :
-        $path[count($path) - 1 - $this->current_level]->sublinks;
+        $this->set->root->sublinks_array :
+        $path[count($path) - 1 - $this->current_level]->sublinks_array;
+    if (is_object($links))
+      $links = (array) $links;
     return is_array($links) ? array_filter($links, array($this, 'filter_links')) : array();
   }
 
@@ -271,10 +431,13 @@ class Navigation_SetState {
     return $this;
   }
 
-
-
 }
 
+/** 
+ * Класс контроллер для работы с разными наборами ссылок
+ * 
+ * @package Navigation
+ */
 class Navigation_Controller implements Core_IndexedAccessInterface {
   protected $sets = array();
   protected $default_set;
@@ -295,6 +458,10 @@ class Navigation_Controller implements Core_IndexedAccessInterface {
   public function get_current_set() {
     return $this->sets[$this->current_set];
   }
+
+  public function get_current() {
+    return Navigation::SetState($this->sets[$this->current_set]);
+  }
   
   public function offsetGet($name) { return $this->sets[$name]; }
   public function offsetExists($name) { return isset($this->sets[$name]); }
@@ -308,8 +475,12 @@ class Navigation_Controller implements Core_IndexedAccessInterface {
       return call_user_func_array(array($wrapper, $method), $args);
     if (isset($this->sets[$method]))
       return Navigation::SetState($this->sets[$method]);
-    else
+    else if (isset($args[0]) && $args[0] instanceof Navigation_Set)
       return $this->add_set($method, $args[0]);
+    else if (!isset($args[0]))
+      return $this->add_set($method);
+    else
+      throw new Core_MissingMethodException($method);
   }
 
   public function __get($name) {

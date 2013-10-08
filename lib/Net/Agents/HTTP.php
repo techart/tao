@@ -97,6 +97,13 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
   protected $options;
   protected $info = array();
   protected $auto_redirect = true;
+  protected $error;
+  protected $errno;
+  protected $last_result;
+  protected $act_as_browser = false;
+  protected $inspect = false;
+  protected $with_body = true;
+  protected $to_file = false;
 
 ///   <protocol name="creating">
 
@@ -114,6 +121,17 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
 ///   </method>
 
 ///   </protocol>
+
+  public function to_file($file)
+  {
+    if (!is_object($file)) {
+      $this->to_file = IO_FS::File((string) $file)->open('w+');
+    } else {
+      $this->to_file = $file;
+    }
+    $this->option(CURLOPT_FILE, $this->to_file->id);
+    return $this;
+  }
 
 ///   <protocol name="configuring">
 
@@ -228,8 +246,8 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
 ///     <body>
   public function __call($method, $args) {
     switch ($method) {
-      case 'auto_redirect':
-        $this->$method = $args[0];
+      case 'auto_redirect': case 'act_as_browser': case 'inspect': case 'with_body':
+        $this->$method = isset($args[0]) ? $args[0] : true;
         return $this;
       case 'with_credentials':
         return $this->option(CURLOPT_USERPWD, $args[0].(isset($args[1]) ? ':'.$args[1] : ''));
@@ -260,23 +278,57 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
 
 ///   <protocol name="performing">
 
+
+  protected function additional_headers($request)
+  {
+    $request->headers(
+      array(
+        'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/28.0.1500.71 Chrome/28.0.1500.71 Safari/537.36',
+        'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Cache-Control' =>'no-cache',
+        'Pragma' => 'no-cache',
+      )
+    );
+    return $this;
+  }
+
 ///   <method name="send" returns="Net.HTTP.Response">
 ///     <args>
 ///       <arg name="request" type="Net.HTTP.Request" />
 ///     </args>
 ///     <body>
   public function send($request) {
-    if (is_string($request)) $request = Net_HTTP::Request($request);
-    $id = $this->make_curl($request->url);
-    $options = array();
+    if (is_string($request)) {
+      $url = $request;
+      $request = Net_HTTP::Request($request);
+    } else {
+      $url = $request->url;
+    }
+
+    if (preg_match('{[а-яА-Я]+}u', $request->host) && function_exists('idn_to_ascii')) {
+      $request->host = idn_to_ascii($request->host);
+      $url = $request->url;
+    }
+
+    if ($this->act_as_browser) {
+      $this->additional_headers($request);
+    }
+
+    $id = $this->make_curl($url);
 
     $headers = $request->headers->as_array(true);
 
-    curl_setopt_array($id, array(
-      CURLOPT_RETURNTRANSFER => 1,
-      CURLOPT_CUSTOMREQUEST  => strtoupper($request->method_name),
-      CURLOPT_HEADER         => 1,
-      CURLOPT_NOBODY         => 0));
+    $options = $this->to_file ?
+      array(
+        CURLOPT_CUSTOMREQUEST  => strtoupper($request->method_name)
+      )
+      :
+      array(
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_CUSTOMREQUEST  => strtoupper($request->method_name),
+        CURLOPT_HEADER         => 1,
+        CURLOPT_NOBODY         => !$this->with_body
+      );
 
     switch ($request->method_code) {
       case Net_HTTP::GET:
@@ -296,20 +348,92 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
     }
 
     if ($headers) $options[CURLOPT_HTTPHEADER] = $headers;
-
+    
+    if ($this->inspect) {
+      $this->inspect($id, $options);
+    }
     $result = $this->execute($id, $options);
+
+    $header_size = curl_getinfo($id, CURLINFO_HEADER_SIZE);
     $this->info = curl_getinfo($id);
-
-    //FIXME:
-    $result = preg_replace('{[^\r\n]{0,5}Connection established[^\r\n]{0,5}\r\n\r\n}i', '', $result, 1);
-
-    if ($result === false) return null;
-    $response =  Net_HTTP_Response::from_string($result);
-    if ($this->auto_redirect && $response->status->is_redirect)
-      return $this->redirect($response, $request, $id);
+    $this->error = curl_error($id);
+    $this->errno = curl_errno($id);
+    $effective_url = trim(curl_getinfo($id, CURLINFO_EFFECTIVE_URL));
+    // memory duplicate
+    // $this->last_result = &$result;
     curl_close($id);
+
+    if ($this->to_file) {
+      $this->to_file->close();
+      return Net_HTTP::Response()->status($this->info['http_code']);
+    }
+
+    if ($result !== false) {
+      $header = substr($result, 0, $header_size);
+      $body = substr($result, $header_size);
+      unset($result);
+      //FIXME:
+      $header = preg_replace('{[^\r\n]{0,5}Connection established[^\r\n]{0,5}\r\n\r\n}i', '', $header, 1);
+      $response =  Net_HTTP_Response::from_string($body, $header);
+      unset($body);
+      unset($header);
+      $response->url = $url;
+      if ($this->auto_redirect && $response->status->is_redirect) {
+        return $this->redirect($response, $request, $effective_url);
+      }
+    } else if (!empty($this->error)) {
+      $response = Net_HTTP::Response();
+      $response->status(0, $this->error);
+    } else {
+      return null;
+    }
     return $response;
   }
+
+  protected function inspect($id, $options)
+  {
+    $options[CURLOPT_CUSTOMREQUEST] = 'HEAD';
+    $options[CURLOPT_HEADER] = 1;
+    $options[CURLOPT_NOBODY] = 1;
+    curl_setopt_array($id, $options);
+    $header = curl_exec($id);
+    $body = '';
+    $res = Net_HTTP_Response::from_string($body, $header);
+    $len = (int) $res->headers['Content-Length'];
+    if ($len > 0) {
+      $limit = $this->get_memory_limit();
+      if ($limit <= 0) {
+        return;
+      }
+      $allowed_memory = $limit - memory_get_usage();
+      if (2.1*$len >= $allowed_memory) {
+        throw new RuntimeException('HTTPAgent: not enough memory to download');
+      }
+    }
+  }
+
+  private function get_memory_limit()
+  {
+    $string = ini_get('memory_limit');
+
+    if ($string == '-1') {
+      return -1;
+    }
+    preg_match('{(\d+)(.*)?}i', $string, $m);
+    $amount = (int) $m[1];
+    if (isset($m[2]) && !empty($m[2])) {
+      $type = strtoupper($m[2]);
+      $type_to_amount = array('M' => 1024*1024, 'K' => 1024);
+      if (isset($type_to_amount[$type])) {
+        $amount *= $type_to_amount[$type];
+      }
+    }
+    return $amount;
+  }
+
+
+
+
 ///     </body>
 ///   </method>
 
@@ -320,13 +444,13 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
 ///       <arg name="id" type="int" />
 ///     </args>
 ///     <body>
-  protected function redirect($response, $request, $id) {
-    $last_url = parse_url(trim(curl_getinfo($id, CURLINFO_EFFECTIVE_URL)));
+  protected function redirect($response, $request, $effective_url) {
+    $last_url = parse_url($effective_url);
     $next_url = parse_url(trim($response->headers['Location']));
     if (!$last_url || !$next_url) {
-      curl_close($id);
       return $response;
     }
+    $last_url = array('scheme' => $last_url['scheme'], 'host' => $last_url['host']);
     $go_url = array_merge($last_url, $next_url);
     $request->
       scheme($go_url['scheme'])->

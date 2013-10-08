@@ -2,10 +2,10 @@
 <?php $this->use_script(CMS::stdfile_url('scripts/ext-init.js'), array('type' => 'lib', 'weight' => -9)); ?>
 <?php
   if ($count > 0) {
-    $this->use_script(CMS::stdfile_url('scripts/admin-tree.js'), array('type' => 'lib', 'weight' => -8)); 
+    $this->use_script(CMS::stdfile_url('scripts/admin/tree.js'), array('type' => 'lib', 'weight' => -8)); 
     $this->use_script($c->app_js_file(), array('type' => 'app'));
   }
 ?>
-<?php $this->use_style(CMS::stdfile_url('styles/custom-ext-theme.css'), array('type' => 'app', 'weight' => 10)); ?>
+<?php // $this->use_style(CMS::stdfile_url('styles/custom-ext-theme.css'), array('type' => 'app', 'weight' => 10)); ?>
 <?php $this->use_style(CMS::stdfile_url('styles/admin-tree.css'), array('type' => 'app', 'weight' => 20)); ?>
-<?php $this->use_styles(CMS::stdfile_url('styles/admin-table.css')); ?>
+<?php $this->use_styles(CMS::stdfile_url('styles/admin/table.css')); ?>

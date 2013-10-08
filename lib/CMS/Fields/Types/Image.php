@@ -55,7 +55,7 @@ class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_Mo
 
 		if ($action=='right'||$action=='left') {
 			$oldpath = $path;
-			if ($filename=='none'&&$item_id>0&&isset($item[$name])&&trim($item[$name])!='') $oldpath = $this->value_to_path($item[$name]);
+			if ($filename=='none'&&!empty($item_id)&&isset($item[$name])&&trim($item[$name])!='') $oldpath = $this->value_to_path($item[$name]);
 			$code = $this->temp_code();
 			$newfile = "file-$code-$name.".$this->extension($oldpath);
 			$newpath = CMS::temp_dir().'/'.$newfile;
@@ -148,7 +148,7 @@ class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_Mo
 		$item_id = $item->id();
 		$value = trim($form[$name]);
 		$old = '';
-		if ($item_id>0&&isset($item[$name])) {
+		if (!$item->is_phantom()&&isset($item[$name])) {
 			$old = trim($item[$name]);
 		}
 
@@ -236,6 +236,7 @@ class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_Mo
 							if (!IO_FS::exists($dir)) CMS::mkdirs($dir);
 							$_dir = preg_replace('{^\./}','',$dir);
 							copy($uploaded,"$dir/$filename");
+							CMS::chmod_file("$dir/$filename");
 							IO_FS::rm($uploaded);
 							$value = "$_dir/$filename";
 						}
@@ -253,7 +254,7 @@ class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_Mo
 
 	public function uploaded_file_dir($name,$data,$item) {
 		$id = $item->id();
-		if ($id>0) {
+		if (!$item->is_phantom()) {
 			$dir = $item->homedir(isset($data['private'])&&$data['private']);
 			if (!$dir) return false;
 			if ($dir[0]!='.'&&$dir[0]!='/') $dir = "./$dir";
@@ -264,8 +265,8 @@ class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_Mo
 
 	public function cache_dir($name,$data,$item) {
 		$id = $item->id();
-		if ($id>0) {
-			$dir = $item->cache_dir_path($item,isset($data['private'])&&$data['private']);
+		if (!$item->is_phantom()) {
+			$dir = $item->cache_dir_path(isset($data['private'])&&$data['private']);
 			if (!$dir) return false;
 			if ($dir[0]!='.'&&$dir[0]!='/') $dir = "./$dir";
 			return $dir;
@@ -294,11 +295,9 @@ class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_Mo
 		return $this;
 	}
 
-	public function container($name,$data,$item) {
-		$class = 'CMS_Fields_Types_Image_Container';
-		if (isset($data['container']) && Core_Types::real_class_name_for($data['container']) instanceof CMS_Fields_ImageContainer)
-			$class = $data['container'];
-		return Core::make($class, $name,$data,$item,$this);
+	public function container_class() {
+		//FIXME: rename class to CMS_Fields_Types_Image_ValueContainer
+		return 'CMS_Fields_Types_Image_Container';
 	}
 
 	protected function layout_preprocess($l, $name, $data) {
@@ -329,6 +328,31 @@ abstract class CMS_Fields_Types_Image_ModsCache extends CMS_Fields_ValueContaine
 	protected $mods = array();
 	protected $cached = false;
 	protected $extra_file = false;
+
+	protected $lazy_parms = array('class' => 'lazy', 'settings' => array('effect' => 'fadeIn'));
+	protected $lazy = false;
+
+	public function __construct($name,$data,$item,$type) {
+		parent::__construct($name,$data,$item,$type);
+		$this->lazy_parms['0gif'] = CMS::stdfile_url('images/0.gif');
+	}
+
+	public function lazy($parms = array())
+	{
+		$this->lazy = true;
+		$this->lazy_parms = array_merge($this->lazy_parms, $parms);
+		$this->template()->root->use_script(CMS::stdfile_url('scripts/jquery/lazyload.js'));
+		$this->template()->add_scripts_settings(array('lazyload' => $this->lazy_parms['settings']), true);
+		return $this;
+	}
+
+	public function lazy_tagargs($args)
+	{
+		$args['class'] = (isset($args['class']) ? $args['class'] . ' ' : '') . $this->lazy_parms['class'];
+		$args['data-original'] = $args['src'];
+		$args['src'] = $this->lazy_parms['lazy_parms']['0fig'];
+		return $args;
+	}
 	
 	protected function transform_args($args,$action=false) {
 		$out = array();
@@ -492,6 +516,7 @@ abstract class CMS_Fields_Types_Image_ModsCache extends CMS_Fields_ValueContaine
 	}
 }
 
+//FIXME: rename class to CMS_Fields_Types_Image_ValueContainer
 class CMS_Fields_Types_Image_Container extends CMS_Fields_Types_Image_ModsCache {
 	
 	public function dir() {
@@ -528,7 +553,10 @@ class CMS_Fields_Types_Image_Container extends CMS_Fields_Types_Image_ModsCache 
 			if (!isset($args['height'])) $args['height'] = $sz[1];
 		}
 		$args['src'] = $url;
-		return $this->template()->tags->tag('img',$args);
+		if ($this->lazy) {
+			$args = $this->lazy_tagargs($args);
+		}
+		return $this->template()->tags->tag('img' ,$args);
 	}
 
 	public function set($value) {

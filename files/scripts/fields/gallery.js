@@ -59,9 +59,8 @@ TAO.fields.gallery.user_mods = function(field) {
 					url: $del.attr('data-href'),
 					complete: function(jqXHR, textStatus) {
 						clear();
-						if (textStatus == 'success' && jqXHR.response == 'ok') {
+						if (textStatus == 'success' && jqXHR.responseText == 'ok') {
 							$('#attaches-list-' + name)[0].__reload();
-							//alert('Изображение удалено');
 						} else {
 							alert(jqXHR.response);
 						}
@@ -171,14 +170,11 @@ TAO.fields.gallery.process = function (field) {
 
 		TAO.fields.gallery.rotate(field);
 	});
-
-	$('.field-gallery', field).each(function(index, item) {
-	TAO.fields.gallery.user_mods(item);
-	var name = $('input', item).attr('data-field-name');
+	TAO.fields.gallery.user_mods(field);
+	var name = $('input', field).attr('data-field-name');
 	$('#attaches-list-' + name, field).bind('reload', function(e, list) {
-		TAO.fields.gallery.user_mods(item);
+		TAO.fields.gallery.user_mods(field);
 	})
-})
 
 }
 

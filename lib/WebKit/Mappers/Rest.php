@@ -1,7 +1,7 @@
 <?php
 /// <module name="WebKit.Mappers.Rest" version="1.2.0" maintainer="timokhin@techart.ru">
 
-Core::load('Data', 'WebKit.Controller');
+Core::load('WebKit.Controller');
 
 /// <class name="WebKit.Mappers.Rest" stereotype="module">
 ///   <implements interface="Core.ModuleInterface" />

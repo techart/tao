@@ -55,6 +55,12 @@ class Storage_Entity implements Core_IndexedAccessInterface, Core_PropertyAccess
 		return $this['id'];
 	}
 
+	public function is_phantom()
+	{
+		$id = $this->id();
+		return empty($id);
+	}
+
 	public function key() {
 		return 'id';
 	}

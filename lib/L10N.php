@@ -115,7 +115,7 @@ abstract class L10N_Locale {
 ///         <dt>%a</dt><dd>день недели в варианте L10N::ABBREVIATED (в сокращенном виде)</dd>
 ///         <dt>%A</dt><dd>день недели в варианте L10N::FULL (полное название)</dd>
 ///         <dt>%b</dt><dd>день месяца в варианте L10N::ABBREVIATED </dd>
-///         <dt>%d(\s)*%B</dt><dd>день ввиде ввиде двухзначного числа (01 02 ...) и месяц в варианте L10N::INFLECTED (янворя фувроля ...) </dd>
+///         <dt>%d(\s)*%B</dt><dd>день ввиде ввиде двухзначного числа (01 02 ...) и месяц в варианте L10N::INFLECTED (января февроля ...) </dd>
 ///         <dt>%e(\s)*%B</dt><dd>день и месяц в варианте L10N::INFLECTED </dd>
 ///         <dt>%B</dt><dd>месяц в варианте указанном в атрибуте $variant</dd>
 ///       </dl>
@@ -134,7 +134,7 @@ abstract class L10N_Locale {
 
     return strftime(
             preg_replace(
-              array('/%a/', '/%A/', '/%b/', '/%d(\s)*%B/', '/%e(\s)*%B/', '/%B/'),
+              array('/%a/', '/%A/', '/%b/', '/%d([^%]*)%B/', '/%e([^%]*)%B/', '/%B/'),
               array(
                 $this->variant(L10N::ABBREVIATED, 'weekdays', $date->wday),
                 $this->variant(L10N::FULL, 'weekdays', $date->wday),

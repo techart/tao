@@ -1,0 +1,13 @@
+<div class="list-lent-rows list-lent-rows-<?= str_replace('.','-',$mnemocode) ?>">
+<?php
+	$template_lent_row = $controller->template('list-lent-row');
+	
+	foreach($rows as $item) {
+		$item_id = $controller->item_id($item);
+		?><div class="list-lent-row list-lent-row-<?= $item_id ?>" data-row-id="<?= $item_id ?>"><?php
+		include($template_lent_row);
+		?></div><?php
+	}
+
+?>
+</div>

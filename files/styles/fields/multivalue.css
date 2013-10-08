@@ -32,7 +32,7 @@ float: left;
 }
 
 .field-multivalue-item-actions .delete-item {
-	background: url(/files/_assets/images/del.png) 0 0 no-repeat;
+	background: url(/tao/images/del.png) 0 0 no-repeat;
 	width: 16px;
 	height: 16px;
 	cursor: pointer;

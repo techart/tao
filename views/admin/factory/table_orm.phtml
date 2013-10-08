@@ -1,0 +1,53 @@
+<? print '&lt;?php'; ?>
+
+
+Core::load('CMS.ORM');
+
+class <?= str_replace('.','_',$this->orm_module) ?> extends CMS_ORM_Mapper implements Core_ModuleInterface
+{
+	public function setup()
+	{
+		return $this
+			->table('<?= $table ?>')
+			->classname('<?= $this->item_name ?>')
+			->order_by('<?= $this->key_field ?>')
+<?php if ($this->orm_fields=='native') { ?>
+			->key('<?= $this->key_field ?>')
+			->columns(<?php
+				$columns = '';
+				foreach($this->fields as $field => $type) {
+					if ($columns!='') {
+						$columns .= ', ';
+					}
+					$columns .= "'{$field}'";
+				}
+				print $columns;
+			?>);
+<?php } else { ?>
+			->schema_fields('<?= $this->schema_module ?>');
+<?php } ?>
+	}
+}
+
+class <?= str_replace('.','_',$this->item_name) ?> extends CMS_ORM_Entity
+{
+<?php if ($this->orm_fields=='native') { ?>
+	public function setup()
+	{
+		parent::setup();
+<?php
+			foreach($this->fields as $field => $type) {
+				$type = $type['simple'];
+				$value = "''";
+				if ($type=='int') {
+					$value = '0';
+				} elseif ($type=='date') {
+					$value = "date('Y-m-d H:i:s')";
+				}
+				print "\t\t\${$field} = $value;\n";
+			}
+?>
+		return $this;
+	}
+<?php } ?>
+}

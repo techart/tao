@@ -1,0 +1,19 @@
+<?php
+
+$this->use_styles(CMS::stdfile_url('styles/admin/factory.css'),CMS::stdfile_url('styles/admin/controls.css'),CMS::stdfile_url('styles/admin/table.css'));
+
+?>
+<h1>Фабрика</h1>
+
+<div class="factory-layout">
+
+	<div class="factory-left">
+		<div class="factory-tables">
+			<?php foreach($tables as $_table) { ?>
+				<a href="<?= $urls->table_url($_table) ?>"<?= ($_table==$table?' class="current"':'') ?>><?= $_table ?></a>
+			<?php } ?>
+		</div>
+	</div>
+	
+	<div class="factory-right">
+	

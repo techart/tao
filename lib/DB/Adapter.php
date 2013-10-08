@@ -1,261 +1,269 @@
 <?php
-/// <module name="DB.Adapter" version="0.2.0" maintainer="timokhin@techart.ru">
-///   <brief>Модуль определяет набор интерфейсов для адаптеров БД, также подгружает конкретный адаптер</brief>
-/// <class name="DB.Adapter" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-class DB_Adapter implements Core_ConfigurableModuleInterface {
+/**
+ * Модуль определяет набор интерфейсов для адаптеров БД, также подгружает конкретный адаптер
+ * 
+ * @author Timokhin <timokhin@techart.ru>
+ * 
+ * @package DB\Adapter
+ */
+ 
 
-///   <constants>
-  const VERSION = '0.2.0';
-///   </constants>
+/** 
+ * Класс модуля
+ * 
+ * @version 0.2.0
+ * 
+ * @package DB\Adapter
+ */
+class DB_Adapter implements Core_ConfigurableModuleInterface
+{
 
-  static protected $options = array(
-    'adapters' => array(
-      'mysql' => 'MySQL', 'pgsql' => 'PostgreSQL', 'mssql' => 'MSSQL')
-      );
+	/** 
+	 * Версия модуля
+	 */
+	const VERSION = '0.2.0';
+
+	/**
+	 * @var array Опции модуля
+	 */
+	static protected $options = array(
+		'adapters' => array(
+			'mysql' => 'MySQL', 'pgsql' => 'PostgreSQL', 'mssql' => 'MSSQL'
+		)
+	);
     
+	/**
+	 * Инициализация
+	 * 
+	 * @params array $options Опции модуля
+	 */
+	static public function initialize(array $options = array())
+	{
+		return self::options($options);
+	}
+	
+	/**
+	 * Установка и получение опций модуля
+	 * 
+	 * Если ключ уже есть в массиве, то его значение переопределяется,
+	 * если еще нет - то элемент добавляется в массив параметров.
+	 * 
+	 * Возвращается значение опции модуля после установки.
+	 * 
+	 * @params array options Опции модуля
+	 * 
+	 * @return array
+	 */
+	static public function options(array $options = array())
+	{
+		return self::$options = array_merge(self::$options, $options);
+	}
   
-  static public function initialize(array $options = array()) {
-    return self::options($options);
-  }
-  
-  static public function options(array $options = array()) {
-    return self::$options = array_merge(self::$options, $options);
-  }
-  
-  static public function option($name, $value = null) {
-    if (is_null($value)) return self::$options[$name];
-    return self::$options[$name] = $value;
-  }
+	/**
+	 * Установка и получение значения опции
+	 * 
+	 * Если ключ уже есть в массиве, то его значение переопределяется,
+	 * если еще нет - то элемент добавляется в массив параметров.
+	 * 
+	 * Возвращается значение опции модуля после установки.
+	 * 
+	 * @params string|integer $name имя опции
+	 * @params mixed $value значение опции по умочанию null
+	 * 
+	 * @return array
+	 */
+	static public function option($name, $value = null)
+	{
+		if (is_null($value)) return self::$options[$name];
+		return self::$options[$name] = $value;
+	}
 
-///   <protocol name="building">
-
-///   <method name="instantiate" returns="DB.Adapter.ConnectionInterface">
-///     <brief>Возвращает объект адаптера соответствующего DSN</brief>
-///     <args>
-///       <arg name="dsn" type="DB.DSN" brief="параметра доступа к БД" />
-///     </args>
-///     <body>
-  static public function instantiate(DB_DSN $dsn) {
-    $adapters = self::option('adapters');
-    if (isset($adapters[$dsn->type])) {
-      $module = $adapters[$dsn->type];
-      $module = Core_Strings::contains('.', $module) ? $module : 'DB.Adapter.' . $module;
-      Core::load($module);
-      return Core::make($module . '.Connection', $dsn);
-    } else
-    throw new DB_Exception("Missing adapter for type $module");
-  }
-///     </body>
-///   </method>
-
-///   </protocol>
+	/**
+	 * Возвращает объект адаптера соответствующего DSN
+	 * 
+	 * @params DB_DSN $dsn объект строки DSN
+	 * 
+	 * @throws DB_Exception Если отсутствует параметр type в строке DSN
+	 * 
+	 * @return object
+	 */
+	static public function instantiate(DB_DSN $dsn)
+	{
+		$adapters = self::option('adapters');
+		if (isset($adapters[$dsn->type])) {
+			$module = $adapters[$dsn->type];
+			$module = Core_Strings::contains('.', $module) ? $module : 'DB.Adapter.' . $module;
+			Core::load($module);
+			return Core::make($module . '.Connection', $dsn);
+		} else {
+			throw new DB_Exception("Missing adapter for type $module");
+		}
+	}
 }
-/// </class>
 
 
-/// <interface name="DB.Adapter.ConnectionInterface">
-///   <brief>Интерфейс для класса соединения с БД</brief>
-interface DB_Adapter_ConnectionInterface {
+/**
+ * Интерфейс для класса соединения с БД
+ * 
+ * @package DB\Adapter
+ */
+interface DB_Adapter_ConnectionInterface
+{
 
-///   <protocol name="creating">
+	/**
+	 * Конструктор
+	 * 
+	 * @params DB_DSN $dsn Объект строки параметров доступа к БД
+	 */
+	public function __construct(DB_DSN $dsn);
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="dsn" type="DB.DSN" brief="параметра доступа к БД" />
-///     </args>
-///     <body>
-  public function __construct(DB_DSN $dsn);
-///     </body>
-///   </method>
+	/**
+	 * Преобразует значение в пригодный вид для вставки в sql запрос
+	 * 
+	 * @params mixed $value значение для преобразования
+	 */
+	public function cast_parameter($value);
 
-///   </protocol>
+	/**
+	 * Проверяет требуется ли преобразовывать значение
+	 * 
+	 * @params mixed $value проверяемое значение
+	 */
+	public function is_castable_parameter($value);
 
-///   <protocol name="processing">
+	/**
+	 * Устанавливает атрибут
+	 * 
+	 * @params integer $id идентификатор
+	 * @params mixed $value значение
+	 */
+	public function set_attribute($id, $value);
 
-///   <method name="cast_parameter" returns="mixed">
-///     <brief>Преобразует значение в пригодный вид для вставки в sql запрос</brief>
-///     <args>
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
-  public function cast_parameter($value);
-///     </body>
-///   </method>
+	/**
+	 * Возвращает атрибут
+	 * 
+	 * @params integer $id идентификатор
+	 * 
+	 * @return mixed
+	 */
+	public function get_attribute($id);
 
-///   <method name="is_castable_parameter" returns="boolean">
-///     <brief>Проверяет требуется ли преобразовывать значение</brief>
-///     <args>
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
-  public function is_castable_parameter($value);
-///     </body>
-///   </method>
+	/**
+	 * Подготавливает SQL-запрос к выполнению
+	 * 
+	 * @params string $sql sql-запрос
+	 */
+	public function prepare($sql);
 
-///   <method name="set_attribute" returns="boolean">
-///     <brief>Устанавливает атрибут</brief>
-///     <args>
-///       <arg name="id" brief="идентификатор"  />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
-  public function set_attribute($id, $value);
-///     </body>
-///   </method>
+	/**
+	 * Открывает транзакцию
+	 */
+	public function transaction();
 
-///   <method name="get_attribute" returns="mixed">
-///     <brief>Возвращает атрибут</brief>
-///     <args>
-///       <arg name="id" type="int" brief="идентификатор" />
-///     </args>
-///     <body>
-  public function get_attribute($id);
-///     </body>
-///   </method>
+	/**
+	 * Фиксирует транзакцию
+	 */
+	public function commit();
 
-///   <method name="prepare" returns="DB.Adapter.CursorInterface">
-///     <brief>Подготавливает SQL-запрос к выполнению</brief>
-///     <args>
-///       <arg name="sql" type="string" brief="sql-запрос" />
-///     </args>
-///     <body>
-  public function prepare($sql);
-///     </body>
-///   </method>
+	/**
+	 * Откатывает транзакцию
+	 */
+	public function rollback();
 
-///   <method name="transaction">
-///     <brief>Открывает транзакцию</brief>
-///     <body>
-  public function transaction();
-///     </body>
-///   </method>
+	/**
+	 * Возвращает последний вставленный идентификатор
+	 * 
+	 * @return integer
+	 */
+	public function last_insert_id();
 
-///   <method name="commit">
-///     <brief>Фиксирует транзакцию</brief>
-///     <body>
-  public function commit();
-///     </body>
-///   </method>
+	/**
+	 * Квотит параметр
+	 * 
+	 * @params string $value параметр
+	 */
+	public function quote($value);
 
-///   <method name="rollback">
-///     <brief>Откатывает транзакцию</brief>
-///     <body>
-  public function rollback();
-///     </body>
-///   </method>
+	/**
+	 * Вызывается в DB.Connection после соединения
+	 */
+	public function after_connect();
 
-///   <method name="last_insert_id" returns="int">
-///     <brief>Возвращает последний вставленный идентификатор</brief>
-///     <body>
-  public function last_insert_id();
-///     </body>
-///   </method>
+	/**
+	 * Выполняет EXPLAIN для анализа запроса
+	 * 
+	 * @params string $sql sql-запрос
+	 * @params array $binds массив параметров
+	 */
+	public function explain($sql, $binds);
 
-///   <method name="quote">
-///     <brief>Квотит параметр</brief>
-///     <args>
-///       <arg name="value" brief="параметр" />
-///     </args>
-///     <body>
-  public function quote($value);
-///     </body>
-///   </method>
+	/**
+	 * Получить схему БД
+	 */
+	public function get_schema();
 
-///   <method name="after_connect">
-///     <brief>Вызывается в DB.Connection после соединения</brief>
-///     <body>
-  public function after_connect();
-///     </body>
-///   </method>
+	/**
+	 * Заключает параметр в обратные кавычки
+	 */
+	public function escape_identifier($str);
 
-///   <method name="explain">
-///     <brief>Выполняет EXPLAIN для анализа запроса</brief>
-///     <args>
-///       <arg name="sql" type="string" brief="sql-запрос" />
-///       <arg name="binds" type="array" brief="массив параметров" />
-///     </args>
-///     <body>
-  public function explain($sql, $binds);
-///     </body>
-///   </method>
-
-  public function get_schema();
-
-  public function escape_identifier($str);
-
-///   </protocol>
 }
-/// </interface>
 
-/// <interface name="DB.Adapter.CursorInterface">
-///   <brief>Интерфейс курсора БД</brief>
-interface DB_Adapter_CursorInterface {
+/**
+ * Интерфейс курсора БД
+ * 
+ * @package DB\Adapter
+ */
+interface DB_Adapter_CursorInterface
+{
 
-///   <protocol name="processing">
+	/**
+	 * Преобразует значение полученное из БД в нужный формат, для работы с ним в php
+	 * 
+	 * @params DB_ColumnMeta $metadata мета-данные колонки
+	 * @params mixed $value значение для преобразования
+	 */
+	public function cast_column(DB_ColumnMeta $metadata, $value);
 
-///   <method name="cast_column" returns="mixed">
-///     <brief>Преобразует значение полученное из БД в нужный формат, для работы с ним в php</brief>
-///     <args>
-///       <arg name="metadata" type="DB.ColumnMeta" brief="мета-данный колонки" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
-  public function cast_column(DB_ColumnMeta $metadata, $value);
-///     </body>
-///   </method>
+	/**
+	 * Возвращает очередную строку результата
+	 */
+	public function fetch();
 
-///   <method name="fetch" returns="mixed">
-///     <brief>Возвращает очередную строку результата</brief>
-///     <body>
-  public function fetch();
-///     </body>
-///   </method>
+	/**
+	 * Закрывает курсор
+	 */
+	public function close();
 
-///   <method name="close">
-///     <brief>Закрывает курсор</brief>
-///     <body>
-  public function close();
-///     </body>
-///   </method>
+	/**
+	 * Выполняет запрос
+	 * 
+	 * @params array $binds массив параметров
+	 */
+	public function execute(array $binds);
 
-///   <method name="execute">
-///     <brief>Выполняет запрос</brief>
-///     <args>
-///       <arg name="binds" type="array" brief="массив параметров" />
-///     </args>
-///     <body>
-  public function execute(array $binds);
-///     </body>
-///   </method>
+	/**
+	 * Возвращает количество строк в результате
+	 * 
+	 * @return integer
+	 */
+	public function get_num_of_rows();
 
-///   <method name="get_num_of_rows" returns="int">
-///     <brief>Возвращает количество строк в результате</brief>
-///     <body>
-  public function get_num_of_rows();
-///     </body>
-///   </method>
+	/**
+	 * Возвращает количество колонок
+	 * 
+	 * @return integer
+	 */
+	public function get_num_of_columns();
 
-///   <method name="get_num_of_columns" returns="int">
-///     <brief>Возвращает количетсво колонок</brief>
-///     <body>
-  public function get_num_of_columns();
-///     </body>
-///   </method>
-
-///   <method name="get_row_metadata" returns="DB.ColumnMeta">
-///     <brief>Возвращает мета данные строки результата</brief>
-///     <body>
-  public function get_row_metadata();
-///     </body>
-///   </method>
-
-///   </protocol>
+	/**
+	 * Возвращает мета данные строки результата
+	 */
+	public function get_row_metadata();
 }
-/// </interface>
 
-interface DB_Adapter_SchemaInterface {
+interface DB_Adapter_SchemaInterface 
+{
   public function column_definition($column);
   
   public function index_definition($table, $index);
@@ -278,5 +286,3 @@ interface DB_Adapter_SchemaInterface {
 
   public function inspect($info_mapper, $table_name, $dsn);
 }
-
-/// </module>

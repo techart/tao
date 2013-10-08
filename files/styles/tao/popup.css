@@ -1,0 +1,54 @@
+.white-popup {
+  position: relative;
+  background: #FFF;
+  padding: 20px;
+  width:auto;
+  //max-width: 500px;
+  margin: 20px auto;
+}
+
+.popup-form {
+  max-width: 600px;
+}
+
+.popup-form label {
+  display: block;
+  font-weight: bold;
+  padding: 2px 0;
+}
+
+.popup-form input {
+
+}
+
+.popup-form input[type="text"] {
+  width: 300px;
+}
+
+.popup-form .actions {
+  margin: 30px 0 0 0;
+  border-top: 1px solid black;
+}
+
+.popup-form input[type="submit"] {
+  margin: 5px 5px 5px 0;
+}
+
+.popup-form .form-title {
+  font-weight: bold;
+  font-size: 120%;
+  margin-bottom: 10px;
+  border-bottom: 1px solid black;
+}
+
+.popup-hide {
+  display: none;
+}
+
+.ui-dialog, .ui-dialog * {
+  z-index: 2001;
+}
+
+.ui-widget-overlay {
+  z-index: 2000;
+}

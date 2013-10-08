@@ -8,8 +8,8 @@ class Templates_HTML_Preprocess implements Core_ConfigurableModuleInterface {
   static protected $options = array(
     'less_class' => 'lessc',
     'less_cache_dns' => 'fs://../cache/less',
-    'less_output_dir' => 'files/less',
-    'less_php_dir' => '../extern/lessphp'
+    'less_output_dir' => 'styles/less',
+    'less_php_dir' => '../vendor/lessphp'
   );
   
   static public function initialize(array $options = array()) {
@@ -47,10 +47,12 @@ class Templates_HTML_Preprocess_LessPreprocessor implements Templates_HTML_Prepr
   }
   
   protected function load() {
-    $path = !empty(WS::env()->config->less->lessphp_dir) 
-      ? WS::env()->config->less->lessphp_dir
-      : Templates_HTML_Preprocess::option('less_php_dir');
-    include_once($path . '/lessc.inc.php');
+    if (!class_exists('lessc')) {
+      $path = !empty(WS::env()->config->less->lessphp_dir) 
+          ? WS::env()->config->less->lessphp_dir
+          : Templates_HTML_Preprocess::option('less_php_dir');
+      include_once($path . '/lessc.inc.php');
+    }
   }
 
   public function preprocess($file) {

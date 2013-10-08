@@ -1,0 +1,36 @@
+/*
+	Description	: basic styles for jQuery Plugin "modalBox". feel free to customize this styles
+	Author		: Steffen Hollstein
+	Author URI	: http://www.steffenhollstein.de
+	Project Page: http://code.google.com/p/jquery-modalbox-plugin/
+	
+	
+	put following inline css in your html document:
+	-----------------------------------------------
+	<!--- modalbox PNG Fix / BEGIN --->
+	<!--[if lte IE 6]>
+		<style type="text/css">
+			div#modalBox div#modalBoxBody div.modalboxStyleContainerTopLeft {
+				background-image:none; 
+				filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod='crop', src='/tao/images/modalbox/shadows_bg_topright.png');
+			}
+			div#modalBox div#modalBoxBody div.modalboxStyleContainerTopRight {
+				background-image:none; 
+				filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod='crop', src='/tao/images/modalbox/shadows_bg_topleft.png');
+				height:1%;
+			}
+			div#modalBox div#modalBoxBody div.modalboxStyleContainerBottomLeft {
+				background-image:none; 
+				filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod='crop', src=/tao/images/modalbox/shadows_bg_bottomright.png');
+			}
+			div#modalBox div#modalBoxBody div.modalboxStyleContainerBottomRight {
+				background-image:none; 
+				filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod='crop', src='/tao/images/modalbox/shadows_bg_bottomleft.png');
+			}
+		</style>
+	<![endif]-->
+	<!--- modalbox PNG Fix / END --->
+*/
+@import url("modalbox/modalbox-basic.css");
+/*@import url("/tao/styles/modalbox/modalbox-skin-default.css");*/
+@import url("modalbox/modalbox-skin-rounded-black.css");

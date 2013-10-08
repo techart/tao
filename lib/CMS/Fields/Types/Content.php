@@ -1,6 +1,6 @@
 <?php
 
-Core::load('CMS.Fields.Types.ImageList');
+Core::load('CMS.Fields.Types.ImageList', 'Text.Process');
 
 class CMS_Fields_Types_Content_ValueContainer extends CMS_Fields_ValueContainer {
 	
@@ -16,10 +16,27 @@ class CMS_Fields_Types_Content_ValueContainer extends CMS_Fields_ValueContainer 
 		return $value;
 	}
 	
-	public function render() {
+	public function teaser()
+	{
+		$spliter = $this->get_spliter();
+		if (empty($spliter)) return '';
 		$value = $this->value();
+		$delimiter = strpos($value, $spliter);
+		if ($delimiter !== FALSE) {
+			$teaser = substr($value, 0, $delimiter);
+			if (!empty($teaser)) {
+				$teaser = Text_Process::process($teaser, 'htmlpurifier');
+			}
+			return $teaser;
+		}
+		return $value;
+	}
+
+	public function value()
+	{
+		$value = parent::value();
 		if (empty($value)) return '';
-		$value = (string) CMS::lang($this->value());
+		$value = (string) CMS::lang($value);
 		$formats = $this->type->get_formats($this->name, $this->data);
 		$fvalues = $this->type->format_split($value);
 		if (!empty($fvalues)) {
@@ -31,6 +48,37 @@ class CMS_Fields_Types_Content_ValueContainer extends CMS_Fields_ValueContainer 
 			}
 		}
 		return $value;
+	}
+
+	public function get_spliter()
+	{
+		return isset($this->data['teaser split']) ? $this->data['teaser split'] : null;
+	}
+
+	public function has_spliter()
+	{
+		$spliter = $this->get_spliter();
+		if ($spliter) {
+			return (boolean) strpos(parent::value(), $spliter);
+		}
+		return false;
+	}
+
+	public function clean_value()
+	{
+		$value = $this->value();
+		$spliter = $this->get_spliter();
+		if ($this->has_spliter()) {
+			$find = preg_quote($spliter);
+			$value = preg_replace("!(<br/?>)?{$find}(<br/?>)?!", '', $value);
+			$value = Text_Process::process($value, 'htmlpurifier');
+		}
+		return $value;
+	}
+
+	public function render()
+	{
+		return $this->clean_value();
 	}	
 }
 
@@ -40,7 +88,7 @@ class CMS_Fields_Types_Content  extends CMS_Fields_Types_ImageList implements Co
 	
 	//TODO: рефакторинг
 	protected $formats_cache = array();
-	protected $default_switch_style = 'select';
+	protected $default_switch_style = 'tabs';
 
 	public function enable_multilang() {
 		return true;
@@ -167,7 +215,7 @@ JS;
 	
 	protected function stdunset($data) {
 		$res = parent::stdunset($data);
-		return $this->punset($res, 'formats', 'switch style');
+		return $this->punset($res, 'formats', 'switch style', 'extra_formats', 'teaser split');
 	}
 	
 	public function get_switch_style($name, $data) {
@@ -207,7 +255,7 @@ JS;
 	protected function default_formats($name, $data) {
 		return array(
 			'html' => array('name' => 'HTML', 'widget' => 'html', 'output' => ''),
-			'wiki' => array('name' => 'Wiki', 'widget' => 'textarea', 'output' => 'wiki'),
+			'wiki' => array('name' => 'Wiki', 'widget' => 'wiki', 'output' => 'wiki'),
 			'txt' => array('name' => 'Текст', 'widget' => 'textarea', 'output' => '')
 		);
 	}

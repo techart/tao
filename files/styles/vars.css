@@ -12,19 +12,19 @@ em.folder, em.folder-lock, em.var, em.var-lock {
 }	
 
 em.folder { 
-	background-image: url(/files/_assets/images/folder.gif);
+	background-image: url(/tao/images/folder.gif);
 }
 
 em.folder-lock { 
-	background-image: url(/files/_assets/images/folder-lock.gif);
+	background-image: url(/tao/images/folder-lock.gif);
 }
 
 em.var { 
-	background-image: url(/files/_assets/images/var.gif);
+	background-image: url(/tao/images/var.gif);
 }
 
 em.var-lock { 
-	background-image: url(/files/_assets/images/var-lock.gif);
+	background-image: url(/tao/images/var-lock.gif);
 }
 
 .x-grid-row:hover {
@@ -44,7 +44,7 @@ em.var-lock {
 }
 
 .var-add-icon {
-	background: url('/files/_assets/images/icons/plus-button.png') no-repeat 1px 5px;
+	background: url('/tao/images/icons/plus-button.png') no-repeat 1px 5px;
 	width: 30px;
 	height:30px;
 }

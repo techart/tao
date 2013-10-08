@@ -5,9 +5,11 @@
 
 	$list_fields_templates_tds = array();
 	$list_fields_templates_values = array();
-	foreach($list_fields as $field => $data) {
-		$list_fields_templates_tds[$field] = $controller->redefined_template("list-table-row-td-{$field}");
-		$list_fields_templates_values[$field] = $controller->redefined_template("list-table-row-field-{$field}");
+	if (!empty($list_fields)) {
+		foreach($list_fields as $field => $data) {
+			$list_fields_templates_tds[$field] = $controller->redefined_template("list-table-row-td-{$field}");
+			$list_fields_templates_values[$field] = $controller->redefined_template("list-table-row-field-{$field}");
+		}
 	}
 	
 	foreach($rows as $row) {

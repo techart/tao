@@ -6,7 +6,7 @@ Core::load('Service.Google.Auth', 'SOAP');
 class Service_Google_AdWords implements Core_ModuleInterface {
 ///   <constants>
   const VERSION = '0.1.2';
-  const NS = "https://adwords.google.com/api/adwords/cm/v201209";
+  const NS = "https://adwords.google.com/api/adwords/cm/v201306";
   const FMT_DATE = '%Y%m%d';
   static protected $SERVICE_SUFFIXES = array('job' => 'job', 'idea' => 'o', 'info' => 'info', 'account' => 'mcm');
   const DEFAULT_SERVICE_SUFFIX = 'cm';
@@ -29,7 +29,7 @@ class Service_Google_AdWords implements Core_ModuleInterface {
       self::$SERVICE_SUFFIXES[$s] : self::DEFAULT_SERVICE_SUFFIX;
 
     return 'https://'.($sandbox ? 'adwords-sandbox' : 'adwords').
-      '.google.com/api/adwords/'.$suffix.'/v201209/'.
+      '.google.com/api/adwords/'.$suffix.'/v201306/'.
       $service.'Service?wsdl';
   }
 ///     </body>

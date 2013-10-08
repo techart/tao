@@ -3,9 +3,10 @@
 	<?php
 
 		$template_table_header_th = $controller->template('list-table-header-th');
-
-		foreach($list_fields as $field => $data) {
-			include($template_table_header_th);
+		if (!empty($list_fields)) {
+			foreach($list_fields as $field => $data) {
+				include($template_table_header_th);
+			}
 		}
 
 		foreach($enabled_actions as $action => $_v) if ($_v) {

@@ -44,7 +44,7 @@ if (is_dir($dir)) {
 					</a>
 				</li>
 				<li>
-					<a class="image-button image-button-left gallery-button-rotate" href="<?= CMS::$current_controller->field_action_url($name,'left',$item) ?>?filename=<?= urlencode($f->name) ?>" ></a>
+					<a class="image-button image-button-left gallery-button-rotate" href="<?= CMS::$current_controller->field_action_url($name,'left',$item, array('filename' => urlencode($f->name))) ?>" ></a>
 				</li>
 				<li>
 					<a class="image-button image-button-right gallery-button-rotate"  href="<?= CMS::$current_controller->field_action_url($name,'right',$item) ?>?filename=<?= urlencode($f->name) ?>" ></a>

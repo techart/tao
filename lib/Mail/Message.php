@@ -5,7 +5,7 @@
 ///   <p>Модуль определяет классы, соответствующие таким элементам почтового сообщения, как
 ///   поле заголовка, заголовок, часть сообщения и само сообщение.</p>
 ///   </details>
-Core::load('Object', 'Fn', 'IO.FS', 'Mail');
+Core::load('Object', 'IO.FS', 'Mail');
 
 /// <class name="Mail.Message">
 ///   <implements interface="Core.ModuleInterface" />
@@ -1205,7 +1205,7 @@ class Mail_Message_Message
   public function getIterator() {
     return $this->is_multipart() ?
       $this->body->getIterator() :
-      Fn::singular($this->body);
+      new ArrayIterator($this->body);
   }
 ///     </body>
 ///   </method>

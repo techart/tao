@@ -1,0 +1,35 @@
+<? print '&lt;?php'; ?>
+
+
+class <?= str_replace('.','_',$this->component_module) ?> extends CMS_Component implements Core_ModuleInterface
+{
+	public static function initialize($config=array())
+	{
+		foreach($config as $key => $value) {
+			self::$$key = $value;
+		}
+		CMS::add_component_object(new self('<?= $this->component ?>'), new Component_<?= $this->component ?>_Mapper());
+		CMS_Admin::menu('<?= $this->component ?>',CMS::admin_path('<?= $this->table ?>'));
+		CMS::orm()->submapper('<?= $table ?>', '<?= $this->orm_module ?>');
+		CMS::cached_run('<?= $this->schema_module ?>');
+	}
+}
+
+class Component_<?= $this->component ?>_Mapper extends CMS_Router
+{
+	public function controllers()
+	{
+		return array(
+			'Component.<?= $this->component ?>.Controller' => array(
+				'path' => '/<?= $table ?>/',
+				'rules' => array(
+					'{.*}' => array('{0}','action' => 'index'),
+				),
+			),
+			'<?= $this->admin_module ?>' => array(
+				'path' => '/admin/<?= $table ?>/',
+				'table-admin' => true,
+			),
+		);
+	}
+}

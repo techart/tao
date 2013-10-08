@@ -1,12 +1,12 @@
 <?php
 
-Core::load('CMS.Fields');
+Core::load('CMS.Fields', 'CMS.Redactor');
 
 class CMS_Fields_Types_ImageList extends CMS_Fields_AbstractField implements Core_ModuleInterface {
   const VERSION = '0.1.0';
 
-  protected function get_widget($data) {
-    return $widget = empty($data['widget']) ? 'tiny_mce' : $data['widget'];
+  protected function get_editor($name, $data) {
+    return isset($data['redactor']) ? CMS_Redactor::get_editor($data['redactor']) :  CMS_Redactor::get_default();
   }
 
   public function valid_extensions($name, $data) {
@@ -44,7 +44,7 @@ class CMS_Fields_Types_ImageList extends CMS_Fields_AbstractField implements Cor
     }
     foreach ($res as &$f) $f = trim($f, ' .');
     if (!empty($data['add images'])) $res = array_merge($res, $data['add images']);
-    return $this->get_widget($data) == 'tiny_mce' ? $this->mce_imagelist($res) : json_encode($res);
+    return $this->get_editor($name, $data)->image_list_to_js($res);
   }
   
   protected function imagelist_from_attaches(&$res, $name, $field, $type_object, $item) {
@@ -63,14 +63,4 @@ class CMS_Fields_Types_ImageList extends CMS_Fields_AbstractField implements Cor
     $res[] = $type_object->container($name, $field, $item)->url();
   }
   
-  protected function mce_imagelist($files) {
-    $res = 'var tinyMCEImageList = new Array(';
-    $list = array();
-    foreach ($files as $f) {
-      $name = pathinfo($f, PATHINFO_BASENAME);
-      $list[] = "[" . "'$name'" . ',' . "'$f'" .  "]";
-    }
-    $res .= implode(',', $list) .  ');';
-    return $res;
-  }
 }

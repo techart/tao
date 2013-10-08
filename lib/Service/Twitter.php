@@ -135,7 +135,7 @@ class Service_Twitter_Application extends CLI_Application_Base {
   protected function send_message() {
     print "\nSend message ...\n";
     $r = $this->client->send(
-      Net_HTTP::Request('http://api.twitter.com/1/statuses/update.json')->
+      Net_HTTP::Request('http://api.twitter.com/1.1/statuses/update.json')->
       parameters(array('status' => $this->config->message))->
       method('POST')
     );
@@ -508,7 +508,7 @@ class Service_Twitter_Entity implements Core_PropertyAccessInterface, Core_CallI
 /// <class name="Service.Twitter.Service" stereotype="abstract">
 abstract class Service_Twitter_Service {
   protected $client;
-  const PREFIX = 'http://api.twitter.com/1/';
+  const PREFIX = 'http://api.twitter.com/1.1/';
 
   ///   <protocol name="creating">
 
