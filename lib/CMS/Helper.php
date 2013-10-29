@@ -18,7 +18,7 @@ class CMS_Helper implements Core_ModuleInterface {
 
 	public function page_navigator($view,$pagenum,$numpages,$url) {
 		$app = CMS::app_path('views/helpers');
-		$lib = CMS::view('helpers');
+		$lib = CMS::tao_view('helpers');
 		$templates = array();
 		if (CMS::admin()) {
 			$templates[] = "{$app}/page-navigator-admin.phtml";

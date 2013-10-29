@@ -135,6 +135,7 @@ class CMS_Lang implements Core_ModuleInterface {
 
 	public function split($s,$lang='default') {
 		$s = trim($s); if ($s=='') return $s;
+		if (strpos($s,'%LANG{')===false) return $s;
 		if ($m = Core_Regexps::match_with_results('/^(.*?)%LANG\{([a-z]+)\}(.*)$/ism',$s)) {
 			$langs = array();
 			$langs[$lang] = trim($m[1]);

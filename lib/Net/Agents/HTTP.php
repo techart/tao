@@ -317,6 +317,7 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
     $id = $this->make_curl($url);
 
     $headers = $request->headers->as_array(true);
+    $headers[] = 'Expect:'; // by default curl expect 100-continue 
 
     $options = $this->to_file ?
       array(

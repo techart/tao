@@ -1,0 +1,11 @@
+<img style="display:block;" src="<?= $img ?>"<?php 
+	if ($width) {
+		print " width=\"{$width}\"";
+	}
+	if ($height) {
+		print " height=\"{$height}\"";
+	}
+	if ($title) {
+		print ' title="'.htmlspecialchars($title).'"';
+	}
+?>>

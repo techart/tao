@@ -15,6 +15,9 @@ class CMS_Vars2_Admin_Mapper extends CMS_Mapper implements Core_ModuleInterface 
 	}
 
 	public function edit_url($name) {
+		if (trim($name)=='') {
+			return '#';
+		}
 		return CMS::admin_path("vars/edit/id-{$name}/");
 	}
 
@@ -23,6 +26,9 @@ class CMS_Vars2_Admin_Mapper extends CMS_Mapper implements Core_ModuleInterface 
 	}
 
 	public function delete_url($name) {
+		if (trim($name)=='') {
+			return '#';
+		}
 		return CMS::admin_path("vars/delete/id-{$name}/");
 	}
 

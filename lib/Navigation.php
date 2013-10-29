@@ -99,6 +99,7 @@ class Navigation_Set implements Navigation_SetInterface {
   protected $current_link = false;
   protected $current_path = array();
   protected $items_by_ids = array();
+  protected $to_route = array();
   
   public function __construct() {
     $this->setup();
@@ -254,6 +255,11 @@ class Navigation_Set implements Navigation_SetInterface {
     return null;
   }
 
+  public function add_to_route($title, $item) {
+    $this->to_route[] = $this->read_item($title, $item);
+    return $this;
+  }
+
 }
 
 /** 
@@ -336,7 +342,6 @@ class Navigation_SetState {
   protected $filters = array();
   protected $not_filters = array('url', 'match', 'flag', 'sub', 'uri');
   protected $route = false;
-  protected $to_route = array();
   protected $current_level = 0;
 
 
@@ -392,11 +397,6 @@ class Navigation_SetState {
     $this->route = true;
     //TODO: optimize or remove:
     if ($this->count() < 1) return null;
-    return $this;
-  }
-
-  public function add_to_route($title, $item) {
-    $this->to_route[] = $this->read_item($title, $item);
     return $this;
   }
 

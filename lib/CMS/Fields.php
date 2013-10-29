@@ -566,7 +566,7 @@ abstract class CMS_Fields_AbstractField {
 	}
 
 	protected function uploaded_filename($name, $data, $file) {
-		return CMS::translit(preg_replace('{[\s+]+}','_',trim($file['name'])));
+		return CMS::translit(preg_replace('{[\s+]+}','-',trim($file['name'])));
 	}
 
 	protected function upload_return($name, $data, $new_file, $dir, $filename) {

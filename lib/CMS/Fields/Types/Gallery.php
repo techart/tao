@@ -194,8 +194,9 @@ class CMS_Fields_Types_Gallery extends CMS_Fields_Types_Documents {
 		$(function () { $('.${id}.field-$name').each(function() {TAO.fields.gallery.process($(this))}) });;
 JS;
 		$item = $this->get_item($name, $data);
-		if ($item && !empty($item['id']))
+		if ($item && method_exists($item, 'is_phantom') && !$item->is_phantom()) {
 			$l->append_to('js', $code);
+		}
 		$l->with('url_class', $id);
 		return parent::layout_preprocess($l, $name, $data);
 	}
@@ -313,18 +314,24 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 		return $this;
 	}
 	
-	public function render($type = 'render/ul') {
+	public function render($type = 'render/insertion') {
 		Core::load('CMS.Images');
 		$template = $this->template()->spawn($this->type->template($this->data, $type));
 		$mods = $this->mods;
+		$fullsize_mods = array();
 		$files = $this->mods_filelist();
-		if ($this->fullsize)
-			$original_files = $this->mods_reset()->preset($this->fullsize)->mods_filelist();
-		else
+		if ($this->fullsize) {
+			$fullsize_mods = $this->mods_reset()->preset($this->fullsize)->mods;
+			$original_files = $this->mods_filelist();
+		}
+		else {
 			$original_files = $this->filelist($this->dir());
+		}
 		$this->mods = $mods;
 
 		return $template->with(array(
+			'mods' => $this->mods,
+			'fullsize_mods' => $fullsize_mods,
 			'files' => $files,
 			'original_dir' => $this->dir(),
 			'original_files' => $original_files,

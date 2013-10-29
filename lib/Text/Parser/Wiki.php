@@ -6,28 +6,24 @@ Core::load('Text.Process');
 /// <class name="CMS.WikiParser" stereotype="module">
 ///   <implements interface="Core.ModuleInterface" />
 
-class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInterface { 
-
-///   <constants>
-	const VERSION = '0.0.0'; 
-///   </constants>
-	
-	static $template_link = '<a href="%s">%s</a>';
-	static $template_external_link 	= '<a href="%s" target="_blank">%s</a>';
+class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInterface 
+{
+	static $template_link			= '<a href="%s">%s</a>';
+	static $template_external_link		= '<a href="%s" target="_blank">%s</a>';
 	static $template_wiki_link 		= '<a href="/%s">%s</a>';
-	static $template_h1 			= '<h1>%s</h1>';
-	static $template_h2 			= '<h2>%s</h2>';
-	static $template_h3 			= '<h3>%s</h3>';
-	static $template_h4 			= '<h4>%s</h4>';
-	static $template_h5 			= '<h5>%s</h5>';
-	static $template_table_caption	= '<caption>%s</caption>';		
-	static $template_b 				= '<b>%s</b>';
-	static $template_i 				= '<i>%s</i>';
+	static $template_h1			= '<h1>%s</h1>';
+	static $template_h2			= '<h2>%s</h2>';
+	static $template_h3			= '<h3>%s</h3>';
+	static $template_h4			= '<h4>%s</h4>';
+	static $template_h5			= '<h5>%s</h5>';
+	static $template_table_caption		= '<caption>%s</caption>';
+	static $template_b			= '<b>%s</b>';
+	static $template_i			= '<i>%s</i>';
 	
-	static $tag_p_start 	= '<p>';
-	static $tag_p_end 		= '</p>';
+	static $tag_p_start			= '<p>';
+	static $tag_p_end			= '</p>';
 	
-	static $tag_dl_start 	= '<dl>';
+	static $tag_dl_start			= '<dl>';
 	static $tag_dl_end 		= '</dl>';
 	
 	static $tag_dt_start 	= '<dt>';
@@ -351,9 +347,9 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 ///     <body>
 	protected function parse_pre() {
 		while (!$this->eof()) {
-			$line = $this->get();
+			$line = rtrim($this->get());
 			if ($line!=''&&($line[0]==' '||$line[0]=="\t")) {
-				$this->html .= $line;
+				$this->html .= $line."\n";
 			}
 			else {
 				$this->unget();
@@ -369,9 +365,9 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 	protected function parse_source($hl) {
 		$source = '';
 		while (!$this->eof()) {
-			$line = $this->get();
-			if (strtolower(rtrim($line))=='</source>') break;
-			else $source .= $line;
+			$line = rtrim($this->get());
+			if (strtolower($line)=='</source>') break;
+			else $source .= $line."\n";
 		}
 		$code = $hl->run($source);
 		$this->html .= self::$tag_pre_start;

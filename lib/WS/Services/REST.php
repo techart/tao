@@ -249,6 +249,7 @@ class WS_Services_REST_Application
   protected $classes   = array();
   
   protected $format = null;
+  protected $extension = null;
   
 
   protected $media_types = array(
@@ -430,7 +431,7 @@ class WS_Services_REST_Application
                 break;
               }
             } else {
-              if ($target_instance = $this->execute($target_instance, $method->name, $env, $match->parms)) {
+              if ($target_instance = $this->execute($target_instance, $method->name, $env, $match->parms, $extension)) {
                 $ai = $this->after_instantiate($target_instance);
                 $target_resource = $this->lookup_resource_for($target_instance);
                 $uri = $match->tail;
@@ -452,6 +453,7 @@ class WS_Services_REST_Application
     $this->target_method = $target_method;
     $this->target_instance = $target_instance;
     $this->format = $format;
+    $this->extension = $extension;
     $this->match = $match;
     $this->is_match = $target_resource && $target_method;
     return $this->is_match;
@@ -468,6 +470,7 @@ class WS_Services_REST_Application
     $this->target_instance = null;
     $this->match = null;
     $this->format = null;
+    $this->extension = null;
     return $this;
   }
   
@@ -525,7 +528,12 @@ class WS_Services_REST_Application
 ///       <arg name="resource" />
 ///     </args>
 ///     <body>
-  protected function after_instantiate($resource) { }
+  protected function after_instantiate($resource)
+  {
+    if (method_exists($resource, 'run_filters')) {
+      return $resource->run_filters('before', array());
+    }
+  }
 ///     </body>
 ///   </method>
 
@@ -591,9 +599,9 @@ class WS_Services_REST_Application
 ///       <arg name="parms" type="array" />
 ///     </args>
 ///     <body>
-  protected function execute($instance, $method, WS_Environment $env, array $parms, $format = null, $defaults = array()) {
+  protected function execute($instance, $method, WS_Environment $env, array $parms, $format = null, $defaults = array(), $extension = null) {
     $reflection = new ReflectionMethod($instance, $method);
-    return $reflection->invokeArgs($instance, $this->make_args($reflection->getParameters(), $env, $parms, $format, $defaults));
+    return $reflection->invokeArgs($instance, $this->make_args($reflection->getParameters(), $env, $parms, $format, $defaults, $extension));
   }
 ///     </body>
 ///   </method>
@@ -629,7 +637,7 @@ class WS_Services_REST_Application
 ///       <arg name="parms" type="array" />
 ///     </args>
 ///     <body>
-  protected function make_args(array $args, WS_Environment $env, array $parms, $format = null, $defaults = array()) {
+  protected function make_args(array $args, WS_Environment $env, array $parms, $format = null, $defaults = array(), $extension = null) {
     $vals = array();
     $parms = array_merge($defaults, $parms);
     foreach ($args as $arg) {
@@ -641,6 +649,7 @@ class WS_Services_REST_Application
         case 'parameters':
         case 'parms':       $vals[] = $env->request->parameters; break;
         case 'request':     $vals[] = $env->request;             break;
+        case 'extension':   $vals[] = $env->request;             break;
         default:
           if (isset($parms[$name]))                $vals[] = $parms[$name];
           elseif (isset($env->request[$name]))     $vals[] = $env->request[$name];

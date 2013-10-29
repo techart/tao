@@ -101,8 +101,8 @@ class WS_Middleware_Cache_Service extends WS_MiddlewareService {
     $dsn = $this->dsn ? $this->dsn : $env->config->cache->dsn;
     if (empty($dsn)) $dsn = 'dummy://';
     $timeout = $this->timeout ? $this->timeout : (isset($env->config->cache->timeout)? $env->config->cache->timeout : null);
-    $tagged = !is_null($this->tagged) ? $this->tagged : (isset($env->config->cache->tagged)? $env->config->cache->tagged : null);
     $env->cache = Cache::connect($dsn, $timeout);
+    $tagged = !is_null($this->tagged) ? $this->tagged : (isset($env->config->cache->tagged) ? $env->config->cache->tagged : !$env->cache->is_support_nesting());
     if ($tagged) {
       Core::load('Cache.Tagged');
       $env->cache = Cache_Tagged::Client($env->cache);

@@ -13,6 +13,7 @@ class CMS_Images implements Core_ModuleInterface {
 
 	static $default_watermark_image = './image/watermark.png';
 	static $default_watermark_parms = array('mode' => 5, 'opacity' => 1);
+	static $cache_dir = 'files/cache/images';
 
 ///   <protocol name="creating">
 
@@ -32,7 +33,7 @@ class CMS_Images implements Core_ModuleInterface {
 	static function Image($file=false) {
 		$class = 'CMS.Image.GD';
 		if (self::$class) $class = self::$class;
-		else if (class_exists('Imagick')) $class = 'CMS.Image.Imagick';
+		//else if (class_exists('Imagick')) $class = 'CMS.Image.Imagick';
 		$im = Core::make($class);
 		if ($file) $im->load($file);
 		return $im;
@@ -71,8 +72,110 @@ class CMS_Images implements Core_ModuleInterface {
 		return array($w,$h);
 	}
 
+	static function parse_modifiers($s)
+	{
+		$out = array();
+		foreach(explode(';',$s) as $mod) {
+			if ($m = self::parse_modifier($mod)) {
+				$out[] = $m;
+			}
+		}
+		return $out;
+	}
 
-} 
+	static function parse_modifier($s)
+	{
+		$s = preg_replace('{\s+}','',$s);
+		if ($s!='') {
+			if ($s=='grayscale') {
+				return array('action' => 'grayscale');
+			}
+			if ($m = self::parse_sizes($s)) {
+				$w = $m[0]>0? $m[0]:100000;
+				$h = $m[1]>0? $m[1]:100000;
+				return array('action' => 'fit', 'width' => $w, 'height' => $h);
+			}
+			if ($m = Core_Regexps::match_with_results('{^(fit|resize|margins|crop)\(([^\(\)]+)\)$}i',$s)) {
+				$action = $m[1];
+				$color = '#ffffff';
+				$args = $m[2];
+				if ($m = Core_Regexps::match_with_results('{^(.+)(#[a-f0-9]+)$}i',$args)) {
+					$args = $m[1];
+					$color = $m[2];
+				}
+				$sz = self::parse_sizes($args);
+				if ($sz) {
+					$w = $sz[0];
+					$h = $sz[1];
+					if ($action=='fit') {
+						$w = $w==0? 100000 : $w;
+						$h = $h==0? 100000 : $h;
+					}
+					if ($w>0&&$h>0) {
+						return array('action' => $action, 'width' => $w, 'height' => $h, 'color' => $color);
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	static function parse_sizes($s)
+	{
+		$s = preg_replace('{^\s+}','',$s);
+		if ($m = Core_Regexps::match_with_results('{^(\d+)x(\d+)$}i',$s)) {
+			return array($m[1],$m[2]);
+		}
+		if ($m = Core_Regexps::match_with_results('{^(\d+)x$}i',$s)) {
+			return array($m[1],0);
+		}
+		if ($m = Core_Regexps::match_with_results('{^x(\d+)$}i',$s)) {
+			return array(0,$m[1]);
+		}
+		return false;
+	}
+
+	static function modified_image($path,$mods)
+	{
+		if (is_string($mods)) {
+			$mods = self::parse_modifiers($mods);
+		}
+		$ext = false;
+		$name = false;
+		if ($m = Core_Regexps::match_with_results('{(.+)\.(jpe?g|gif|png|bmp)$}i',$path)) {
+			$name = $m[1];
+			$ext = strtolower($m[2]);
+		}
+		if (!$ext||!IO_FS::exists($path)) {
+			$path = '../tao/files/images/admin.gif';
+			$ext = 'gif';
+			$name = 'error';
+		}
+
+		$name = preg_replace('{^\.\./}','up/',$name);
+		$name = ltrim($name,'.');
+		$name = ltrim($name,'/');
+
+		$stat = IO_FS::Stat($path);
+		$mtime = $stat->mtime->timestamp;
+		$name .= "-{$stat->size}-{$mtime}-";
+		$name .= md5(serialize($mods));
+
+		$cache = self::$cache_dir."/{$name}.{$ext}";
+		if (IO_FS::exists('./'.$cache)) {
+			return '/'.$cache;
+		}
+		$dir = preg_replace('{/([^/]+)$}','',$cache);
+		if (!IO_FS::exists($dir)) {
+			IO_FS::mkdir($dir);
+		}
+		$image = self::Image($path);
+		$image->modify($mods);
+		$image->save('./'.$cache);
+		CMS::chmod_file('./'.$cache);
+		return '/'.$cache;
+	}
+}
 
 
 

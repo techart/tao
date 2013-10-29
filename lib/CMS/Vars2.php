@@ -49,6 +49,7 @@ class CMS_Vars2 implements Core_ModuleInterface {
 		$class = $this->type_class($type);
 		Core::load($class);
 		$entity = Core::make($class);
+		$entity->setup();
 		$entity['_type'] = $type;
 		$data = $entity->unserialize_info($data);
 		foreach($data as $key => $value) {
@@ -58,7 +59,7 @@ class CMS_Vars2 implements Core_ModuleInterface {
 	}
 
 	public function setup() {
-		foreach(array('Dir','String','Array','Image') as $type) {
+		foreach(array('Dir','String','Textarea','HTML','WIKI','Content','Array','Image','Gallery') as $type) {
 			self::register_type(strtolower($type),"CMS.Vars2.Type.$type");
 		}
 		//Core::load('CMS.Vars2.Init'); CMS_Vars2_Init::run();
@@ -124,7 +125,12 @@ abstract class CMS_Var implements Core_PropertyAccessInterface, Core_IndexedAcce
 	protected $_access;
 	protected $attributes;
 
-
+	public function setup()
+	{
+		$this->_title = '';
+		$this->_name = '';
+	}
+	
 	public function type_mnemocode() {
 		$name = get_class($this);
 		if ($m = Core_Regexps::match_with_results('{_([^_]+)$}',$name)) {
@@ -325,6 +331,16 @@ abstract class CMS_Var implements Core_PropertyAccessInterface, Core_IndexedAcce
 
 	public function offsetSet($name,$value) {
 		return $this->attr_set($name,$value);
+	}
+	
+	public function render()
+	{
+		return '[Undefined renderer for '.$this['_name'].']';
+	}
+	
+	public function __toString()
+	{
+		return $this->render();
 	}
 
 

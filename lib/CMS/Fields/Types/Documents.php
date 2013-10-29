@@ -279,8 +279,9 @@ class CMS_Fields_Types_Documents extends CMS_Fields_Types_Documents_Base impleme
 JS;
 
 		$item = $this->get_item($name, $data);
-		if ($item && !empty($item['id']))
+		if ($item && method_exists($item, 'is_phantom') && !$item->is_phantom()) {
 			$l->append_to('js', $code);
+		}
 		$l->with('url_class', $id);
 		Templates_HTML::add_scripts_settings(array('fields' => array(
 			$name => array(

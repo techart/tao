@@ -350,7 +350,7 @@ abstract class CMS_Fields_Types_Image_ModsCache extends CMS_Fields_ValueContaine
 	{
 		$args['class'] = (isset($args['class']) ? $args['class'] . ' ' : '') . $this->lazy_parms['class'];
 		$args['data-original'] = $args['src'];
-		$args['src'] = $this->lazy_parms['lazy_parms']['0fig'];
+		$args['src'] = $this->lazy_parms['0gif'];
 		return $args;
 	}
 	

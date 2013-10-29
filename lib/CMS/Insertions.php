@@ -7,7 +7,7 @@ class CMS_Insertions extends CMS_Insertions_Base implements Core_ModuleInterface
 	
 	
 	static function initialize() {
-		CMS::register_insertions( 'CMS_Insertions','IMGR','IMGL','IMG','PAGE','CALL','IMAGES','NAVIGATION','VAR:_VAR','YOUTUBE','RUTUBE', 'MAPS');
+		//CMS::register_insertions( 'CMS_Insertions','IMGR','IMGL','IMG','PAGE','CALL','IMAGES','NAVIGATION','VAR:_VAR','YOUTUBE','RUTUBE', 'MAPS');
 	}
 	
 	static function file_list($src) {

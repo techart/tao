@@ -314,7 +314,7 @@ abstract class Templates_Template
 ///       <arg name="helper" />
 ///     </args>
 ///     <body>
-  static public function use_helper($name, $helper) {
+  public function use_helper($name, $helper) {
     $this->helpers->append($helper, $name);
   }
 ///     </body>

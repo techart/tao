@@ -95,11 +95,16 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 		}
 	}
 
-	protected function setup()
+	protected function before_setup()
 	{
 		$this->setup_auto_add();
+		return parent::before_setup();
+	}
+
+	protected function after_setup()
+	{
 		$this->setup_config();
-		return parent::setup();
+		return parent::after_setup();
 	}
 
 	public function setup_auto_add()
@@ -289,7 +294,7 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 
 /// <class name="CMS.ORM.Entity">
 
-class CMS_ORM_Entity extends DB_ORM_Entity {
+class CMS_ORM_Entity extends DB_ORM_Entity implements DB_ORM_AttrEntityInterface {
 
 	static $db;
 
@@ -371,6 +376,14 @@ class CMS_ORM_Entity extends DB_ORM_Entity {
 
 	protected function multilinks() {
 		return array();
+	}
+
+	public function before_encode_value($attr, $value)
+	{
+		if (isset($attr->type) && $attr->type == 'string' && !empty($value)) {
+			return CMS::lang($value);
+		}
+		return $value;
 	}
 
 	public function before_update() {
@@ -491,12 +504,29 @@ class CMS_ORM_Entity extends DB_ORM_Entity {
 		$this->$field = $links;
 	}
 	
-	
 	public function as_string() {
 		return CMS::lang(parent::as_string());
 	}
 
+	protected function attrs_discover()
+	{
+		return Core::make('CMS.ORM.EntityAttrsDiscover');
+	}
 
+	protected static $__attrs = null;
+
+	public function __attrs($flavor = array())
+	{
+		if (is_null(self::$__attrs)) {
+			if ($discover = $this->attrs_discover()) {
+				self::$__attrs = $discover->discover($this, $flavor);
+			} else {
+				self::$__attrs = array();
+			}
+		}
+		return self::$__attrs;
+		
+	}
 }
 
 /// </class>

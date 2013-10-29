@@ -19,13 +19,37 @@ class CMS_Vars2_Admin_Controller extends CMS_Controller_Table {
 		return array('chapter');
 	}
 
+	protected function access_add()
+	{
+		return $this->is_admin();
+	}
+
+	protected function access_edit($item)
+	{
+		return $this->user_access($item->_access);
+	}
+	
+	public function user_access($access)
+	{
+		$access = trim($access);
+		if ($access!='') {
+			$user = WS::env()->admin_auth->user;
+			return $user->check_access($access);
+		}
+		return true;
+	}
+
 	protected function title_add() {
-		if ($this->chapter()) return 'Создание новой настройки';
+		if (isset($_GET['chapter'])) {
+			return 'Создание новой настройки';
+		}
 		return 'Создание нового раздела';
 	}
 
 	protected function title_edit($var) {
-		if ($var->is_dir()) return 'Редактирование параметров раздела';
+		if ($var->is_dir()) {
+			return 'Редактирование параметров раздела';
+		}
 		return 'Редактирование настройки';
 	}
 
@@ -42,6 +66,9 @@ class CMS_Vars2_Admin_Controller extends CMS_Controller_Table {
 	}
 
 	protected function load($id) {
+		if ($id===0) {
+			return false;
+		}
 		$var = CMS::vars()->get_var($id);
 		return $var;
 	}
@@ -57,7 +84,15 @@ class CMS_Vars2_Admin_Controller extends CMS_Controller_Table {
 	protected function delete($var) {
 		CMS::vars()->delete($var);
 	}
-
+	
+	protected function action_list()
+	{
+		if (isset($_GET['chapter'])) {
+			unset($_GET['chapter']);
+		}
+		return parent::action_list();
+	}
+	
 	protected function select_all() {
 		$vars = CMS::vars()->get_all_vars();
 		$def = CMS::vars()->entity('dir',array(
@@ -81,7 +116,7 @@ class CMS_Vars2_Admin_Controller extends CMS_Controller_Table {
 	}
 
 	public function is_admin() {
-		return isset(CMS::$globals['full'])&&CMS::$globals['full'];
+		return WS::env()->admin_auth->user->check_access('full');
 	}
 
 	protected function chapter() {
@@ -90,7 +125,7 @@ class CMS_Vars2_Admin_Controller extends CMS_Controller_Table {
 
 	protected function form_tabs($action) {
 		if ($action=='add') {
-			if ($chapter = $this->chapter()) {
+			if (isset($_GET['chapter'])) {
 				$tabs = array('config' => CMS::lang('%LANG{en}New var%LANG{ru}Новая настройка'));
 			} else {
 				$tabs = array('config' => CMS::lang('%LANG{en}New dir%LANG{ru}Новый раздел'));
@@ -170,16 +205,35 @@ class CMS_Vars2_Admin_Controller extends CMS_Controller_Table {
 				Events::add_listener('cms.fields.admin.mainform._delsubheader.after',function($parms) {
 					$var = $parms['item'];
 					$url = WS::env()->urls->adminvars->delete_url($var->name());
+					if ($url=='#') {
+						return;
+					}
 					$title = 'Удалить';
 					$confirm = 'Вы уверены?';
-					print "<a href='{$url}' onClick='return confirm(\"{$confirm}\")'>{$title}</a>";
+					print "<a href='{$url}' onClick='return confirm(\"{$confirm}\")' class='icon-button'><em style='background-image: url(/tao/images/del.png);'>{$title}</em></a>";
 				});
 				$ev = true;
 			}
 		}
 		return $fields;
 	}
-
+	
+	protected function process_form($item)
+	{
+		$errors = parent::process_form($item);
+		if (isset($this->form['_name'])&&sizeof($errors)==0) {
+			$name = trim($this->form['_name']);
+			if (Core_Regexps::match('{^[a-z0-9_-]+$}i',$name)) {
+				return array();
+			}
+			if (Core_Regexps::match('{^[a-z0-9_-]+\.[a-z0-9_-]+$}i',$name)) {
+				return array();
+			}
+			return array('_name' => CMS::lang('%LANG{en}Invalid name!%LANG{ru}Некорректный мнемокод!'));
+		}
+		return $errors;
+	}
+	
 	protected function redirect_after_add($var) {
 		if ($var->is_dir()) {
 			return WS::env()->urls->adminvars->list_url();

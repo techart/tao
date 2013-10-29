@@ -86,7 +86,7 @@ class CMS_CLI implements Core_ModuleInterface {
 		}
 
 		self::run_handler('App.CLI',$action,$args,$options);
-		$cli_path = IO_FS::File(Core::loader()->file_path_for('App.CLI.Index'))->dir_name;
+		$cli_path = IO_FS::File(Core::loader()->file_path_for('App.CLI.Index', true))->dir_name;
 		if (IO_FS::exists($cli_path)) {
 			$dir = IO_FS::Dir($cli_path);
 			foreach($dir as $entry) {

@@ -65,6 +65,11 @@ class Cache_Backend_FS_Backend extends Cache_Backend {
 ///   </method>
 
 
+  public function is_support_nesting()
+  {
+    return true;
+  }
+
   public function use_array_cache($v = true)
   {
     $this->use_array_cache = $v;

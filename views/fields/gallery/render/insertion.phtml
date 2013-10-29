@@ -1,0 +1,38 @@
+<?php
+
+if (!isset(WS::env()->images)) {
+	WS::env()->images = new ArrayObject();
+}
+
+if (!isset(WS::env()->galleries)) {
+	WS::env()->galleries = new ArrayObject();
+}
+
+$g = false;
+while(!$g||isset(WS::env()->galleries[$g])) {
+	$g = 'gal'.rand(11111,99999);
+}
+WS::env()->galleries[$g] = new ArrayObject();
+
+Events::add_listener("cms.insertions.template.gallery", function ($template, &$args) use ($g, $container, $mods, $fullsize_mods) {
+	if ($g == $args['args']) {
+		foreach ($container as $i => $data) {
+			if (!empty($mods)) {
+				$sz = CMS_Images::size($data['path']);
+				$style = !empty($mods) && $sz[0] > 0 && $sz[1] > 0 ?  "width: {$sz[0]}px; height: {$sz[1]}px;" : '';
+			}
+			$link_attrs = array('target' => '_blank');
+			$args['images'][$i] = array(
+				'path' => $data['path'],
+				'lazy' => $container->lazy,
+				'caption' => $data['caption'],
+				'preview' => !empty($mods) ? $data['url'] : null,
+				'full' => !empty($fullsize_mods) ? $data['orig_url'] : null,
+				'style' => $style,
+				'link_attrs' => $link_attrs,
+			);
+		}
+	}
+});
+
+print '%GALLERY{'.$g.'}';

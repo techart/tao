@@ -1,0 +1,61 @@
+<?php
+$images = isset($images) ? $images : array();
+
+if (empty($images)) {
+	foreach($args_array as $arg) {
+		$arg = trim($arg);
+		if (isset(WS::env()->galleries)&&isset(WS::env()->galleries[$arg])) {
+			foreach(WS::env()->galleries[$arg] as $data) {
+				if (is_string($data)) {
+					$data = array('path'=>$data,'caption'=>false);
+				}
+				$images[] = $data;
+			}
+		} elseif (isset(WS::env()->images)&&isset(WS::env()->images[$arg])) {
+			$data = WS::env()->images[$arg];
+				if (is_string($data)) {
+					$data = array('path'=>$data,'caption'=>false);
+				}
+				$images[] = $data;
+		}
+	}
+}
+
+//TODO: $config = WS::env()->gallery_settings['default'] / ['custom'] 
+if (count($images)>0) {
+	$default_config = array(
+		'preview' => '120x120',
+		'full' => '800x600',
+		'container_class' => 'tao-gallery',
+		'item_class' => 'tao-gallery-item',
+		'link_class' => 'tao-gallery-link',
+		'0gif' => CMS::stdfile_url('images/0.gif'),
+	);
+	$config = isset($config) ? $config :  array();
+	$config = array_merge($default_config, $config);
+
+	Events::call('cms.insertions.gallery.config',$config);
+	Core::load('CMS.Images');
+	foreach($images as $n => $image) {
+		$path = $image['path'];
+		if (!isset($image['preview'])) {
+			$preview = CMS_Images::modified_image($path,$config['preview']);
+		} else {
+			$preview = $image['preview'];
+		}
+		if (isset($image['lazy']) && $image['lazy']) {
+			$image['preview'] = $config['0gif'];
+			$image['img_attrs']['class'] = 'lazy';
+			$image['img_attrs']['data-original'] = $preview;
+		} else {
+			$image['preview'] = $preview;
+		}
+		if (!isset($image['full'])) {
+			$image['full'] = CMS_Images::modified_image($path,$config['full']);
+		}
+		$images[$n] = $image;
+	}
+
+	$template = CMS::view('insertions/includes/gallery.phtml');
+	print $this->partial($template, array('config' => $config, 'images' => $images));
+}

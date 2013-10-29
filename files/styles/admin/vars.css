@@ -73,6 +73,11 @@ div.vars-dir {
 			color: #444;
 		}
 
+		div.vars-dir table td.var-value span {
+			font-size: 10px;
+			color: #444;
+		}
+
 
 		div.vars-dir table td.action-button {
 			width: 16px;
@@ -85,3 +90,4 @@ div.action-button {
 	background-repeat: no-repeat;
 	background-image: url(/tao/images/del.png);
 }
+

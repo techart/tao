@@ -216,8 +216,10 @@ TAO.fields.map_coords = function (map_container) {
 			if (this.use_zoom&&values['zoom']) {
 				this.map.setZoom(values['zoom']);
 			}
-			this.map.setCenter(point);
-			this.set_marker(point);
+			if (point.lat() && point.lng()) {
+				this.map.setCenter(point);
+				this.set_marker(point);
+			}
 		}
 		
 		google_map_object.init = function() {
@@ -308,8 +310,10 @@ TAO.fields.map_coords = function (map_container) {
 			if (this.use_zoom&&values['zoom']) {
 				this.map.setZoom(values['zoom']);
 			}
-			this.map.setCenter(point);
-			this.set_marker(point);
+			if (point[0] && point[1]) {
+				this.map.setCenter(point);
+				this.set_marker(point);
+			}
 		}
 		
 		yandex_map_object.init = function() {

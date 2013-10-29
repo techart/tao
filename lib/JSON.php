@@ -123,7 +123,7 @@ class JSON_Converter {
     $r = array();
     foreach ($items as $item)
       if ($item instanceof Object_AttrListInterface)
-        $r[] = $this->encode_object($item, $flavour);
+        $r[] = $this->encode_object($item, $flavor);
     return $r;
   }
 ///     </body>
@@ -206,7 +206,9 @@ class JSON_Converter {
 ///     <body>
   protected function encode_value(Object_AttrListInterface $object, Object_Attribute $attr) {
     $value = $object->{$attr->name};
-
+    if (method_exists($object, 'before_encode_value')) {
+      $value = $object->before_encode_value($attr, $value);
+    }
     if (isset($attr->type))
       switch ($attr->type) {
         case 'string':   return (string) $value;
@@ -358,28 +360,33 @@ class JSON_Converter {
 ///     </args>
 ///     <body>
   protected function decode_value($json, Object_AttrListInterface $object, Object_Attribute $attr) {
-    if (isset($attr->type))
+    $value = $json->{$attr->name};
+    if (method_exists($object, 'before_decode_value')) {
+      $value = $object->before_decode_value($attr, $value);
+    }
+    if (isset($attr->type)) {
       switch ($attr->type) {
         case 'string':
         case 'int':
         case 'float':
         case 'boolean':
         case 'datetime':
-          $object->{$attr->name} = $this->decode_scalar($json->{$attr->name}, $attr->type);
+          $object->{$attr->name} = $this->decode_scalar($value, $attr->type);
           break;
         default:
           foreach ($this->converters as $c)
             if ($m = $c->can_decode($attr->type)) break;
 
           if ($m)
-            $object->{$attr->name} = $c->$m($json->{$attr->name}, $attr);
+            $object->{$attr->name} = $c->$m($value, $attr);
           else
-            if (is_string($json->{$attr->name}) &&
-                is_object($restored = unserialize($json->{$attr->name})) &&
+            if (is_string($value) &&
+                is_object($restored = unserialize($value)) &&
                 ($restored instanceof $attr->type)) $object->{$attr->name} = $restored;
       }
-    else
-      $object->{$attr->name} = $json->{$attr->name};
+    } else{
+      $object->{$attr->name} = $value;
+    }
 
     return $object;
   }

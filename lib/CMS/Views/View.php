@@ -7,16 +7,20 @@ class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInter
 	const MODULE = 'CMS.Views.View';
 	const VERSION = '0.0.0';
 
-	protected function get_partial_path($name) {
-		if (Templates::is_absolute_path($name)) return parent::get_partial_path($name);
-		if($this->current_helper instanceof Templates_HelperInterface) {
-			$helper = Core_Types::virtual_class_name_for($this->current_helper);
-			if ($m = Core_Regexps::match_with_results('{^Component\.([^.]+)\.}', $helper)) {
-				if (!Core_Regexps::match('{\.phtml$}',$name)) $name .= '.phtml';
-				return CMS::component_dir($m[1],'views') . '/' . $name;
+	public function partial_paths($paths = array(), $base_name = '')
+	{
+		$paths = parent::partial_paths($paths, $base_name);
+		if ($this->current_helper instanceof Templates_HelperInterface) {
+			$cname = CMS::get_component_name_for($this->current_helper);
+			if ($cname) {
+				$component_paths = array();
+				foreach (array('app/views', 'views') as $v) {
+					$component_paths[] = rtrim(CMS::component_dir($cname, $v), '/');
+				}
+				$paths = array_merge($component_paths, $paths);
 			}
 		}
-		return parent::get_partial_path($name);
+		return $paths;
 	}
 
 }

@@ -1,8 +1,8 @@
 <?php
 
-if ((int)$item_id==0) print CMS::lang()->_common->unable_in_add;
-
-else {
+if (trim($item_id)==''||trim($item_id)=='0') {
+	print CMS::lang()->_common->unable_in_add;
+} else {
 ?>
 
 <?= $this->forms->hidden($name,$tagparms) ?>

@@ -46,6 +46,46 @@ class CMS_Handlers implements Core_ModuleInterface {
 }
 /// </class>
 
+
+class CMS_Handlers_AuthUser
+{
+	public $login;
+	public $password;
+	public $parms = array();
+	
+	public function check_access($access='full')
+	{
+		if (isset($this->parms['full'])&&$this->parms['full']) {
+			return true;
+		}
+		foreach(explode(',',$access) as $group) {
+			$group = trim($group);
+			if ($group!='') {
+				if ($this->check_group($group)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public function check_group($group)
+	{
+		if (isset($this->parms['full'])&&$this->parms['full']) {
+			return true;
+		}
+		$group = strtolower(trim($group));
+		if ($group=='all'||$group=='*'||$group==$this->login) {
+			return true;
+		}
+		if (isset($this->parms[$group])&&$this->parms[$group]) {
+			return true;
+		}
+		return false;
+	}
+}
+
+
 /// <class name="CMS.AuthModule" extends="WebKit.Auth.AbstractAuthModule">
 class CMS_Handlers_AuthModule implements WS_Auth_AuthModuleInterface {
 
@@ -61,7 +101,7 @@ class CMS_Handlers_AuthModule implements WS_Auth_AuthModuleInterface {
 		$password = trim($password);
 
 		if ($login!=''&&$password!='') {
-			$user = new stdClass();
+			$user = new CMS_Handlers_AuthUser();
 			$user->login = $login;
 			$user->password = $password;
 			return $user;
@@ -349,6 +389,7 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 			}
 
 			$auth_parms = self::auth_parms($mp, $client);
+			$user->parms = $auth_parms;
 
 			if ($access) return self::$realms[$realm] = array('data' => $data, 'auth_parms' => $auth_parms);	
 		}
@@ -428,7 +469,7 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 					break;
 				}
 			
-				if ($user->login==$login && md5($user->password)==$password) {
+				if ($user->login==$login && Digest::password($user->password)==$password) {
 					$access = true;
 					break;
 				}
@@ -658,7 +699,6 @@ class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
 
 		if (md5($uri)=='b0b94791138ef54aeb161e403329f827') die('cms');
 		return Net_HTTP::not_found();
-		//throw new WebKit_Controller_NoRouteException($uri);
 	}
 ///     </body>
 ///   </method>

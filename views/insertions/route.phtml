@@ -1,0 +1,11 @@
+<?php
+
+$template = 'route';
+
+//foreach($args_array as $arg) {
+//}
+
+$route = CMS::navigation()->route();
+if ($route) {
+	?><div class="navigation-route"><?= $route->draw($template) ?></div><?php
+}

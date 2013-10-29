@@ -1,0 +1,14 @@
+<div class="<?= $config['container_class'] ?>"><?php foreach($images as $image) {
+	$caption = $image['caption'];
+	$path = $image['path'];
+	$style = isset($image['style']) ? $image['style'] : '';
+	$attrs = isset($image['img_attrs']) ? $image['img_attrs'] : array();
+	$attrs = array_merge(isset($image['link_attrs']) ? $image['link_attrs'] : array(), $attrs);
+	$attrs['class'] = $config['link_class'] . (isset($attrs['class']) ? " {$attrs['class']}" : '');
+	$attrs['style'] = "background-image: url({$image['preview']}); {$style}" . (isset($attrs['style']) ? ";{$attrs['class']}" : '');
+	?>
+	<div class="<?= $config['item_class'] ?>" style="<?= $style ?>">
+		<?= $this->link_to($image['full'], '&nbsp;', $attrs) ?>
+	</div>
+	<?php
+}?></div>

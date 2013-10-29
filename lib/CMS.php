@@ -37,7 +37,7 @@ Core::load('WS', 'Events');
 class CMS implements Core_ModuleInterface {
 ///   <constants>
 	const MODULE  = 'CMS';
-	const VERSION = '2.0.4';
+	const VERSION = '2.0.11';
 ///   </constants>
 
 	static $libpath		= '';
@@ -992,13 +992,20 @@ class CMS implements Core_ModuleInterface {
 ///     <body>
 	static protected $components = array();
 
-	static public function add_component_object($obj, $mapper, $layout='work') {
+	static public function add_component_object($obj, $mapper = null, $layout = 'work') {
 		$name = $obj->name;
 		self::$components[$name] = $obj;
-		self::add_component($name, $mapper, $layout);
+		if ($mapper) {
+			self::add_component($name, $mapper, $layout);
+		}
 		if ($obj->is_auto_schema()) {
 			$obj->process_schema();
 		}
+	}
+
+	static public function components()
+	{
+		return self::$components;
 	}
 
 	static public function get_component_name_for($object) {
@@ -1752,7 +1759,14 @@ class CMS implements Core_ModuleInterface {
 ///     <body>
 	static function view($name) {
 		return Templates::get_path($name);
-		// return self::$views_path . "/$name";
+	}
+	
+	static function tao_view($name=false) {
+		$path = self::$views_path;
+		if ($name) {
+			$path .= "/{$name}";
+		}
+		return $path;
 	}
 ///     </body>
 ///   </method>

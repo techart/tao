@@ -1126,15 +1126,29 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 	 * @see DB_ORM_SQLMapper::setup()
 	 * 
 	 */
-	public function __construct($parent = null , $spawn = false) {
-		parent::__construct($parent);
+  public function __construct($parent = null , $spawn = false) {
+    parent::__construct($parent);
 
-		$parent_options = $parent instanceof DB_ORM_SQLMapper ? $parent->options : null;
-		$this->options = new DB_ORM_MappingOptions($parent_options);
-		if (!$spawn) $this->setup();
-		//if (!($this->parent && ($this instanceof $this->parent))) $this->setup();
-		$this->as_array(false);
-	}
+    $parent_options = $parent instanceof DB_ORM_SQLMapper ? $parent->options : null;
+    $this->options = new DB_ORM_MappingOptions($parent_options);
+    if (!$spawn) {
+      $this->before_setup();
+      $this->setup();
+      $this->after_setup();
+    }
+    //if (!($this->parent && ($this instanceof $this->parent))) $this->setup();
+    $this->as_array(false);
+  }
+
+  protected function before_setup()
+  {
+    return $this;
+  }
+
+  protected function after_setup()
+  {
+    return $this;
+  }
 
 	/**
 	 * Внутренний метод инициализации
@@ -1588,6 +1602,12 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
   }
 ///     </body>
 ///   </method>
+
+  public function inspect()
+  {
+    Core::load('DB.Schema');
+    return DB_Schema::Table($this->connection)->for_table($this->options['table'][0])->inspect();
+  }
 
 ///   <method name="lookup" returns="mixed">
 ///     <args>
@@ -2304,20 +2324,24 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 			case 'validator':
 			case 'table':
 			case 'calculate':
+      case 'explicit_key':
+      case 'lookup_by':
+      case 'search_by':
+      case 'index':
+      case 'defaults':
+        $this->options->__call($method, $args);
+        return $this;
 			case 'order_by':
 			case 'group_by':
 			case 'range':
-			case 'explicit_key':
-			case 'lookup_by':
-			case 'search_by':
-			case 'index':
-			case 'defaults':
 				$this->is_immutable ?
 					$this->spawn()->__call($method, $args) :
 					$this->options->__call($method, $args);
 				return $this;
 			case 'key':
 			case 'columns':
+        $this->options->$method(Core::normalize_args($args));
+        return $this;
 			case 'only':
 			case 'exclude':
 				$this->is_immutable ?

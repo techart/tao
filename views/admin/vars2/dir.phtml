@@ -1,7 +1,6 @@
 <?php
 
-//$vars = $dir->
-
+if ($controller->user_access($dir->_access)) {
 
 ?>
 <div class="vars-dir vars-dir-<?= str_replace('.','-',$dir->id()) ?>">
@@ -12,7 +11,7 @@
 		<p data-url="<?= $env->urls->adminvars->edit_url($dir->id()) ?>"><?= $dir->title() ?></p>
 	</div>
 	<table width="100%">
-		<?php foreach($dir->vars as $name => $var) { ?>
+		<?php foreach($dir->vars as $name => $var) if ($controller->user_access($var->_access)) { ?>
 		<tr class="var-edit" data-url="<?= $env->urls->adminvars->edit_url($name) ?>">
 			<td class="var var-name" style="background-image: url(<?= $var->icon() ?>)"><?= $name ?></td>
 			<td class="var var-title"><?= $var->title() ?></td>
@@ -22,3 +21,6 @@
 	</table>
 	<?php ?>
 </div>
+<?php
+
+}

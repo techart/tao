@@ -116,15 +116,37 @@ div.admin-table-right-buttons {
 		padding: 3px 10px;
 		margin: 0 0 0 5px;
 		border: 1px solid #ccc;
+		border-radius: 5px;
 		text-decoration: none;
 		background-color: #eee;
+		background: linear-gradient(to top, #ccc, #fff);
 		color: #444;
 	}
 
 		div.admin-table-right-buttons a:hover {
 			background-color: #ddd;
+			background: linear-gradient(to top, #bbb, #fff);
 		}
 
+		div.admin-table-right-buttons a.with-icon {
+			padding: 0;
+		}
+
+		div.admin-table-right-buttons a.with-icon em {
+			display: block;
+			padding: 3px 10px 3px 25px;
+			background-repeat: no-repeat;
+			background-position: 5px 2px;
+			font-style: normal;
+		}
+
+		div.admin-table-right-buttons a.button-add em {
+			background-image: url(/tao/images/icons/document--plus.png);
+		}
+
+		div.admin-table-right-buttons a.button-list em {
+			background-image: url(/tao/images/icons/documents-stack.png);
+		}
 
 div.table-admin-page-navigator-top {
 	float: left;
@@ -375,3 +397,28 @@ div.field-comment {
 	float: none;
 	clear: both;
 }
+
+
+a.icon-button {
+	display: inline-block;
+	padding: 0;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	text-decoration: none;
+	background-color: #eee;
+	background: linear-gradient(to top, #ccc, #fff);
+	color: #444;
+}
+
+	a.icon-button:hover {
+		background-color: #ddd;
+		background: linear-gradient(to top, #bbb, #fff);
+	}
+
+	a.icon-button em {
+		display: block;
+		padding: 3px 10px 3px 25px;
+		background-repeat: no-repeat;
+		background-position: 5px 2px;
+		font-style: normal;
+	}

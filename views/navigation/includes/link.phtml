@@ -1,0 +1,22 @@
+<?php
+if (!isset($classes)) $classes = array();
+if (isset($link->http_method)&&strtolower($link->http_method)=='post') {
+	$confirm = '';
+	if (isset($link['confirm_message'])) {
+		$confirm_message = htmlspecialchars(trim($link['confirm_message'])); 
+		$confirm = $confirm_message==''? '' : ' if (confirm(\''.$confirm_message.'\')) ';
+	}
+	?><form style="display:none;" name="f<?= md5($link->url) ?>" method="post" action="<?= $link->url ?>"></form><?php 
+	?><a href="javascript:<?= $confirm ?>document.f<?= md5($link->url) ?>.submit();"<?= (sizeof($classes)>0?' class="'.implode(' ',$classes).'"':'') ?>><?= $link->title ?></a><?php 
+}
+	
+else {
+	$confirm = '';
+	if (isset($link->confirm_message)) {
+		$confirm_message = htmlspecialchars(trim($link->confirm_message)); 
+		$confirm = $confirm_message==''? '' : ' onClick="return confirm(\''.$confirm_message.'\')"';
+	}
+
+	?><a<?= $confirm ?> href="<?= $link->url ?>"<?= (sizeof($classes)>0?' class="'.implode(' ',$classes).'"':'') ?>><?= $link->title ?></a><?php 
+} 
+

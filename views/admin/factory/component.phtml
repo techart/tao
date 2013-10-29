@@ -8,14 +8,24 @@ class <?= str_replace('.','_',$this->component_module) ?> extends CMS_Component 
 		foreach($config as $key => $value) {
 			self::$$key = $value;
 		}
-		CMS::add_component_object(new self('<?= $this->component ?>'), new Component_<?= $this->component ?>_Mapper());
+		CMS::add_component_object(self::instance(), self::Router());
 		CMS_Admin::menu('<?= $this->component ?>',CMS::admin_path('<?= $this->table ?>'));
 		CMS::orm()->submapper('<?= $table ?>', '<?= $this->orm_module ?>');
 		CMS::cached_run('<?= $this->schema_module ?>');
 	}
+
+	protected static function instance()
+	{
+		return new self('<?= $this->component ?>');
+	}
+
+	public static function Router()
+	{
+		return  new Component_<?= $this->component ?>_Router();
+	}
 }
 
-class Component_<?= $this->component ?>_Mapper extends CMS_Router
+class Component_<?= $this->component ?>_Router extends CMS_Router
 {
 	public function controllers()
 	{

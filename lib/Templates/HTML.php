@@ -28,7 +28,7 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     'extern_file_prefix' => 'file://',
     'css_dir' => 'styles',
     'js_dir' => 'scripts',
-    'layouts_path' => '../app/layouts',
+    'layouts_path' => 'layouts',
     'join_scripts' => false,
     'join_styles' => false,
     'add_timestamp' => true,
@@ -1164,7 +1164,7 @@ class Templates_HTML_Template
     $suffix = trim(preg_replace('{/?[^/]+$}', '', $base_name), './');
     if ($base_name && $suffix) {
       foreach ($paths as $k => $p) {
-          $paths[$k] = trim($p, '/') . '/' . $suffix;
+          $paths[$k] = rtrim($p, '/') . '/' . $suffix;
       }
     }
     $this->partial_paths = $paths;
@@ -1177,7 +1177,7 @@ class Templates_HTML_Template
       $this->set_patrial_paths($paths, $base_name);
     }
     $result = $this->partial_paths;
-    $base_path = preg_replace('{/[^/]+$}', '', $this->get_path()) . '/';
+    $base_path = rtrim(preg_replace('{/[^/]+$}', '', $this->get_path()), '/');
     if (array_search($base_path, $result) === false) {
       $result[] = $base_path;
     }
@@ -1190,7 +1190,7 @@ class Templates_HTML_Template
 ///       <arg name="name" type="string" brief="имя шаблона" />
 ///     </args>
 ///     <body>
-  protected function get_partial_path($name) {
+  protected function get_partial_path($name, $paths = array()) {
     if (Core_Strings::starts_with($name, '!')) {
       $trace = debug_backtrace();
       foreach ($trace as $k => $t)
@@ -1201,8 +1201,9 @@ class Templates_HTML_Template
     if (Templates::is_absolute_path($name)) {
       return $file;
     }
-    foreach ($this->partial_paths() as $path) {
-      $result = trim($path.'/') . '/'. $file;
+    $paths = array_merge($paths, $this->partial_paths(), Templates::option('templates_root'));
+    foreach ($paths as $path) {
+      $result = rtrim($path, '/') . '/'. $file;
       if (is_file($result)) {
         return $result;
       }

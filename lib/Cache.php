@@ -93,6 +93,11 @@ abstract class Cache_Backend implements Core_IndexedAccessInterface {
 
 ///   </protocol>
 
+  public function is_support_nesting()
+  {
+    return false;
+  }
+
   public function set_timeout($value) {
     $this->timeout = $value;
     return $this;

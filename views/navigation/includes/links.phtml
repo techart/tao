@@ -1,0 +1,12 @@
+<?php
+$template = CMS::view('navigation/includes/link.phtml');
+$count = sizeof($this->links);
+$classes = false;
+foreach($this->links as $link) { 
+	$classes = $classes===false?array('first'):array();
+	if ($link->is_selected()) $classes[] = 'current';
+	if (--$count==0) $classes[] = 'last';
+	print isset($before)?$before:'';
+	include($template);
+	print isset($after)?$after:' ';
+}

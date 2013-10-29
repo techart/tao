@@ -8,6 +8,19 @@ class CMS_Fields_Types_Textarea extends CMS_Fields_AbstractField implements Core
 		return true;
 	}
 
+	public function form_fields($form,$name,$data) {
+		$rc = parent::form_fields($form,$name,$data);
+		if (isset($data['value'])) {
+			$form[$name] = $data['value'];
+		}
+		return $rc;
+	}
+
+	protected function stdunset($data) {
+		$res = parent::stdunset($data);
+		return $this->punset($res, 'value');
+	}
+	
 	public function preprocess($template, $name, $data) {
 		parent::preprocess($template, $name, $data);
 		$parms = $template->parms;

@@ -5,7 +5,7 @@ if (isset($data['fields'])) {
 	unset($data['fields']);
 	foreach($fields as $field => $fdata) {
 		$fdata = array_merge($data, $fdata);
-		if (isset($fdata['caption'])) {
+		if (!empty($fdata['caption'])) {
 			$caption = trim($fdata['caption']);
 			print "<th class=\"caption caption-{$field}\">{$caption}</th>";
 		}
@@ -22,7 +22,7 @@ if (isset($data['fields'])) {
 		print $ftype->draw($field,$fdata);
 		print '</td>';
 		
-		if (isset($fdata['rcaption'])) {
+		if (!empty($fdata['rcaption'])) {
 			$rcaption = trim($fdata['rcaption']);
 			print "<th class=\"rcaption rcaption-{$field}\">{$rcaption}</th>";
 		}

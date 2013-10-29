@@ -1,0 +1,114 @@
+<?php
+Core::load('CMS.Images');
+$url = false;
+$path = false;
+if (!isset($mods)) $mods = false;
+if (!isset($open)) $open = false;
+if (!isset($open_mods)) $open_mods = '800x600';
+if (is_string($open_mods)) $open_mods = CMS_Images::parse_modifiers($open_mods);
+if (!isset($image_args)) $image_args = array();
+if (!isset($div)) $div = false;
+if (!isset($div_styles)) $div_styles = array();
+if (!isset($title)) $title = false;
+if (!isset($caption)) $caption = false;
+
+$caption_styles = '';
+
+
+Events::call('cms.insertions.img.default_args',$image_args);
+foreach($args_array as $arg) {
+	$image_args[] = $arg;
+}
+
+Events::call('cms.insertions.img.args',$image_args);
+
+foreach($image_args as $arg) {
+	$arg = trim($arg);
+	if ($arg=='right'||$arg=='left') {
+		$div = true;
+		$div_styles['float'] = $arg;
+	} elseif ($arg=='open') {
+		$open = true;
+	} elseif ($m = Core_Regexps::match_with_results('{^open:(.+)$}i',$arg)) {
+		$open = true;
+		$_mods = CMS_Images::parse_modifiers($m[1]);
+		if ($_mods) {
+			$open_mods = $_mods;
+		}
+	} elseif ($m = Core_Regexps::match_with_results('{^title:(.+)$}i',$arg)) {
+		$title = trim($m[1]);
+	} elseif ($m = Core_Regexps::match_with_results('{^caption:(.+)$}i',$arg)) {
+		$title = trim($m[1]);
+		$caption = trim($m[1]);
+		$div = true;
+	} elseif ($m = Core_Regexps::match_with_results('{^(border|padding|margin):(.+)$}',$arg)) {
+		$div = true;
+		$div_styles[$m[1]] = trim($m[2]);
+	}
+	
+	if ($m = Core_Regexps::match_with_results('{^http://([^/]+)/(.+)$}',$arg)) {
+		$url = preg_replace('{\?.*$}','',$arg);
+		if ($m[1]==$_SERVER['HTTP_HOST']) {
+			$_path = $m[2];
+			if (is_file("./{$_path}")) {
+				$path = $_path;
+			}
+		}
+	}
+	
+	if ($m = Core_Regexps::match_with_results('{^/?(.+)$}',$arg)) {
+		$_path = $m[1];
+		if (is_file("./{$_path}")) {
+			$path = $_path;
+		}
+	}
+	if ($m = CMS_Images::parse_modifiers($arg)) {
+		$mods = $m;
+	}
+}
+
+$width = false;
+$height = false;
+
+if ($path) {
+	if ($mods&&count($mods)>0) {
+		$img = CMS_Images::modified_image("./{$path}",$mods);
+	} else {
+		$img = "/$path";
+	}
+	$sz = getimagesize('.'.$img);
+	if ($sz) {
+		$width = $sz[0];
+		$height = $sz[1];
+		$caption_styles = "width:{$width}px";
+	}
+} elseif($url) {
+	$img = $url;
+}
+
+if ($open) {
+	$open_url = CMS_Images::modified_image("./{$path}",$open_mods);
+}
+
+if ($img) {
+	$template_simple = CMS::view('insertions/includes/img-simple.phtml');
+	$template_link = CMS::view('insertions/includes/img-link.phtml');
+	$template_div = CMS::view('insertions/includes/img-div.phtml');
+	if ($div) {
+		$style = '';
+		$styles = '';
+		foreach($div_styles as $k => $v) {
+			$styles .= "{$k}: $v;";
+		}
+		if ($styles!='') {
+			$style = " style=\"{$styles}\"";
+		}
+		include($template_div);
+	} elseif($open) {
+		include($template_link);
+	} else {
+		include($template_simple);
+	}
+}
+
+

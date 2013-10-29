@@ -107,23 +107,43 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
   
   protected function replace_callback($m) {
     $name = $this->standartizate_name($m[1]);
-    $parms = $m[2];
-    $res = false;
-    Events::call("cms.insertions.$name",$parms,$res);
+    list($str, $args) = $this->standartizate_parms($m[2]);
+    $result = $this->replace($name, $str, $args);
+    if (!empty($result)) {
+      $result = " $result ";
+    }
+    return $result;
+  }
+
+  protected function replace($name, $str, $args)
+  {
+    $res = null;
+    Events::call("cms.insertions.$name", $str, $res, $args);
     if (is_string($res)) return $res;
-    Events::call("%{$name}{{$parms}}",$res);
+    Events::call("%{$name}{{$str}}", $res, $args);
     if (is_string($res)) return $res;
-    Events::call("%{$m[1]}{{$parms}}",$res);
+    Events::call("%{$name}{{$str}}", $res, $args);
     if (is_string($res)) return $res;
     if (isset($this->register[$name])) {
-      return $this->invoke($name, $parms);
+      return $this->invoke($name, $str, $args);
     } else if ($this->use_fallback_views) {
-      $res = $this->fallback($name, $parms);
-      if ($res) {
+      $res = $this->fallback($name, $str, $args);
+      if (!is_null($res)) {
         return $res;
       }
     }
-    return "%{$m[1]}{{$m[2]}}";
+    return "%{$name}{{$str}}";
+  }
+
+  protected function standartizate_parms($str)
+  {
+    $args_str = trim(strip_tags(str_replace('</', "\n</", $str)), " ,\n\t\r");
+    $delim = ',';
+    if (strpos($args_str, "\n")) {
+      $delim = "\n";
+    }
+    $args = $this->args_array($args_str, $delim);
+    return array($args_str, $args);
   }
 
   public function get_views_paths()
@@ -182,7 +202,16 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
     return $template;
   }
 
-  protected function fallback($name, $parms)
+  protected function args_array($parms, $delim = ',')
+  {
+    $res = explode($delim, $parms);
+    foreach ($res as $key => $value) {
+      $res[$key] = trim($value, " \t,\n\r");
+    }
+    return array_values(array_filter($res));
+  }
+
+  protected function fallback($name, $parms, $args)
   {
     $name = trim($name, '/');
     $this->views_paths[] = '';
@@ -191,8 +220,10 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
       $args = array(
         'env' => WS::env(),
         'request' => WS::env()->request,
-        'parms' => $parms
+        'args' => $parms,
+        'args_array' => $args,
       );
+      Events::call("cms.insertions.template.$name", $template, $args);
       if (isset($this->args['layout'])) {
         return $this->args['layout']->partial($template, $args);
       }
@@ -202,12 +233,12 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
   }
   
   //TODO: смешивать параметры
-  protected function invoke($name, $parms) {
-    return $this->register[$name]->invoke($parms);
+  protected function invoke($name, $parms, $args) {
+    return $this->register[$name]->invoke(array($parms, $args));
   }
   
   protected function get_pattern() {
-    return '/%([a-z0-9_-]+)\{([^\{\}]*)\}/i';
+    return '/\s*%([a-z0-9_-]+)\{([^\{\}]*)\}\s*/ui';
   }
 
 }

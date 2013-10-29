@@ -30,12 +30,14 @@
 			#topmenu ul.level1 li a {
 				display: block;
 				background-color: #8B8C8E;
+				background: linear-gradient(to top, #8B8C8E 80%, #BBB 100%);
 				border-radius: 5px 5px 0 0;
 				text-decoration: none;
 				color: #fff;
 			}
 				#topmenu ul.level1 li.current a {
 					background-color: #FFF;
+					background: linear-gradient(to top, #EEE, #FFF);
 					color: #000;
 				}	
 
@@ -89,6 +91,7 @@
 	right: 10px;
 	display: block;
 	background-color: #FFC480;
+	background: linear-gradient(to top, #FFC490 40%, #FFEEAA 100%);
 	text-decoration: none;
 	border-radius: 5px 5px 0 0;
 }	
