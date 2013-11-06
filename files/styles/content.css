@@ -1,0 +1,84 @@
+body { 
+	font-family: arial,helvetica,sans-serif;
+}
+
+h1,h2,h3 {
+	font-weight: bold;
+	color: #842B5B;
+}
+
+h1 {
+	margin: 0 0 10px 0;
+	font-size: 22px; 
+}
+
+h2 {
+	margin: 0 0 10px 0;
+	font-size: 18px; 
+}
+
+h3 {
+	margin: 0 0 10px 0;
+	font-size: 16px; 
+}
+
+p {
+	margin: 0 0 10px 0;
+}
+
+ul,ol {
+	display: block;
+	margin: 0 0 10px 0;
+	list-style-position: outside;
+	padding-left: 30px;
+	line-height: 125%;
+}
+
+ul {
+	list-style: disc;
+}
+
+ul {
+	list-style: decimal;
+}
+
+	ul li, ol li {
+		padding-bottom: 3px; 
+	}
+
+ul.errors {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+	ul.errors li {
+		background-image: url(/tao/images/alert.gif);
+		background-repeat: no-repeat;
+		padding: 4px 0 5px 25px;
+		font-size: 14px;
+		color: #d00;
+	}
+
+div.taglist {
+	border: 1px solid #ddd;
+	padding: 5px;
+}
+
+	div.taglist em {
+		font-style: normal;
+		color: #842B5B;
+	}
+
+	div.taglist a {
+		font-size: 10px;
+	}
+
+#content {
+	font-size: 14px;
+}
+
+.clear {
+	float: none;
+	clear: both;
+}

@@ -1,0 +1,154 @@
+<pre>
+<?php
+$this->no_layout();
+
+$dir = '../tao';
+if (isset($_GET['dir'])) {
+	$dir = $_GET['dir'];
+	$dir = ltrim($dir,'./ ');
+	$dir = "../{$dir}";
+}
+
+
+
+WS::env()->events = array();
+cdir($dir);
+
+
+$events = WS::env()->events;
+ksort($events);
+
+foreach($events as $event => $data) {
+	if (!$data['description']&&!isset($data['undoc'])) {
+		$path = $data['path'];
+		print "<b>{$event}</b>\t{$path}\n";
+	}
+}
+
+print "\n\n\n\n";
+
+foreach($events as $event => $data) {
+	if ($description = $data['description']) {
+		$as = '';
+		$ak = array_keys($data['args']);
+		if (count($ak)>0) {
+			$as = '('.implode(',',$ak).')';
+		}
+		$sevent = str_replace('$','',$event);
+		print "====== {$sevent}{$as} ======\n";
+		foreach($data['args'] as $arg => $adescr) {
+			print "* '''{$arg}''' - {$adescr}\n";
+		}
+		if (count($data['args'])>0) {
+			print "\n";
+		}
+		print "{$description}\n\n";
+	}
+}
+
+
+function cfile_cm_cb($m) {
+	$text = trim($m[1]);
+	$lines = explode("\n",$text);
+	$event = false;
+	$args = array();
+	$description = '';
+	$aliases = array();
+	foreach($lines as $line) {
+		$line = trim($line);
+		$line = ltrim($line,'* ');
+		if ($line!='') {
+			if ($line[0]=='@') {
+				if ($m = Core_Regexps::match_with_results('{^@([^\s]+)(.+)$}i',$line)) {
+					$p = trim($m[1]);
+					$a = trim($m[2]);
+					if ($p=='event') {
+						$event = $a;
+					} elseif ($p=='alias') {
+						$aliases[] = $a;
+						$events = WS::env()->events;
+						$events[$a] = array(
+							'description' => false,
+							'undoc' => true,
+						);
+						WS::env()->events = $events;
+					} elseif ($p=='undocevent') {
+						$events = WS::env()->events;
+						$events[$a] = array(
+							'description' => false,
+							'undoc' => true,
+						);
+						WS::env()->events = $events;
+					} elseif ($p=='arg') {
+						if ($m = Core_Regexps::match_with_results('{^([^\s]+)(.+)$}',$a)) {
+							$arg = trim($m[1]);
+							$adescr = ltrim(trim($m[2]),'- ');
+							if ($adescr!='') {
+								$args[$arg] = $adescr;
+							}
+						}
+					}
+				}
+			} else {
+				if ($description!='') {
+					$description .= ' ';
+				}
+				$description .= $line;
+			}
+		}
+	}
+	if ($event) {
+		$events = WS::env()->events;
+		$events[$event] = array(
+			'description' => $description,
+			'args' => $args,
+			'aliases' => $aliases,
+		);
+		WS::env()->events = $events;
+	}
+	return '';
+}
+
+function cfile($path) {
+	$src = file_get_contents($path);
+	
+	$src = preg_replace_callback('{/\*\*(.+?)\*/}sm','cfile_cm_cb',$src);
+	
+	preg_match_all('{Events\s*::\s*call\s*\(([^\)]+)\)}sm',$src,$mm);
+	$items = $mm[1];
+	$events = WS::env()->events;
+	if (count($items)>0) {
+		foreach($items as $item) {
+			$item = trim($item);
+			$e = explode(',',$item);
+			$event = trim($e[0]);
+			if (strlen($event)>2) {
+				if ($event[0]=="'"||$event[0]=='"') {
+					$event = substr($event,1,strlen($event)-2);
+				}
+				if (!isset($events[$event])) {
+					$events[$event] = array(
+						'path' => $path,
+						'description' => false,
+						'args' => array(),
+					);
+				}
+			}
+		}
+	}
+	WS::env()->events = $events;
+}
+
+function cdir($_path) {
+	$d = dir($_path);
+	while($f = $d->read()) {
+		if ($f[0]!='.') {
+			$path = "{$_path}/$f";
+			if (is_dir($path)) {
+				cdir($path);
+			} elseif (preg_match('{\.(php|phtml|inc)}',$path)) {
+				cfile($path);
+			}
+		}
+	}
+}

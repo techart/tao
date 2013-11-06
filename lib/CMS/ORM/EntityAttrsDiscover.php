@@ -18,7 +18,7 @@ class CMS_ORM_EntityAttrsDiscover implements Core_ModuleInterface
 		if (!empty($columns)) {
 			foreach ($columns as $name => $column) {
 				$shtype = $column['type'];
-				$stype = 'string';
+				$stype = null;
 				switch (true) {
 					case in_array($shtype, array('int', 'serial')):
 						$stype = 'int';

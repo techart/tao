@@ -55,9 +55,15 @@ if (isset($data['admin_preview_size'])) {
 
 <?= $this->forms->hidden($name,$tagparms) ?>
 
+
 <div class="image-field" id="image-field-<?= $name ?>" >
+	<?php if(!$item->is_phantom()) { ?>
 	<div class="image-load-indicator" id="image-load-indicator-<?= $name ?>">&nbsp;</div>
 	<div <?= $size_style ?>  data-url-upload="<?= $c->field_action_url($name,'preview',$item) ?>"  data-url="<?= $type_object->admin_preview_url($name,$data,$item) ?>" class="image-preview" id="image-preview-<?= $name ?>">&nbsp;</div>
 	<div data-url="<?= $c->field_action_url($name,'info',$item) ?>" class="image-info" id="image-info-<?= $name ?>"><?php include('info.phtml'); ?></div>
+	
 	<div class="upload-image" id="upload-image-<?= $name ?>" data-url="<?= $c->field_action_url($name,'upload',$item,array('code'=>$type_object->temp_code())) ?>"><?= $lang->ta_browse ?></div>
+	<?php } else {
+		print $lang->unable_in_add;
+	} ?>
 </div>

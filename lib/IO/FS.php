@@ -45,10 +45,8 @@ class IO_FS implements  Core_ConfigurableModuleInterface {
 ///     <body>
   static public function initialize(array $options = array())
   {
-    Events::add_listener('ws.config', function($conf) {
-      $opts = (array) $conf->iofs;
-      IO_FS::options($opts);
-    });
+    $opts = (array) Config::all()->iofs;
+    self::options($opts);
     self::options($options);
   }
 ///     </body>
@@ -921,7 +919,9 @@ class IO_FS_File
 ///     </details>
 ///     <body>
   public function update($data, $flags = 0) {
-    return file_put_contents($this->path, $data, $flags);
+    $res = file_put_contents($this->path, $data, $flags);
+    $this->set_permission();
+    return $res;
   }
 ///     </body>
 ///   </method>
@@ -937,7 +937,9 @@ class IO_FS_File
 ///     </details>
 ///     <body>
   public function append($data, $flags = 0) {
-    return file_put_contents($this->path, $data, FILE_APPEND | $flags);
+    $res = file_put_contents($this->path, $data, FILE_APPEND | $flags);
+    $this->set_permission();
+    return $res;
   }
 ///     </body>
 ///   </method>

@@ -2,6 +2,8 @@
   //TODO: разобраться с путями для layout
   $this->allow_filtering(false);
   $this->no_duplicates_in('js');
+  // $this->use_onpage_to_file('js');
+  // $this->use_onpage_to_file('css');
   $this->meta->http_content_type = "text/html; charset=utf-8";
 	$title = CMS::lang(trim(CMS::vars()->get('admin.title')));
 	$this->meta->title = $title;

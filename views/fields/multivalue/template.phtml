@@ -1,4 +1,9 @@
 <div class="field field-multivalue">
-<?php print $this->partial($type_object->template($data, 'items')) ?>
-<?php print $this->partial($type_object->template($data, 'add'), array('item' => $item)) ?>
+<?php if(!$item->is_phantom()) {
+	print $this->partial($type_object->template($data, 'items'));
+	print $this->partial($type_object->template($data, 'add'), array('item' => $item));
+} else {
+	$lang = CMS::lang()->_common;
+	print $lang->unable_in_add;
+} ?>
 </div>

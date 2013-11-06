@@ -87,8 +87,17 @@ class CMS_Vars2 implements Core_ModuleInterface {
 	}
 
 	public function save_var($var) {
-		Events::call('cms.vars.change',$var);
-		Events::call('cms.vars.change.'.$var->name(),$var);
+		$var_name = $var->name();
+		/**
+		@event cms.vars.change
+		@alias cms.vars.change.{$var_name}
+		@arg $var объект перед сохранением
+		Вызывается непосредственно перед сохранением отдельной настройки (CMS.Vars). 
+		Возможно обработать данные прежде чем они будут сохранены, сбросить кеш, сгенерировать еще что-то и т.п.
+		Для обработки данных какой-то конкретной настройки вешайте обработчик на событие вида '''cms.vars.change.{$var_name}'''.
+		*/
+		Events::call("cms.vars.change",$var);
+		Events::call("cms.vars.change.{$var_name}",$var);
 		return $this->storage()->save($var);
 	}
 

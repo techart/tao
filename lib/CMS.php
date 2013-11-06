@@ -37,7 +37,7 @@ Core::load('WS', 'Events');
 class CMS implements Core_ModuleInterface {
 ///   <constants>
 	const MODULE  = 'CMS';
-	const VERSION = '2.0.11';
+	const VERSION = '2.0.13';
 ///   </constants>
 
 	static $libpath		= '';
@@ -236,6 +236,12 @@ class CMS implements Core_ModuleInterface {
 			self::configure_loader();
 			
 			Core::load('Events');
+			/**
+			
+			@event cms.initialize.start
+			Вызывается в начале инициализации при загрузке модуля CMS. Если возвращено значение, отличное от null, то дальнейшая инициализация произведена не будет.
+			
+			*/
 			$rc = Events::call('cms.initialize.start');
 			if (!is_null($rc)) return $rc;
 			
@@ -263,12 +269,19 @@ class CMS implements Core_ModuleInterface {
 			//FIXME: не запускать сразу
 			self::dummy_run();
 
+			/**
+			
+			@event cms.initialize.ready
+			Вызывается в конце инициализации при загрузке модуля CMS
+			
+			*/
 			$rc = Events::call('cms.initialize.ready');
 			if (!is_null($rc)) return $rc;
 			
 			Core::load(self::vars_module());
 			
 			self::application()
+				->session()
 				->status(array(404 => '404', 500), 'status', true)
 				->cms_std()
 				->auth_basic(CMS_Handlers::AuthModule(), array('env_name' => 'admin_auth'))
@@ -356,6 +369,10 @@ class CMS implements Core_ModuleInterface {
 	
 	//TODO: сделать callback
 	static protected function before_run($env) {
+		/**
+		@event cms.run
+		Вызывается после инициализации всех компонентов - в начале работы CMS::run()
+		*/
 		Events::call('cms.run');
  		$env->urls = WebKit_Controller::Mapper();
 		foreach(CMS::$mappers as $name => $mapper) $env->urls->map(strtolower($name),$mapper);
@@ -1886,6 +1903,9 @@ class CMS implements Core_ModuleInterface {
 		Core::load(self::$nav_module);
 		self::$navigation = Core::make(self::$nav_module);
 		self::$navigation->process($uri);
+		if (method_exists(self::$navigation, 'layout')) {
+			self::$navigation->layout(CMS::layout_view());
+		}
 
 	}
 ///     </body>

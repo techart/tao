@@ -1,0 +1,65 @@
+<?php
+
+$this->use_styles('admin/table.css');
+
+
+?>
+<?php if ($env->request->method=='post') {
+
+	$version = $_POST['version'];
+	$resp = Net_HTTP::Agent()->to_file('../tao.zip')->send('http://cms.techart.ru/tao/download/core/');
+	if ($resp->status->code==200) {
+		Core::load('IO.Arc','IO.Arc.ZIP');
+		IO_Arc::ZIP('../tao.zip')->extract_to('..');
+		IO_FS::rm('../tao.zip');
+		if (is_dir('../tao/lib')) {
+			IO_FS::rm('../tao.old');
+			$controller->redirect('/admin/update-tao/?ok=1');
+		} else {
+			IO_FS::mv('../tao.old','../tao');
+			print 'Error in tao.zip';die;
+		}
+	} else {
+		print "Error {$resp->status->code}: {$resp->status->message}";
+	}
+
+
+} elseif (isset($_GET['ok'])) { ?>
+	<h1>Ядро обновлено</h1>
+	<p>В настоящий момент версия ядра - <b><?= CMS::VERSION ?></b>.</p>
+<?php } else { ?>
+	<h1>Обновление ядра</h1>
+	<p>
+	<?php
+	
+		$old = CMS::VERSION;
+
+		$resp = Net_HTTP::Agent()->send('http://cms.techart.ru/tao/version/');
+		if ($resp->status->code==200) {
+			print "<p>В настоящий момент установлена версия <b>{$old}</b> ядра";
+			$info = json_decode($resp->body);
+			$new = $info->version;
+			$do = true;
+			if ($old=='0.0.0') {
+				print ". Зачем вам лучше?";
+				$do = false;
+			} elseif ($old==$new) {
+				print ", которая на настоящий момент является последней опубликованной. Однако, если очень хочется, то вы все равно можете произвести обновление.";
+			} else {
+				print ". Вы можете произвести обновление до версии <b>{$new}</b>.";
+			}
+			?>
+			</p>
+			<?php if ($do) { ?>
+			<form method="post" action="/admin/update-tao/">
+				<input type="hidden" name="version" value="<?= htmlspecialchars($new) ?>">
+				<input type="submit" class="submit-button" value="Обновить">
+			</form>
+			<?php } ?>
+			
+			<?php
+		} else {
+			print "Error {$resp->status->code}: {$resp->status->message}";
+		}
+	?>
+<?php } ?>

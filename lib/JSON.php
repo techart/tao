@@ -10,11 +10,31 @@ class JSON implements Core_ModuleInterface {
   const VERSION = '0.2.2';
 ///   </constants>
 
+  protected static $options = array('pretty_print' => false);
+
+  public static function initialize($options = array())
+  {
+    self::$options = array_merge(self::$options, $options);
+  }
+
+  public static function options()
+  {
+    return self::$options;
+  }
+
+  public static function option($name)
+  {
+    return self::$options[$name];
+  }
+
 ///   <protocol name="building">
 
 ///   <method name="Converter" returns="JSON.Converter" scope="class">
 ///     <body>
-  static public function Converter() { return new JSON_Converter(); }
+  static public function Converter()
+  {
+    return new JSON_Converter();
+  }
 ///     </body>
 ///   </method>
 
@@ -142,12 +162,70 @@ class JSON_Converter {
 ///     </body>
 ///   </method>
 
+
+  public static function pretty_print($json)
+  {
+    $result = '';
+    $level = 0;
+    $prev_char = '';
+    $in_quotes = false;
+    $ends_line_level = NULL;
+    $json_length = strlen( $json );
+
+    for( $i = 0; $i < $json_length; $i++ ) {
+        $char = $json[$i];
+        $new_line_level = NULL;
+        $post = "";
+        if( $ends_line_level !== NULL ) {
+            $new_line_level = $ends_line_level;
+            $ends_line_level = NULL;
+        }
+        if( $char === '"' && $prev_char != '\\' ) {
+            $in_quotes = !$in_quotes;
+        } else if( ! $in_quotes ) {
+            switch( $char ) {
+                case '}': case ']':
+                    $level--;
+                    $ends_line_level = NULL;
+                    $new_line_level = $level;
+                    break;
+
+                case '{': case '[':
+                    $level++;
+                case ',':
+                    $ends_line_level = $level;
+                    break;
+
+                case ':':
+                    $post = " ";
+                    break;
+
+                case " ": case "\t": case "\n": case "\r":
+                    $char = "";
+                    $ends_line_level = $new_line_level;
+                    $new_line_level = NULL;
+                    break;
+            }
+        }
+        if( $new_line_level !== NULL ) {
+            $result .= "\n".str_repeat( "\t", $new_line_level );
+        }
+        $result .= $char.$post;
+        $prev_char = $char;
+    }
+    return $result;
+  }
+
 ///   <method name="encode" returns="object">
 ///     <args>
 ///       <arg name="data" type="array|stdObject" />
 ///     </args>
 ///     <body>
-  public function encode($data) { return json_encode($data); }
+  public function encode($data)
+  {
+    $json = json_encode($data);
+    return JSON::option('pretty_print') ? $this->pretty_print($json) : $json;
+  }
 ///     </body>
 ///   </method>
 
@@ -158,6 +236,12 @@ class JSON_Converter {
 ///     </args>
 ///     <body>
   protected function encode_object(Object_AttrListInterface $object, $flavor = null) {
+    if (method_exists($object, 'encode')) {
+      $r = $object->encode($flavor);
+      if (!is_null($r)) {
+        return $r;
+      }
+    }
     $r = new stdClass();
     foreach ($object->__attrs($flavor) as $attr) {
       switch (true) {
@@ -233,7 +317,7 @@ class JSON_Converter {
 ///       <arg name="attrs" type="Object.Attribute" />
 ///     </args>
 ///     <body>
-  protected function encode_scalar($value, Object_Attribute $attrs) {
+  protected function encode_scalar($value, $attr) {
     switch (true) {
       case is_string($value):
       case is_numeric($value):
@@ -245,6 +329,8 @@ class JSON_Converter {
         foreach ($this->converters as $c)
           if ($m = $c->can_encode($value)) return $c->$m($value, $attr);
         return serialize($value);
+      default:
+        return $value;
     }
   }
 ///     </body>
@@ -284,6 +370,12 @@ class JSON_Converter {
 ///     </args>
 ///     <body>
   public function decode_object($json, Object_AttrListInterface $object, $flavor = null) {
+    if (method_exists($object, 'decode')) {
+      $r = $object->decode($json, $flavor);
+      if (!is_null($r)) {
+        return $r;
+      }
+    }
     foreach ($object->__attrs($flavor) as $attr) {
       if (isset($json->{$attr->name}))
         switch (true) {

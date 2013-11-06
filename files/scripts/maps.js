@@ -198,19 +198,24 @@ function Yandex_map_marker(options, layouts) {
 			use_iconImageHref = true;
 		}
 	}
-	this.sign_shift = this.calculate_sign_shift(this.sign_shift);
-	if (use_iconImageHref)
+	if (use_iconImageHref && this.sign_image) {
 		marker_options.iconImageHref = this.sign_image;
-	marker_options.iconImageSize = [this.sign_size.x, this.sign_size.y];
-	marker_options.iconImageOffset = [this.sign_shift.x, this.sign_shift.y];
+	}
+	if (this.sign_size) {
+		marker_options.iconImageSize = [this.sign_size.x, this.sign_size.y];
+	}
+	if (this.sign_shift) {
+		this.sign_shift = this.calculate_sign_shift(this.sign_shift);
+		marker_options.iconImageOffset = [this.sign_shift.x, this.sign_shift.y];
+	}
 	
 	return new ymaps.Placemark(marker_geometry, marker_properties, marker_options);
 }
 
 Yandex_map_marker.prototype = {
-	sign_image: 'http://api-maps.yandex.ru/2.0.10/images/2c3d90d4e522c1f62b6cf3e59f7a877d',
-	sign_size: { x: 37, y: 42 },
-	sign_shift: { x: -18.5, y: 42 }
+	sign_image: null,
+	sign_size: null,
+	sign_shift: null
 }
 /* !Map marker classes */
 

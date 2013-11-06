@@ -30,13 +30,17 @@
 <?= $this->forms->hidden($name,$tagparms) ?>
 
 <div class="file-field" id="file-field-<?= $name ?>">
+	<?php if(!$item->is_phantom()) { ?>
 	<div class="upload-file" id="upload-file-<?= $name ?>"><?= $lang->ta_browse ?></div>
 	<div class="file-load-indicator" id="file-load-indicator-<?= $name ?>">&nbsp;</div>
 	<div class="file-info" id="file-info-<?= $name ?>"><?php include('info.phtml'); ?></div>
+	<?php } else {
+		print $lang->unable_in_add;
+	} ?>
 </div>
 
-<?php $this->begin('js') ?>
-
+<?php if(!$item->is_phantom()) { ?>
+<script>
 <!--
 
 	var _<?= $vname ?>TempFile = 'none';
@@ -109,5 +113,5 @@
 
 //-->
 
-<?php $this->end('js') ?>
-
+</script>
+<?php } ?>

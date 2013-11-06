@@ -2398,15 +2398,11 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 	 * return mixed
 	 */
 	public function offsetGet($index) {
-		switch (true) {
-			case is_numeric($index):
-				if (!isset($this->cache[$index]) && ($e = $this->find($index))) $this->cache[$index] = $e;
-				return isset($this->cache[$index])?$this->cache[$index]:null;
-			default:
-				if (($e = $this->lookup((string) $index)) && ($key = $this->options['key'][0])) $this->cache[$e->$key] = $e;
-				return $e;
-		}
-	}
+    if (!isset($this->cache[$index]) && (($e = $this->find($index)) || ($e = $this->lookup($index)))) {
+      $this->cache[$index] = $e;
+    }
+    return isset($this->cache[$index])?$this->cache[$index]:null;
+  }
 
 	/**
 	 * Запрещает явную запись объектов в кэш.

@@ -30,10 +30,19 @@ class Navigation implements Core_ModuleInterface {
   );
 
   protected static $current_controller = null;
+  protected static $layout = null;
   
   static public function initialize($conf)
   {
     self::$options = array_merge(self::$options, $conf);
+  }
+
+  static public function layout($layout = null)
+  {
+    if (!is_null($layout)) {
+      self::$layout = $layout;
+    }
+    return self::$layout;
   }
 
   static public function option($name, $value = null)
@@ -75,11 +84,19 @@ class Navigation implements Core_ModuleInterface {
 
   public static function draw($template_name, $parms = array())
   {
-    return Templates_HTML::Template('navigation/' . $template_name)
-      ->with($parms)
-      ->option('links', $parms['links'])
-      ->option('level_num', $parms['level_num'])
-      ->as_string();
+    $path = 'navigation/' . $template_name;
+    if (self::layout()) {
+      return self::layout()->root
+        ->option('links', $parms['links'])
+        ->option('level_num', $parms['level_num'])
+        ->partial($path, $parms);
+    } else {
+        return Templates_HTML::Template($path)
+          ->with($parms)
+          ->option('links', $parms['links'])
+          ->option('level_num', $parms['level_num'])
+          ->as_string();
+    }
   }
 
 }
@@ -267,7 +284,7 @@ class Navigation_Set implements Navigation_SetInterface {
  * 
  * @package Navigation
  */
-class Navigation_Link extends stdClass {
+class Navigation_Link extends stdClass implements IteratorAggregate  {
 
   protected $sublinks;
 
@@ -328,6 +345,15 @@ class Navigation_Link extends stdClass {
         array('links' => new ArrayObject(array($this)), 'level_num' => $this->level), $params));
   }
 
+  public function getIterator() {
+    $links = array();
+    $sub = $this->sublinks();
+    if ($sub) {
+      $links = $sub->get_links();
+    }
+    return new ArrayIterator($links);
+  }
+
 }
 
 /** 
@@ -335,7 +361,7 @@ class Navigation_Link extends stdClass {
  * 
  * @package Navigation
  */
-class Navigation_SetState {
+class Navigation_SetState implements IteratorAggregate {
 
   protected $set;
 
@@ -429,6 +455,10 @@ class Navigation_SetState {
 
   public function reset() {
     return $this;
+  }
+
+  public function getIterator() {
+    return new ArrayIterator($this->get_links());
   }
 
 }

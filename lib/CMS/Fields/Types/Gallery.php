@@ -314,7 +314,7 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 		return $this;
 	}
 	
-	public function render($type = 'render/insertion') {
+	public function render($type = 'render/insertion', $parms = array()) {
 		Core::load('CMS.Images');
 		$template = $this->template()->spawn($this->type->template($this->data, $type));
 		$mods = $this->mods;
@@ -329,7 +329,7 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 		}
 		$this->mods = $mods;
 
-		return $template->with(array(
+		return $template->with(array_merge(array(
 			'mods' => $this->mods,
 			'fullsize_mods' => $fullsize_mods,
 			'files' => $files,
@@ -337,7 +337,7 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 			'original_files' => $original_files,
 			'files_data' => $this->type->files_data($this->name, $this->data, $this->item),
 			'container' => $this
-		))->render();
+		), $parms))->render();
 	}
 
 	//TODO: optimize
@@ -427,8 +427,8 @@ class CMS_Fields_Types_Gallery_ItemContainer extends CMS_Fields_Types_Gallery_Va
 		return array($this->index => $dir . '/' . $this->file_name);
 	}
 
-	public function render($type = 'render/ul') {
-		return parent::render($type);
+	public function render($type = 'render/insertion', $parms = array()) {
+		return parent::render($type, $parms);
 	}
 
 	public function offsetGet($name) {

@@ -19,7 +19,7 @@ class CMS_FSPages_Router extends CMS_Router
 {
 	public function route($request)
 	{
-		$uri = trim(strtolower($request->uri));
+		$uri = trim(strtolower($this->clean_url($request->uri)));
 		if ($m = Core_Regexps::match_with_results('{^/(.+)/$}',$uri)) {
 			$path = '';
 			foreach(explode('/',$m[1]) as $chunk) {
@@ -35,6 +35,11 @@ class CMS_FSPages_Router extends CMS_Router
 					CMS::$taopath.'/views/pages',
 					CMS::app_path('views/pages'),
 				);
+				/**
+				@event cms.fspages.dirs
+				@arg $dirs Список каталогов
+				Событие генерируется механизмом статических страниц (CMS.FSPages) для уточнения списка каталогов, в которых ищутся шаблоны. При необходимости в список можно добавить свой каталог.
+				*/
 				Events::call('cms.fspages.dirs',$dirs);
 				if (count($dirs)>0) {
 					for($i=count($dirs)-1;$i>=0;$i--) {

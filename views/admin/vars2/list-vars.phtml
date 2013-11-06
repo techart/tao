@@ -6,8 +6,7 @@ foreach($rows as $dir) {
 	}
 }
 ?>
-<script type="text/javascript">
-<!--
+<?php $this->begin('js'); ?>
 $(function() {
 	$('tr.var-edit').each(function() {
 		var url = $(this).attr('data-url');
@@ -32,5 +31,4 @@ $(function() {
 	});
 	<?php } ?>
 });
-//-->
-</script>
+<?php $this->end('js'); ?>

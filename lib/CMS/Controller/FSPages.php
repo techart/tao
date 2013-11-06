@@ -9,6 +9,13 @@ class CMS_Controller_FSPages extends CMS_Controller implements Core_ModuleInterf
 		if (Core_Regexps::match('{^/admin/}',$_SERVER['REQUEST_URI'])) {
 			$realm = 'admin';
 		}
+		/**
+		@event cms.fspages.realm
+		@arg $realm имя области
+		Отдельные статические страницы (CMS.FSPages) могут исполняться в рамках обособленной (чаще всего - закрытой паролем) области.
+		По умолчанию страницы, чьи адреса начинаются с '''/admin/''' исполняются в области '''admin''', остальные - без указания области (в области по умолчанию).
+		Однако, это можно исправить в обработчике данного события. Проверьте REQUEST_URI и установите нужный realm.
+		*/
 		Events::call('cms.fspages.realm',$realm);
 		return $realm;
 	}

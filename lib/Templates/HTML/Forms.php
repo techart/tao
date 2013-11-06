@@ -487,20 +487,23 @@ class Templates_HTML_Forms implements Core_ModuleInterface, Templates_HelperInte
   public function select_tag(Templates_HTML_Template $t, $name, $items, $selected, array $attributes = array()) {
     $options    = array();
 
-    $allow_null = false;
-    $key        = Core_Arrays::pick($attributes, 'key', '');
-    $attribute  = Core_Arrays::pick($attributes, 'attribute', '');
+    $allow_null         = false;
+    $key                = Core_Arrays::pick($attributes, 'key', '');
+    $attribute          = Core_Arrays::pick($attributes, 'attribute', '');
+    $disabled_keys      = Core_Arrays::pick($attributes, 'disabled_keys', array());
+    $disabled_property  = Core_Arrays::pick($attributes, 'disabled_property', '');
 
     $selected = $key ? $selected->$key : $selected;
 
     foreach ($items as $k => $v) {
       $k =  $key ? $v->$key : $k;
+      $disabled = $disabled_property ? isset($v->$disabled_property) && $v->$disabled_property : in_array($k, $disabled_keys);
       $v = $attribute ? $v->$attribute : $v;
 
       $options[]  = $t->content_tag(
         'option',
         $v,
-        array('value' => $k, 'selected' => ($selected !== null && (string) $selected == (string) $k)));
+        array('value' => $k, 'selected' => ($selected !== null && (string) $selected == (string) $k), 'disabled' => $disabled));
     }
 
     return $t->

@@ -147,6 +147,16 @@ class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService {
 		$response = $env->response;
 		
 		$uri = $env->request->urn;
+		/**
+		@event cms.actions.dispatch
+		
+		Вызывается перед началом диспетчеризации запроса.
+		Здесь можно подменить что-нибудь в запросе, обратившись к WS::env()->request, выполнить какие-либо действия,
+		а также вернуть объект Net_HTTP_Response - в этом случае диспетчеризация даже не начнется,
+		а будет использован возвращенный отклик.
+		
+		@arg $uri REQUEST_URI
+		*/
 		$rs = Events::call('cms.actions.dispatch',$uri);
 		if (!is_null($rs)) return $rs;
 		
@@ -285,7 +295,7 @@ class CMS_Handlers_RestrictedRealms extends WS_MiddlewareService {
 			$restricted = $env->config->restricted;
 		else {
 			Core::load('Config.DSL');
-			$restricted = (array) Config_DSL::load('../config/restricted.php')->restricted;
+			$restricted = (array) Config::get('restricted')->restricted;
 		}
 		$erealms = isset($env->restricted_realms)? $env->restricted_realms : array();
 		foreach($restricted as $realm => $realm_data) {

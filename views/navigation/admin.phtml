@@ -9,8 +9,7 @@
 <?php $f1 = false; } ?>
 </ul>
 
-<script type="text/javascript">
-<!--
+<?php $this->begin('js'); ?>
 	$(function(){
 		$('ul.level1 > li')
 			.bind('mouseenter',function(){
@@ -27,5 +26,4 @@
 			})
 		;
 	});
-//-->
-</script>
+<?php $this->end('js'); ?>

@@ -23,17 +23,17 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 	static $tag_p_start			= '<p>';
 	static $tag_p_end			= '</p>';
 	
-	static $tag_dl_start			= '<dl>';
-	static $tag_dl_end 		= '</dl>';
+	static $tag_dl_start			= '<dl class="wiki">';
+	static $tag_dl_end 			= '</dl>';
 	
-	static $tag_dt_start 	= '<dt>';
-	static $tag_dt_end 		= '</dt>';
+	static $tag_dt_start			= '<dt>';
+	static $tag_dt_end			= '</dt>';
 			
-	static $tag_dd_start 	= '<dd>';
-	static $tag_dd_end 		= '</dd>';
+	static $tag_dd_start			= '<dd>';
+	static $tag_dd_end			= '</dd>';
 
-	static $tag_pre_start 	= '<pre>';
-	static $tag_pre_end 	= '</pre>';
+	static $tag_pre_start	= '<pre class="wiki">';
+	static $tag_pre_end	= '</pre>';
 
 	static $show_url_length = 30;
 	

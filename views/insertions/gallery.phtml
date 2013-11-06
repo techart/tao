@@ -21,7 +21,6 @@ if (empty($images)) {
 	}
 }
 
-//TODO: $config = WS::env()->gallery_settings['default'] / ['custom'] 
 if (count($images)>0) {
 	$default_config = array(
 		'preview' => '120x120',
@@ -31,7 +30,16 @@ if (count($images)>0) {
 		'link_class' => 'tao-gallery-link',
 		'0gif' => CMS::stdfile_url('images/0.gif'),
 	);
+	// TODO: брать из параметров вставки
+	$config_name = 'default';
+	//
 	$config = isset($config) ? $config :  array();
+	if (empty($config)) {
+		$app_config = Config::all()->gallery->settings;
+		if (isset($app_config[$config_name])) {
+			$config = array_merge($config, $app_config[$config_name]);
+		}
+	}
 	$config = array_merge($default_config, $config);
 
 	Events::call('cms.insertions.gallery.config',$config);

@@ -22,7 +22,7 @@ class WS_Middleware_Session implements Core_ModuleInterface {
 /// </class>
 
 /// <class name="WS.Session.Service" extends="WS.MiddlewareService">
-class WS_Middleware_Session extends WS_MiddlewareService {
+class WS_Middleware_Session_Service extends WS_MiddlewareService {
 
 ///   <protocol name="performing">
 
@@ -33,10 +33,10 @@ class WS_Middleware_Session extends WS_MiddlewareService {
 ///     <body>
   public function run(WS_Environment $env) {
     $error = null;
-    $session = Net_HTTP_Session::Store();
-
-    $env->request->session($session);
-
+    if (Core::is_cli() && !$env->request->session()) {
+      return $this->application->run($env);
+    }
+    $session = $env->request->session();
     $env->flash = Net_HTTP_Session::Flash(
       (isset($session['flash']) && is_array($session['flash'])) ? $session['flash'] : array());
 
@@ -45,9 +45,8 @@ class WS_Middleware_Session extends WS_MiddlewareService {
     } catch(Exception $e) {
       $error = $e;
     }
-
     $session['flash'] = $env->flash->later;
-    $session->commit();
+    //$session->commit();
 
     if ($error) throw $error;
     else        return $result;

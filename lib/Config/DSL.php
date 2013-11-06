@@ -68,8 +68,11 @@ class Config_DSL_Builder extends DSL_Builder {
     if (!is_file($file)) return $this;
     $config = $this->object;
     ob_start();
-    include($file);
+    $result = include($file);
     ob_end_clean();
+    if (is_array($result) || is_object($result)) {
+      $this->object = $result;
+    }
     return $this;
   }
 ///     </body>

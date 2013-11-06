@@ -14,6 +14,11 @@ class CMS_Navigation implements Core_ModuleInterface {
 		foreach($config as $key => $value) self::$$key = $value;
 		Navigation::option('navigation_set_class', 'CMS.Navigation.Set');
 	}
+
+	static public function layout($v=hull)
+	{
+		return Navigation::layout($v);
+	}
 	
 	public function __construct() {
 	  $this->controller = Navigation::controller();

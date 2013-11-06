@@ -1,0 +1,48 @@
+pre.wiki {
+	margin: 10px 0;
+	padding: 10px;
+	border: 1px dashed #ccc;
+	background-color: #F9F9F9;
+	font-family: monospace;
+	font-size: 11px;
+}
+
+	pre.wiki span {
+		font-family: monospace;
+		font-size: 11px;
+	}
+
+		pre.wiki span.hl-keyword {
+			color: blue;
+			font-weight: bold;
+		}
+
+		pre.wiki span.hl-number {
+			color: red;
+		}
+
+		pre.wiki span.hl-string {
+			color: #006600;
+		}
+
+		pre.wiki span.hl-id {
+			color: #770000;
+		}
+
+		pre.wiki span.hl-comment {
+			color: #888;
+		}
+
+
+table.standard {
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+	table.standard th,table.standard td {
+		padding: 3px;
+		border: 1px solid #ccc;
+	}
+	table.standard th {
+		background-color: #EEEEFF;
+	}
+

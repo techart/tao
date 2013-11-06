@@ -183,6 +183,10 @@ class Core implements Core_ModuleInterface {
     self::$loader = new Core_ModuleLoader();
     self::$loader->paths($loader_opts);
     self::options($config);
+    Core::load('Config');
+    if (isset(Config::core()->configure) && is_array(Config::core()->configure)) {
+      self::configure(Config::core()->configure);
+    }
     self::init_autoload();
     self::init_module_cache();
     self::init_deprecated();

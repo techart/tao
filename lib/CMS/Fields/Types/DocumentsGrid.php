@@ -15,7 +15,7 @@ class CMS_Fields_Types_DocumentsGrid extends CMS_Fields_Types_Documents_Base imp
 	}
 	
 	protected function layout_preprocess($l, $name, $data) {
-
+		$item = $this->get_item($name, $data);
 		$l->use_styles(
 			CMS::stdfile_url('styles/SlickGrid/slick.grid.css'),
 			CMS::stdfile_url('styles/SlickGrid/slick-default-theme.css'),
@@ -37,11 +37,13 @@ class CMS_Fields_Types_DocumentsGrid extends CMS_Fields_Types_Documents_Base imp
 			CMS::stdfile_url('scripts/tao/data.js')
 		);
 		$id = $this->url_class();
-		$code = <<<JS
+		$l->with('url_class', $id);
+		if (!$item->is_phantom()) {
+			$code = <<<JS
 		$(window).load(function () { $('.{$id}.field-$name').each(function() {TAO.fields.documents_grid.process($(this))}) })
 JS;
-		$l->append_to('js', $code);
-		$l->with('url_class', $id);
+			$l->append_to('js', $code);
+		}
 		Templates_HTML::add_scripts_settings(array('fields' => array(
 			$name => array(
 				'fields' => $this->get_fields($name, $data),

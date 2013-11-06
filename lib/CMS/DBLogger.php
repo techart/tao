@@ -35,7 +35,7 @@ class CMS_DBLogger implements Core_ModuleInterface, DB_QueryExecutionListener {
 			fwrite($fh,"*** ".date("Y.m.d - G:i")."\n\n");
 			fclose($fh);
 		}
-		DB_SQL::db()->connection->listener(new CMS_DBLogger());
+		WS::env()->db->default->listener(new CMS_DBLogger());
 	}
 	
 	static function check_filter($filter,$value) {
@@ -67,6 +67,9 @@ class CMS_DBLogger implements Core_ModuleInterface, DB_QueryExecutionListener {
 		if ($cursor->execution_time < self::$time_filter) return;
 		if (!self::check_filters()) return;
 		
+		$dir = IO_FS::Path(self::$log_file)->dirname;
+		IO_FS::mkdir($dir);
+	
 		$fh = fopen(self::$log_file,'a');
 		fwrite($fh,$this->create_string($cursor)."\n");
 		fclose($fh);

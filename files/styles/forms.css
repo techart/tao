@@ -1,0 +1,20 @@
+input.password,
+input.text,
+input[type="text"],
+input[type="password"],
+input[type="file"],
+textarea,
+select {
+	border: 1px solid #888;
+	padding:2px;
+}
+
+input.error {
+	border: 1px solid #d00; 
+}
+.submit_button {
+	border: 1px solid #842B5B;
+	background-color: #842B5B;
+	color: #FFF;
+	padding: 3px 10px;
+}

@@ -301,15 +301,18 @@ class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_Mo
 	}
 
 	protected function layout_preprocess($l, $name, $data) {
+		$item = $this->get_item($name, $data);
 		$l->use_scripts(CMS::stdfile_url('scripts/fields/image.js'));
 		$l->use_scripts(CMS::stdfile_url('scripts/jquery/block.js'));
 		$id = $this->url_class();
-		$code = "; $(function() { $('.{$id}.field-$name').each(function() {
-	 					TAO.fields.image.process($(this));
-						}
-		)});";
-		$l->append_to('js', $code);
 		$l->with('url_class', $id);
+		if (!$item->is_phantom()) {
+			$code = "; $(function() { $('.{$id}.field-$name').each(function() {
+		 					TAO.fields.image.process($(this));
+							}
+			)});";
+			$l->append_to('js', $code);
+		}
 
 		Templates_HTML::add_scripts_settings(array('fields' => array(
 			$name => array(
@@ -483,7 +486,6 @@ abstract class CMS_Fields_Types_Image_ModsCache extends CMS_Fields_ValueContaine
 		}
 
 		else $remake = true;
-		
 		return $remake;
 	}
 	
@@ -582,6 +584,8 @@ class CMS_Fields_Types_Image_Container extends CMS_Fields_Types_Image_ModsCache 
 
 class CMS_Fields_Types_Image_Preset {
 
+	public static $config = 'gallery';
+
 	static public function parse_mods($value) {
 		$res = array();
 		if (empty($value)) return $res;
@@ -602,8 +606,9 @@ class CMS_Fields_Types_Image_Preset {
 	}
 
 	static public function upload_resize($name, $data, $new_file) {
-		if (isset($data['upload_mods']) && $data['upload_mods']) {
-			$mods = self::parse_mods($data['upload_mods']);
+		$upload_mods = self::value($data, 'upload_mods');
+		if (!empty($upload_mods)) {
+			$mods = self::parse_mods($upload_mods);
 			if (!empty($mods)) {
 				Core::load('CMS.Images');
 				$im = CMS_Images::Image($new_file);
@@ -617,8 +622,9 @@ class CMS_Fields_Types_Image_Preset {
 
 	static public function preset($container, $pname) {
 		$mods = array();
-		if (isset($container->data['presets']) && isset($container->data['presets'][$pname])) {
-			$mods = self::parse_mods($container->data['presets'][$pname]);
+		$presets = self::value($container->data, 'presets');
+		if (isset($presets[$pname])) {
+			$mods = self::parse_mods($presets[$pname]);
 		} else {
 			$mods = self::parse_mods($pname);
 		}
@@ -629,12 +635,35 @@ class CMS_Fields_Types_Image_Preset {
 	}
 
 	static public function preset_on_upload($container) {
-		if (isset($container->data['presets'])) {
-			foreach ($container->data['presets'] as $p => $action) {
+		$presets = self::value($container->data, 'presets');
+		if (!empty($presets)) {
+			foreach ($presets as $p => $action) {
 				$container->mods_reset();
 				self::preset($container, $p)->cached_path();
 			}
 		}
+	}
+
+	static public function value($data, $property)
+	{
+		$value = array();
+		$config = Config::all();
+		$name = self::$config;
+		$to_merge = array();
+		if (isset($config->$name) && isset($config->$name->$property)) {
+			$to_merge[] = $config->$name->$property;
+		}
+		if (isset($data[$property])) {
+			$to_merge[] = $data[$property];
+		}
+		foreach ($to_merge as $tmp) {
+			if (is_array($tmp)) {
+				$value = array_merge($value, $tmp);
+			} else {
+				$value = $tmp;
+			}
+		}
+		return $value;
 	}
 
 

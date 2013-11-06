@@ -226,6 +226,7 @@ class CMS_Fields implements Core_ModuleInterface {
 		$scale = false;
 		$index_length = false;
 		$default = '';
+		$not_default = false;
 		$nn = true;
 		$src = trim(strtolower($src));
 
@@ -280,7 +281,12 @@ class CMS_Fields implements Core_ModuleInterface {
 			$default = 0.0;
 		}
 
-		$rc = array('name' => $db_name, 'type' => $type, 'not null' => $nn, 'default' => $default, 'index' => $index);
+		if ('timestamp' == $type){
+			$not_default = true;
+		}
+
+		$rc = array('name' => $db_name, 'type' => $type, 'not null' => $nn, 'index' => $index);
+		if (!$not_default) $rc['default'] = $default;
 		if ($length) $rc['length'] = $length;
 		if ($size) $rc['size'] = $size;
 		if ($precision) $rc['precision'] = $precision;

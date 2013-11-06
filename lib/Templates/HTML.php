@@ -23,7 +23,7 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
   static protected $options = array(
     'template_class' => 'Templates.HTML.Template',
     'paths' => array('css' => 'styles', 'js' => 'scripts', '_fallback' => 'image'),
-    'assets' => '',
+    'assets' => array('', '/tao'),
     'copy_dir' => 'copy',
     'extern_file_prefix' => 'file://',
     'css_dir' => 'styles',
@@ -163,8 +163,7 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
 ///     </args>
 ///     <body>
   static public function js_path($path, $copy = true) {
-    $path = self::extern_filepath($path, $copy);
-    return Templates::is_absolute_path($path) || self::is_url($path) ? $path : sprintf("%s/%s/%s", self::option('assets'), self::option('js_dir') , $path);
+    return self::path('js', $path, $copy);
   }
 ///     </body>
 ///   </method>
@@ -175,11 +174,28 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
 ///     </args>
 ///     <body>
   static public function css_path($path, $copy = true) {
-    $path = self::extern_filepath($path, $copy);
-    return Templates::is_absolute_path($path) || self::is_url($path) ? $path : sprintf("%s/%s/%s", self::option('assets'), self::option('css_dir'),  $path);
+    return self::path('css', $path, $copy);
   }
 ///     </body>
 ///   </method>
+
+  public static function path($type, $path, $copy = true)
+  {
+    $path = self::extern_filepath($path, $copy);
+    if (Templates::is_absolute_path($path) || self::is_url($path)) {
+      return $path;
+    }
+    $urls = array();
+    foreach (self::option('assets') as $asset) {
+      $url = sprintf("%s/%s/%s", $asset, self::option("{$type}_dir") , $path);
+      $urls[] = $url;
+      $file = ".{$url}";
+      if (is_file($file)) {
+        return $url;
+      }
+    }
+    return $urls[0];
+  }
 
 ///   <method name="extern_filepath" >
 ///     <args>
@@ -302,6 +318,8 @@ class Templates_HTML_Template
   protected $enable_less = false;
   protected $no_duplicates = array();
   protected $partial_paths = array();
+  protected $use_onpage_to_file = array('js' => false, 'css' => false);
+  protected $default_use_attributes = array('js' => false, 'css' => false);
 
 ///   <protocol name="creating">
 
@@ -358,6 +376,12 @@ class Templates_HTML_Template
     parent::merge($obj);
     $this->include_meta = $obj->include_meta;
     $this->allow_filtering($obj->allow_filtering);
+    return $this;
+  }
+
+  public function use_attrs($type, $attrs = array())
+  {
+    $this->default_use_attributes[$type] = $attrs;
     return $this;
   }
 
@@ -426,6 +450,9 @@ class Templates_HTML_Template
       }
       if ($type === null) $type = $ext;
     }
+    if (is_array($this->default_use_attributes[$type])) {
+      $file = array_merge($this->default_use_attributes[$type], $file);
+    }
     if (isset($this->agregators[$type]))
       $this->agregators[$type][$file['name']] = $file;
     return $this;
@@ -480,8 +507,39 @@ class Templates_HTML_Template
     return '';
   }
 
+  public function use_onpage_to_file($type= 'js', $v = true)
+  {
+    $this->use_onpage_to_file[$type] = $v;
+    return $this;
+  }
+
+  protected function onpage_to_file($type='js')
+  {
+    $enable = $this->use_onpage_to_file[$type];
+    if ($enable) {
+      $content = $this[$type];
+      $request = WS::env()->request;
+      $path = 'onpage' . '/' . trim($request->path, '/.');
+      $method = "{$type}_path";
+      $dir = '.' .  Templates_HTML::$method($path);
+      $name = md5($content);
+      // $name = md5($request->query);
+      $file = $dir . '/' . $name . '.' . $type;
+      if (!is_file($file)) {
+        IO_FS::rm($dir);
+        IO_FS::mkdir($dir);
+        file_put_contents($file, $content);
+      }
+      $this->use_file(array('name' => trim($file, '.'), 'weight' => 100000));
+      $this[$type] = '';
+    }
+    return $this;
+  }
+
   protected function include_files() {
       $res = '';
+      $this->onpage_to_file('js');
+      $this->onpage_to_file('css');
       foreach ($this->agregators as $type => $a) {
           $method =  $type . '_link';
           foreach ($a as $file_path => $file) {
@@ -496,6 +554,23 @@ class Templates_HTML_Template
       return $res;
   }
 
+  protected function configure_layoute()
+  {
+    $this
+      ->use_attrs('js', array('type' => 'lib'))
+      ->use_attrs('css', array('type' => 'lib'));
+    $env = Config::all()->environment;
+    if ($env == 'prod' && !Core_Strings::contains($this->name, 'admin')) {
+      $this
+        ->use_onpage_to_file('js')
+        ->use_onpage_to_file('css')
+        ->no_duplicates_in('js')
+        ->join_styles()->minify_styles()
+        ->join_scripts()->minify_scripts();
+    }
+    return $this;
+  }
+
 
   //TODO: deprecated alises:
   //---------------------------------
@@ -503,6 +578,7 @@ class Templates_HTML_Template
     $names = $this->make_layout_paths($layout);
     $class = get_class($this);
     $l = new $class(Templates_HTML::layouts_path_for($names[0]));
+    $l->configure_layoute();
     foreach (array_slice($names, 1) as $n) {
       $l->inside(new self(Templates_HTML::layouts_path_for($n)));
     }
