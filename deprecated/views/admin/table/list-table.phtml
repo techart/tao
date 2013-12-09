@@ -1,0 +1,19 @@
+<div class="brdr" style="margin-top:5px;padding:3px;"><table class="datatbl" cellspacing="1" cellpadding="3" width="100%" border="0">
+<?php include("$view_thead.phtml"); ?>
+<?php foreach($rows as $row) { include("$view_tbody.phtml"); } ?>
+</table></div>
+
+<script type="text/javascript">
+<!--
+$(function(){
+	$('table.datatbl tr')
+		.bind('mouseenter',function(){
+			$(this).addClass('hovered');
+		})
+		.bind('mouseleave',function(){
+			$(this).removeClass('hovered');
+		})
+	;
+});
+//-->
+</script>

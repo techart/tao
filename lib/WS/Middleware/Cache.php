@@ -1,49 +1,52 @@
 <?php
-/// <module name="WS.Middleware.Cache" version="0.2.2" maintainer="timokhin@techart.ru">
-/// <brief>Сервис кеширования</brief>
-/// <details>
-///   <p>Сервис выполняет двойную функцию. Во-первых, он создает экземпляр объекта кеширования и записывает его в объект окружения,
-///      таким образом, все последующие сервисы в цепочке могут использовать этот объект. Во-вторых, сервис может кешировать полный отклик
-///      для различных адресов, определяемых набором регулярных выражений, используя этот объект кеширования.</p>
-///   <p>Если параметры сервиса не указаны явно при его создании, он пытается получить их из элемента окружения, соответствующего объекту, описывающему
-///      конфигурацию приложения, <pre>$env->config->cache</pre>. Поэтому рекомендуется подключать этот сервис после сервиса конфигурирования, WS.Middleware.Config.</p>
-///   <p>Закешированные объекты отклика сохраняются в базе данных кеша под именами <pre>ws.middleware.cache.pages:page_url</pre>.</p>
-/// </details>
+/**
+ * WS.Middleware.Cache
+ * 
+ * Сервис кеширования
+ * 
+ * <p>Сервис выполняет двойную функцию. Во-первых, он создает экземпляр объекта кеширования и записывает его в объект окружения,
+ * таким образом, все последующие сервисы в цепочке могут использовать этот объект. Во-вторых, сервис может кешировать полный отклик
+ * для различных адресов, определяемых набором регулярных выражений, используя этот объект кеширования.</p>
+ * <p>Если параметры сервиса не указаны явно при его создании, он пытается получить их из элемента окружения, соответствующего объекту, описывающему
+ * конфигурацию приложения, </p><code>$env->config->cache</code>. Поэтому рекомендуется подключать этот сервис после сервиса конфигурирования, WS.Middleware.Config.
+ * <p>Закешированные объекты отклика сохраняются в базе данных кеша под именами </p><code>ws.middleware.cache.pages:page_url</code>.
+ * 
+ * @package WS\Middleware\Cache
+ * @version 0.2.2
+ */
 Core::load('Cache', 'WS');
 
-/// <class name="WS.Middleware.Cache" stereotype="module">
-///   <brief>Класс модуля</brief>
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * Класс модуля
+ * 
+ * @package WS\Middleware\Cache
+ */
 class WS_Middleware_Cache implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.2';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Service" returns="WS.Middleware.Cache.Service" scope="class">
-///     <brief>Создает объект класса WS.Middleware.Cache.Service</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///       <arg name="dsn" type="string" default="''" brief="DSN объекта кеширования" />
-///       <arg name="urls" type="array()" brief="набор выражений, определяющих адреса, отклик для которых должен кешироваться" />
-///     </args>
-///     <body>
+/**
+ * Создает объект класса WS.Middleware.Cache.Service
+ * 
+ * @param WS_ServiceInterface $application
+ * @param string $dsn
+ * @param array() $urls
+ * @return WS_Middleware_Cache_Service
+ */
   static public function Service(WS_ServiceInterface  $application) {
     $args = func_get_args();
     return Core::amake('WS.Middleware.Cache.Service', $args);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="WS.Middleware.Cache.Service" extends="WS.MiddlewareService">
-///   <brief>Кеширующий сервис</brief>
+/**
+ * Кеширующий сервис
+ * 
+ * @package WS\Middleware\Cache
+ */
 class WS_Middleware_Cache_Service extends WS_MiddlewareService {
 
   protected $dsn;
@@ -51,16 +54,14 @@ class WS_Middleware_Cache_Service extends WS_MiddlewareService {
   protected $timeout;
   protected $tagged = null;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="приложение" />
-///       <arg name="dsn" type="string" default="''" brief="DSN объекта кеширования" />
-///       <arg name="urls" type="array()" brief="набор выражений, определяющих адреса, отклик для которых должен кешироваться" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param WS_ServiceInterface $application
+ * @param string $dsn
+ * @param array() $urls
+ */
   public function __construct(WS_ServiceInterface $application) {
     parent::__construct($application);
     $args = func_get_args();
@@ -80,19 +81,15 @@ class WS_Middleware_Cache_Service extends WS_MiddlewareService {
           break;
       }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="mixed">
-///     <brief>Выполняет обработку запроса</brief>
-///     <args>
-///       <arg name="env" type="WS.Environment" brief="объект окружения" />
-///     </args>
-///     <body>
+/**
+ * Выполняет обработку запроса
+ * 
+ * @param WS_Environment $env
+ * @return mixed
+ */
 //  TODO: поддержка нескольких доменов
 //  TODO: вынести 'ws.middlweware.cache.pages:' в опции модуля
 
@@ -120,11 +117,6 @@ class WS_Middleware_Cache_Service extends WS_MiddlewareService {
     }
     return $response ? $response : $this->application->run($env);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

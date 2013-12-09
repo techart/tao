@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Attaches
+ */
+
 
 class CMS_Fields_Types_Attaches extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 
@@ -113,11 +117,17 @@ class CMS_Fields_Types_Attaches extends CMS_Fields_AbstractField implements Core
 		$form[$name] = $dir;
 	}
 
+	protected function preprocess($t, $name, &$data) {
+		if (!isset($data['multiple'])) {
+			$data['multiple'] = true;
+		}
+		parent::preprocess($t, $name, $data) ;
+	}
+
 	protected function layout_preprocess($l, $name, $data) {
 		$l->use_scripts(CMS::stdfile_url('scripts/fields/attaches.js'));
 		if ($this->block_on_upload)
 			$l->use_scripts(CMS::stdfile_url('scripts/jquery/block.js'));
-		//ar_dump($data);
 		if (!empty($data['__item_id']) || (!empty($data['__item']) && !empty($data['__item']->id)) ) {
 			$id = $this->url_class();
 			$code = <<<JS

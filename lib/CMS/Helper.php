@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Helper
+ */
+
 
 
 class CMS_Helper implements Core_ModuleInterface {

@@ -1,14 +1,19 @@
 <?php
-/// <module name="JSON" version="0.2.2" maintainer="timokhin@techart.ru">
+/**
+ * JSON
+ * 
+ * @package JSON
+ * @version 0.2.2
+ */
 
 Core::load('Time', 'Object');
 
-/// <class name="JSON" stereotype="module">
+/**
+ * @package JSON
+ */
 class JSON implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.2';
-///   </constants>
 
   protected static $options = array('pretty_print' => false);
 
@@ -27,118 +32,92 @@ class JSON implements Core_ModuleInterface {
     return self::$options[$name];
   }
 
-///   <protocol name="building">
 
-///   <method name="Converter" returns="JSON.Converter" scope="class">
-///     <body>
+/**
+ * @return JSON_Converter
+ */
   static public function Converter()
   {
     return new JSON_Converter();
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="JSON.AttributeConverter">
+/**
+ * @package JSON
+ */
 class JSON_AttributeConverter {
 
-///   <protocol name="quering">
 
-///   <method name="can_encode" returns="boolean">
-///     <args>
-///       <arg name="object" />
-///     </args>
-///     <body>
+/**
+ * @param  $object
+ * @return boolean
+ */
   public function can_encode($object) { return $this->can('encode', $object); }
-///     </body>
-///   </method>
 
-///   <method name="can_decode" returns="boolean">
-///     <args>
-///       <arg name="object" />
-///     </args>
-///     <body>
+/**
+ * @param  $object
+ * @return boolean
+ */
   public function can_decode($object) { return $this->can('decode', $object); }
-///     </body>
-///   </method>
 
-///   <method name="can" returns="boolean">
-///     <args>
-///       <arg name="operation" type="string" />
-///       <arg name="object" />
-///     </args>
-///     <body>
+/**
+ * @param string $operation
+ * @param  $object
+ * @return boolean
+ */
   public function can($operation, $object) {
     return method_exists($this, $m = $operation.'_'.strtolower(Core_Types::real_class_name_for($object))) ? $m : false;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="JSON.Converter">
+/**
+ * @package JSON
+ */
 class JSON_Converter {
 
   protected $converters = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <body>
+/**
+ */
   public function __construct() {
     $this->setup();
   }
-///     </body>
-///   </method>
 
-///   <method name="setup" access="protected">
-///     <body>
+/**
+ */
   protected function setup() {}
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="using" returns="JSON.Converter">
-///     <body>
+/**
+ * @return JSON_Converter
+ */
   public function using(JSON_AttributeConverter $converter) {
     $this->converters[] = $converter;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="converting">
 
-///   <method name="from" returns="string">
-///     <args>
-///       <arg name="object" type="Object.AttrListInterface" />
-///       <arg name="flavor" />
-///     </args>
-///     <body>
+/**
+ * @param Object_AttrListInterface $object
+ * @param  $flavor
+ * @return string
+ */
   public function from(Object_AttrListInterface $object, $flavor = null) {
     return $this->encode_object($object, $flavor);
   }
-///     </body>
-///   </method>
 
-///   <method name="from_collection" returns="string">
-///     <args>
-///       <arg name="items" />
-///       <arg name="flavor" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param  $items
+ * @param  $flavor
+ * @return string
+ */
   public function from_collection($items, $flavor = null) {
     $r = array();
     foreach ($items as $item)
@@ -146,21 +125,16 @@ class JSON_Converter {
         $r[] = $this->encode_object($item, $flavor);
     return $r;
   }
-///     </body>
-///   </method>
 
-///   <method name="to" returns="object">
-///     <args>
-///       <arg name="object" type="Object.AttrListInterface" />
-///       <arg name="json"   type="string" />
-///       <arg name="flavor" />
-///     </args>
-///     <body>
+/**
+ * @param Object_AttrListInterface $object
+ * @param string $json
+ * @param  $flavor
+ * @return object
+ */
   public function to(Object_AttrListInterface $object, $json, $flavor = null) {
     return $this->decode_object(is_string($json) ? json_decode($json) : $json, $object, $flavor);
   }
-///     </body>
-///   </method>
 
 
   public static function pretty_print($json)
@@ -216,25 +190,21 @@ class JSON_Converter {
     return $result;
   }
 
-///   <method name="encode" returns="object">
-///     <args>
-///       <arg name="data" type="array|stdObject" />
-///     </args>
-///     <body>
+/**
+ * @param array|stdObject $data
+ * @return object
+ */
   public function encode($data)
   {
     $json = json_encode($data);
     return JSON::option('pretty_print') ? $this->pretty_print($json) : $json;
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_object" returns="object" access="protected">
-///     <args>
-///       <arg name="object" type="Object.AttrListInterface" />
-///       <arg name="flavor" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param Object_AttrListInterface $object
+ * @param  $flavor
+ * @return object
+ */
   protected function encode_object(Object_AttrListInterface $object, $flavor = null) {
     if (method_exists($object, 'encode')) {
       $r = $object->encode($flavor);
@@ -258,16 +228,13 @@ class JSON_Converter {
     }
     return $r;
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_collection" returns="array" access="protected">
-///     <args>
-///       <arg name="object" type="Object.AttrListInterface" />
-///       <arg name="attr" type="Object.Attribute" />
-///       <arg name="flavor" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param Object_AttrListInterface $object
+ * @param Object_Attribute $attr
+ * @param  $flavor
+ * @return array
+ */
   protected function encode_collection(Object_AttrListInterface $object, Object_Attribute $attr, $flavor = null) {
     $items = array();
 
@@ -279,15 +246,12 @@ class JSON_Converter {
 
     return $items;
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_value" returns="mixed" access="protected">
-///     <args>
-///       <arg name="object" type="Object.AttrListInterface" />
-///       <arg name="attr" type="Object.Attribute" />
-///     </args>
-///     <body>
+/**
+ * @param Object_AttrListInterface $object
+ * @param Object_Attribute $attr
+ * @return mixed
+ */
   protected function encode_value(Object_AttrListInterface $object, Object_Attribute $attr) {
     $value = $object->{$attr->name};
     if (method_exists($object, 'before_encode_value')) {
@@ -308,15 +272,11 @@ class JSON_Converter {
     else
       return $this->encode_scalar($value, $attrs);
   }
-///   </body>
-///   </method>
 
-///   <method name="encode_scalar">
-///     <args>
-///       <arg name="value" type="mixed" />
-///       <arg name="attrs" type="Object.Attribute" />
-///     </args>
-///     <body>
+/**
+ * @param mixed $value
+ * @param Object_Attribute $attrs
+ */
   protected function encode_scalar($value, $attr) {
     switch (true) {
       case is_string($value):
@@ -333,42 +293,31 @@ class JSON_Converter {
         return $value;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_datetime" returns="Time.DateTime" access="protected">
-///     <args>
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param  $value
+ * @return Time_DateTime
+ */
   protected function encode_datetime($value, $attr = null) {
       return ($value = Time::DateTime($value)) ? $value->format(isset($attr->format) ? $attr->format : Time::FMT_ISO_8601) : null;
   }
-///     </body>
-///   </method>
 
-///   <method name="decode" returns="object">
-///     <args>
-///       <arg name="json" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $json
+ * @return object
+ */
   public function decode($json) {
     return json_decode($json);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="decode_object" returns="object" access="protected">
-///     <args>
-///       <arg name="json" type="object" />
-///       <arg name="object" type="Object.AttrListInterface" />
-///       <arg name="flavor" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param object $json
+ * @param Object_AttrListInterface $object
+ * @param  $flavor
+ * @return object
+ */
   public function decode_object($json, Object_AttrListInterface $object, $flavor = null) {
     if (method_exists($object, 'decode')) {
       $r = $object->decode($json, $flavor);
@@ -392,17 +341,14 @@ class JSON_Converter {
     }
     return $object;
   }
-///     </body>
-///   </method>
 
-///   <method name="decode_collection" returns="object" access="protected">
-///     <args>
-///       <arg name="json" type="array" />
-///       <arg name="object" type="Object.AttrsListInterface" />
-///       <arg name="attr" type="Object.Attribute" />
-///       <arg name="flavor" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param array $json
+ * @param Object_AttrsListInterface $object
+ * @param Object_Attribute $attr
+ * @param  $flavor
+ * @return object
+ */
   protected function decode_collection($json, Object_AttrListInterface $object, Object_Attribute $attr, $flavor = null) {
     $operation = isset($attr->operation) ? $attr->operation : 'append';
     foreach ($json->{$attr->name} as $v) {
@@ -419,16 +365,12 @@ class JSON_Converter {
     }
     return $object;
   }
-///     </body>
-///   </method>
 
 
-///   <method name="decode_scalar">
-///     <args>
-///       <arg name="value" type="mixed" />
-///       <arg name="type" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param mixed $value
+ * @param string $type
+ */
   protected function decode_scalar($value, $type) {
     if (!$type) return $value;
     switch ($type) {
@@ -441,16 +383,13 @@ class JSON_Converter {
     }
     return $value;
   }
-///     </body>
-///   </method>
 
-///   <method name="decode_collection" returns="object" access="protected">
-///     <args>
-///       <arg name="json" />
-///       <arg name="object" type="Object.AttrsListInterface" />
-///       <arg name="attr"   type="Object.Attribute" />
-///     </args>
-///     <body>
+/**
+ * @param  $json
+ * @param Object_AttrsListInterface $object
+ * @param Object_Attribute $attr
+ * @return object
+ */
   protected function decode_value($json, Object_AttrListInterface $object, Object_Attribute $attr) {
     $value = $json->{$attr->name};
     if (method_exists($object, 'before_decode_value')) {
@@ -482,22 +421,14 @@ class JSON_Converter {
 
     return $object;
   }
-///     </body>
-///   </method>
 
-///   <method name="decode_datetime" returns="Time.DateTime" access="protected">
-///     <args>
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param  $value
+ * @return Time_DateTime
+ */
   protected function decode_datetime($value) {
     return Time::DateTime($value);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+	<?= CMS::stdstyle('admin/controls.css') ?>
+	<?= CMS::stdstyle('admin/layout.css') ?>
+	<?= $this->javascript_include_tag(CMS_Admin::$jquery) ?>
+	<?= CMS::stdscript('jquery/hover-intent.js') ?>
+	<?= CMS::stdscript('jquery/bgiframe.js') ?>
+	<?= CMS::stdscript('jquery/bt.js') ?>
+	<?= CMS::stdscript('deprecated/excanvas.js') ?>
+</head>
+<body style="padding:5px;">
+<?php 
+$this->no_layout(); 
+if (!$dir) echo "Не определен параметр <b>gallery_dir</b>";
+else {
+	$action = $c->admin_url('addgallery',$item_id);
+?>
+
+<script type="text/javascript">
+<!--
+	function delCnfrm() {
+		return confirm("Вы действительно хотите удалить этот файл?");
+	}
+//-->
+</script>
+
+<table border="0" cellspacing="0" cellpadding="0" width="100%"><tr>
+<td valign="top" width="100%" style="padding-right: 10px;">
+<?php
+
+if (!is_array($files)&&!is_object($files)) $files = array();
+if (sizeof($files)==0) {
+	echo "Прикрепленных файлов нет";
+}
+
+else {
+?>
+<div class="brdr" style="padding:1px;"><table class="datatbl" cellspacing="1" cellpadding="3" width="100%" border="0">
+<tr>
+	<th>ID</th>
+	<th>П</th>
+	<th width="100%">Файл</th>
+	<th>&nbsp;</th>
+	<th>&nbsp;</th>
+</tr>
+<?php foreach($files as $fid => $file) { ?>
+<tr class="tr<?= ($tr_class==1? $tr_class=2 : $tr_class=1) ?>">
+	<td><?= $fid ?></td>
+	<td><?= $file['ord'] ?></td>
+	<td style="font-size:10px;"><?= (trim($file['alias'])!=''?'<b>['.trim($file['alias']).']</b> ':'') ?><a href="<?= $file['file_uri'] ?>" target="_blank"><?= $file['name'] ?></a></td>
+	<td><a href="<?= $c->admin_url('editgallery',$item_id,'file='.$fid) ?>" class="edit">&nbsp;</a></td>
+	<td><a onClick="return delCnfrm();" href="<?= $c->admin_url('delgallery',$item_id,'file='.$fid) ?>" class="del">&nbsp;</a></td>
+</tr>
+<?php } ?>
+
+</table></div>
+<?php
+}
+
+?>
+</td>
+
+
+
+<td valign="top" style="padding-left: 10px;" class="roundbar" valign="top">
+  <?= CMS::stdstyle('round.css') ?>
+  <?= CMS::stdscript('round.js') ?>
+  <form method="post" action="<?= $action ?>" enctype="multipart/form-data">
+  <table border="0" cellspacing="0" cellpadding="0" class="form">
+		<?php $file = array(); include('gallform.phtml'); ?>
+		<tr>
+			<th>&nbsp;</th>
+			<td><input type="submit" value="Добавить"></td>
+		</tr>
+  </table>
+  </form>
+</td>
+
+</tr></table>
+
+
+<?php } ?>
+</body>
+</html>

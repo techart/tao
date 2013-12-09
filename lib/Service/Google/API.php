@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Service\Google\API
+ */
+
 
 Core::load('Cache');
 Core::load('IO');

@@ -1,15 +1,18 @@
 <?php
-/// <module name="CMS.Admin" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.Admin
+ * 
+ * @package CMS\Admin
+ * @version 0.0.0
+ */
 
-/// <class name="CMS.Admin" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="Webkit.Session" stereotype="uses" />
+/**
+ * @package CMS\Admin
+ */
 class CMS_Admin implements Core_ModuleInterface { 
 	
-///   <constants>
 	const MODULE = 'CMS.Admin'; 
 	const VERSION = '0.0.0'; 
-///   </constants>
 	
 	static $config; 
 	static $site; 
@@ -30,19 +33,16 @@ class CMS_Admin implements Core_ModuleInterface {
 
 	static $jquery = false;
 
-/// <protocol name="creating">
 	
 	
-///   <method scope="class" name="initialize">
-///     <args>
-///       <arg name="config" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $config
+ */
 	static function initialize($config=array()) { 
 		foreach($config as $key => $value) self::$$key = $value;
 		CMS::$admin = self::$path;
 		//if (!self::$jquery) self::$jquery = CMS::stdfile_url('scripts/jquery-1.4.2.js');
-		if (!self::$jquery) self::$jquery = 'jquery.js';
+		if (!self::$jquery) self::$jquery = '/tao/scripts/jquery.js';
 		$session = WS::env()->request->session();
 		if (isset($session['admin/site'])) { 
 			self::$site = $session['admin/site']; 
@@ -53,54 +53,42 @@ class CMS_Admin implements Core_ModuleInterface {
 			$session['admin/site'] = self::$site; 
 		} 
 	} 
-///     </body>
-///   </method>
-/// </protocol>
 	
-/// <protocol name="quering">
 	
-///   <method scope="class" name="path" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function path() {
 		return trim(trim(self::$path,'/'));
 	}
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="site" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function site() { 
 		return self::get_site(); 
 	} 
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="host" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function host() { 
 		return self::$host; 
 	} 
-///     </body>
-///   </method>
-/// </protocol>
 	
-/// <protocol name="accessing">
 	
-///   <method scope="class" name="set_site">
-///     <args>
-///       <arg name="site" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $site
+ */
 	static function set_site($site) { 
 		$session = WS::env()->request->session();
 		self::$site = $site; 
 		$session['admin/site'] = $site; 
 	} 
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="get_site" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function get_site() { 
 		$session = WS::env()->request->session();
 		if (isset($session['admin/site'])) { 
@@ -111,40 +99,34 @@ class CMS_Admin implements Core_ModuleInterface {
 			return CMS::$defsite; 
 		} 
 	} 
-///     </body>
-///   </method>
-/// </protocol>
 	
-/// <protocol name="performing">
 	
 	static function add_menu_item($item=array()) { 
 		self::menu($item['t'],$item['u']);
 	} 
 
-///   <method scope="class" name="help" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function help($name,$component=false) {
 		if (!$component) $component = CMS::$current_component_name;
 		$lang = self::$lang;
 		return "$lang/$component/$name";
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="layout" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function layout() {
 		return CMS::view('admin-layout.phtml');
 	}
-///     </body>
-///   </method>
 
 
 
 	static $embedded_admin_menu_builded = false;
 
-///   <method scope="class" name="build_embedded_admin_menu">
-///     <body>
+/**
+ */
 	static function build_embedded_admin_menu($set) {
 		if (self::$embedded_admin_menu_builded) return;
 		self::$embedded_admin_menu_builded = true;
@@ -157,11 +139,10 @@ class CMS_Admin implements Core_ModuleInterface {
 			}
 		}
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="embedded_admin_menu" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function embedded_admin_menu($style='') {
 		$menu = CMS::navigation()->admin();
 		if (!$menu||$menu->count()==0) return '';
@@ -172,46 +153,38 @@ class CMS_Admin implements Core_ModuleInterface {
 		ob_end_clean();
 		return $contents;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="empty_layout" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function empty_layout() {
 		return CMS::view('admin-empty-layout.phtml');
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="logo" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function logo() {
 		if (IO_FS::exists('.'.self::$logo)) return self::$logo; 
 		return CMS::stdfile_url('images/logo.gif');
 	}
-///     </body>
-///   </method>
 	
 	
-///   <method scope="class" name="menu">
-///     <args>
-///       <arg name="title" type="string" />
-///       <arg name="uri" type="string" />
-///       <arg name="icon" type="string|false" default="false" />
-///       <arg name="submenu" type="array|false" default="false" />
-///     </args>
-///     <body>
+/**
+ * @param string $title
+ * @param string $uri
+ * @param string|false $icon
+ * @param array|false $submenu
+ */
 	static function menu($title,$item,$p1=false,$p2=false) {
 		//self::menu_process($title,$item,$p1,$p2);
 		self::$admin_menu_src[] = array($title,$item,$p1,$p2);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="get_menu">
-///     <body>
+/**
+ */
 	static function get_menu() {
 		if (!self::$menu) {
 			foreach(self::$admin_menu_src as $m) {
@@ -221,18 +194,14 @@ class CMS_Admin implements Core_ModuleInterface {
 		}
 		return self::$menu;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="menu_process">
-///     <args>
-///       <arg name="title" type="string" />
-///       <arg name="uri" type="string" />
-///       <arg name="icon" type="string|false" default="false" />
-///       <arg name="submenu" type="array|false" default="false" />
-///     </args>
-///     <body>
+/**
+ * @param string $title
+ * @param string $uri
+ * @param string|false $icon
+ * @param array|false $submenu
+ */
 	static function menu_process($title,$item,$p1=false,$p2=false) {
 		$sub = false;
 		$icon = 'default';
@@ -250,12 +219,11 @@ class CMS_Admin implements Core_ModuleInterface {
 
 		self::$menu[] = array('t'=>$title,'u' => $item,'s'=>$sub,'i'=>$icon);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="subsites_menu" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function subsites_menu() {
 		if (!isset(CMS::$sites)) return false;
 		ob_start();
@@ -273,14 +241,11 @@ class CMS_Admin implements Core_ModuleInterface {
 		$content = ob_get_clean();
 		return $content;
 	}
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="admin_menu" returns="string">
-///     <args>
-///       <arg name="access" type="string" default="full" />
-///     </args>
-///     <body>
+/**
+ * @param string $access
+ * @return string
+ */
 	static function admin_menu($access='full') {
 		if (!CMS::$globals[$access]) return '';
 		ob_start();
@@ -297,25 +262,17 @@ class CMS_Admin implements Core_ModuleInterface {
 		$content = ob_get_clean();
 		return $content;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="component_icon" returns="string">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return string
+ */
 	static function component_icon($name) {
 		return CMS::stdfile_url('images/components/default.gif');
 	}
-///     </body>
-///   </method>
 
 	
-/// </protocol>
 	
 } 
-/// </class>
 
-/// </module>
 

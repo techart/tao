@@ -1,14 +1,20 @@
 <?php
-/// <module name="L10N" version="0.2.1" maintainer="timokhin@techart.ru">
-///   <brief>Модуль предназначен для локализации дат на русский и английский языки</brief>
+/**
+ * L10N
+ * 
+ * Модуль предназначен для локализации дат на русский и английский языки
+ * 
+ * @package L10N
+ * @version 0.2.1
+ */
 Core::load('Time');
 
-/// <class name="L10N" stereotype="module">
+/**
+ * @package L10N
+ */
 class L10N implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.1';
-///   </constants>
 
   const FULL          = 0;
   const ABBREVIATED   = 1;
@@ -16,18 +22,13 @@ class L10N implements Core_ModuleInterface {
 
   static protected $locale = null;
 
-///   <protocol name="creating">
 
-///   <method name="lang" returns="L10N.LocaleInterface" scope="class">
-///     <brief>Устанавливает локаль</brief>
-///     <details>
-///       Локаль может быть 'ru' или 'en'.
-///       Подгружается соответствующий модуль.
-///     </details>
-///     <args>
-///       <arg name="lang" type="string" default="null" brief="локаль" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает локаль
+ * 
+ * @param string $lang
+ * @return L10N_LocaleInterface
+ */
   static public function locale($lang = null) {
     if ($lang !== null) {
       Core::load($module = 'L10N.'.strtoupper($lang));
@@ -35,99 +36,74 @@ class L10N implements Core_ModuleInterface {
     }
     return self::$locale;
   }
-///     </body>
-///   </method>
 
-///   <method name="strfrime" returns="string" scope="class">
-///     <brief>Возвращает отформатированную строку, подставляя дату в нужном формате</brief>
-///     <args>
-///       <arg name="format" type="string" brief="строка форматирования" />
-///       <arg name="date" type="Time.DateTime|int|string" brief="дата" />
-///       <arg name="variant" type="int" brief="вариант" />
-///     </args>
-///     <body>
+/**
+ * Возвращает отформатированную строку, подставляя дату в нужном формате
+ * 
+ * @param string $format
+ * @param Time_DateTime|int|string $date
+ * @param int $variant
+ * @return string
+ */
   static public function strftime($format, $date, $variant = L10N::FULL) {
     return self::$locale->strftime($format, $date, $variant);
   }
-///     </body>
-///   </method>
 
-///   <method name="month_name" returns="string" scope="class">
-///     <brief>Вовращает имя месяца в соответствии с установленной локалью</brief>
-///     <args>
-///       <arg name="month" type="int" brief="месяц" />
-///       <arg name="variant" type="int" brief="вариант" />
-///     </args>
-///     <body>
+/**
+ * Вовращает имя месяца в соответствии с установленной локалью
+ * 
+ * @param int $month
+ * @param int $variant
+ * @return string
+ */
     static public function month_name($month, $variant = L10N::FULL) {
       return self::$locale->month_name($month, $variant);
     }
-///     </body>
-///   </method>
 
-///   <method name="weekday_name" returns="string" scope="class">
-///     <brief>Вовращает день нелдели в соответствии с установленной локалью</brief>
-///     <args>
-///       <arg name="wday" type="int" brief="день недели" />
-///       <arg name="variant" type="int" brief="вариант" />
-///     </args>
-///     <body>
+/**
+ * Вовращает день нелдели в соответствии с установленной локалью
+ * 
+ * @param int $wday
+ * @param int $variant
+ * @return string
+ */
     static public function weekday_name($wday, $variant = L10N::FULL) {
       return self::$locale->weekday_name($wday, $variant);
     }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="L10N.Locale" stereotype="abstract">
-///   <brief>Абстрактный класс локали</brief>
+/**
+ * Абстрактный класс локали
+ * 
+ * @abstract
+ * @package L10N
+ */
 abstract class L10N_Locale {
 
   protected $data;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="definition" type="array" brief="массив с описанием различных вариантов соответвующий локали" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param array $definition
+ */
   public function __construct($definition) {
     $this->data = $definition;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
 
-///   <method name="strfrime" returns="string">
-///     <brief>Возвращает отформатированную строку, подставляя дату в нужном формате</brief>
-///     <details>
-///       Строка форматирования может содержать следующие конструкции:
-///       <dl>
-///         <dt>%a</dt><dd>день недели в варианте L10N::ABBREVIATED (в сокращенном виде)</dd>
-///         <dt>%A</dt><dd>день недели в варианте L10N::FULL (полное название)</dd>
-///         <dt>%b</dt><dd>день месяца в варианте L10N::ABBREVIATED </dd>
-///         <dt>%d(\s)*%B</dt><dd>день ввиде ввиде двухзначного числа (01 02 ...) и месяц в варианте L10N::INFLECTED (января февроля ...) </dd>
-///         <dt>%e(\s)*%B</dt><dd>день и месяц в варианте L10N::INFLECTED </dd>
-///         <dt>%B</dt><dd>месяц в варианте указанном в атрибуте $variant</dd>
-///       </dl>
-///       Варианты могут быть FULL, ABBREVIATED, INFLECTED. Так же спецефичный варианты могут быть определены в модуле локали.
-///       Например в L10N.RU дополнительно поределен вариант PREPOSITIONAL
-///     </details>
-///     <args>
-///       <arg name="format" type="string" brief="строка форматирования" />
-///       <arg name="date" type="Time.DateTime|int|string" brief="дата" />
-///       <arg name="variant" type="int" brief="вариант" />
-///     </args>
-///     <body>
+/**
+ * Возвращает отформатированную строку, подставляя дату в нужном формате
+ * 
+ * @param string $format
+ * @param Time_DateTime|int|string $date
+ * @param int $variant
+ * @return string
+ */
   public function strftime($format, $date, $variant = L10N::FULL) {
     if (!$date = Time::DateTime($date))
       throw new Core_InvalidArgumentTypeException('date', $date);
@@ -145,52 +121,41 @@ abstract class L10N_Locale {
               $format),
             $date->timestamp);
   }
-///     </body>
-///   </method>
 
-///   <method name="month_name" returns="string">
-///     <brief>Вовращает имя месяца</brief>
-///     <args>
-///       <arg name="month" type="int" brief="месяц" />
-///       <arg name="variant" type="int" brief="вариант" />
-///     </args>
-///     <body>
+/**
+ * Вовращает имя месяца
+ * 
+ * @param int $month
+ * @param int $variant
+ * @return string
+ */
     public function month_name($month, $variant = L10N::FULL) {
       return $this->variant($variant, 'months', (int)$month);
     }
-///     </body>
-///   </method>
 
 
-///   <method name="weekday_name" returns="string">
-///     <brief>Вовращает день нелдели</brief>
-///     <args>
-///       <arg name="wday" type="int" brief="день недели" />
-///       <arg name="variant" type="int" brief="вариант" />
-///     </args>
-///     <body>
+/**
+ * Вовращает день нелдели
+ * 
+ * @param int $wday
+ * @param int $variant
+ * @return string
+ */
     public function weekday_name($wday, $variant = L10N::FULL) {
       return $this->variant($variant, 'weekdays', (int) $wday);
     }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="variant" returns="string" access="protected">
-///     <brief>Вовращает название месяца или дня недели</brief>
-///     <body>
+/**
+ * Вовращает название месяца или дня недели
+ * 
+ * @return string
+ */
   protected function variant($variant, $from, $index) {
     return $this->data[$from][isset($this->data[$from][$variant]) ? $variant : L10N::FULL][$index];
   }
-///     </body>
-///   </method>
 
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

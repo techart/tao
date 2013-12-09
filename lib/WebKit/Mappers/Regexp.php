@@ -1,55 +1,51 @@
 <?php
-/// <module name="WebKit.Mappers.Regexp" version="1.2.1" maintainer="timokhin@techart.ru">
+/**
+ * WebKit.Mappers.Regexp
+ * 
+ * @package WebKit\Mappers\Regexp
+ * @version 1.2.1
+ */
 
 Core::load('WebKit.Controller');
 
-/// <class name="WebKit.Mappers.Regexp" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="WebKit.Mappers.Regexp.Mapper" stereotype="creates" />
+/**
+ * @package WebKit\Mappers\Regexp
+ */
 class WebKit_Mappers_Regexp implements Core_ModuleInterface {
 
-///   <constants>
   const MODULE  = 'WebKit.Mappers.Regexp';
   const VERSION = '1.2.1';
-///   </constants>
 
 
-///   <protocol name="building">
 
-///   <method name="Mapper" returns="WebKit.Mappers.Regexp.Mapper" scope="class">
-///     <body>
+/**
+ * @return WebKit_Mappers_Regexp_Mapper
+ */
   static public function Mapper() { return new WebKit_Mappers_Regexp_Mapper(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="WebKit.Mappers.Regexp.Mapper" extends="WebKit.Controller.AbstractMapper">
+/**
+ * @package WebKit\Mappers\Regexp
+ */
 class WebKit_Mappers_Regexp_Mapper extends WebKit_Controller_AbstractMapper  {
   protected $rules = array();
 
-///   <protocol name="mapping">
 
-///   <method name="map" returns="WebKit.Mappers.Regexp.Mapper">
-///     <body>
+/**
+ * @return WebKit_Mappers_Regexp_Mapper
+ */
   public function map($regexp, array $parms, $defaults) {
     $this->rules[] = array($regexp, $parms, $defaults);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="routing">
 
-///   <method name="route" returns="WebKit.Controller.Route">
-///     <args>
-///       <arg name="request" type="WebKit.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @param WebKit_HTTP_Request $request
+ * @return WebKit_Controller_Route
+ */
   public function route($request) {
     if ($this->is_not_match_for($request->urn)) return null;
 
@@ -73,11 +69,6 @@ class WebKit_Mappers_Regexp_Mapper extends WebKit_Controller_AbstractMapper  {
         add_controller_prefix($this->options['prefix']) :
       null;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

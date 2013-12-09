@@ -1,0 +1,11 @@
+<table border="0" cellspacing="0" cellpadding="0" width="100%" class="form">
+  <?php foreach($form_fields as $name => $parms) { 
+	include('field.phtml');
+  } ?>
+
+  <tr>
+    <th><span class="showchange">&nbsp;</span></th>
+    <td width="100%"><input type="submit" value="<?= htmlspecialchars(CMS::lang($submit)) ?>" /></td>
+  </tr>
+
+</table>

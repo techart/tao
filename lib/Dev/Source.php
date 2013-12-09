@@ -1,125 +1,106 @@
 <?php
-/// <module name="Dev.Source" version="0.2.0" maintainer="timokhin@techart.ru">
+/**
+ * Dev.Source
+ * 
+ * @package Dev\Source
+ * @version 0.2.0
+ */
 Core::load('IO.FS', 'XML', 'CLI');
 
-/// <class name="Dev.Source" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="Dev.Source.Module" stereotype="creates" />
-///   <depends supplier="Dev.Source.Library" stereotype="creates" />
+/**
+ * @package Dev\Source
+ */
 class Dev_Source implements Core_ModuleInterface {
 
-///   <constants>
   const MODULE  = 'Dev.Source';
   const VERSION = '0.2.1';
-///   </constants>
 
-///   <protocol name="Dev.Source">
 
-///   <method name="Module" returns="Dev.Source.Module" scope="class">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return Dev_Source_Module
+ */
   static public function Module($name) { return new Dev_Source_Module($name); }
-///     </body>
-///   </method>
 
-///   <method name="Library" returns="Dev.Source.Library" scope="class">
-///     <body>
+/**
+ * @return Dev_Source_Library
+ */
   static public function Library() {
     $args = func_get_args();
     return new Dev_Source_Library(((isset($args[0]) && is_array($args[0]) ? $args[0] : $args)));
   }
-///     </body>
-///   </method>
 
-///   <method name="LibraryDirIterator" returns="Dev.Source.LibraryDirIterator" scope="class">
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ * @return Dev_Source_LibraryDirIterator
+ */
   static public function LibraryDirIterator($path) {
     return new Dev_Source_LibraryDirIterator($path);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <interface name="Dev.Source.LibraryIteratorInterface">
+/**
+ * @package Dev\Source
+ */
 interface Dev_Source_LibraryIteratorInterface {}
-/// </interface>
 
-/// <class name="Dev.Source.Exception" extends="Core.Exception" stereotype="exception">
+/**
+ * @package Dev\Source
+ */
 class Dev_Source_Exception extends Core_Exception {}
-/// </class>
 
 
-/// <class name="Dev.Source.InvalidSourceException" extends="Dev.Source.Exception" stereotype="exception">
+/**
+ * @package Dev\Source
+ */
 class Dev_Source_InvalidSourceException extends Dev_Source_Exception {
 
   protected $module;
   protected $source;
   protected $errors;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="module" type="string" />
-///       <arg name="source" type="string" />
-///       <arg name="errors" type="ArrayObject" />
-///     </args>
-///     <body>
+/**
+ * @param string $module
+ * @param string $source
+ * @param ArrayObject $errors
+ */
   public function __construct($module, $source, ArrayObject $errors) {
     $this->module = $module;
     $this->source = $source;
     $this->errors = $errors;
     parent::__construct(Core_Strings::format('Invalid source for module %s (errors: %d)', $this->module, count($this->errors)));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
 
-/// <class name="Dev.Source.Module">
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <depends supplier="Dev.Source.InvalidSourceException" stereotype="throws" />
+/**
+ * @package Dev\Source
+ */
 class Dev_Source_Module {
 
   protected $name;
   protected $file;
   protected $xml;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ */
   public function __construct($name) {
     $this->name = $name;
     $this->file = IO_FS::File(Core::loader()->file_path_for($name));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="load" access="protected" returns="Dev.Source.Module">
-///     <args>
-///       <arg name="reload" type="boolean" />
-///     </args>
-///     <body>
+/**
+ * @param boolean $reload
+ * @return Dev_Source_Module
+ */
   protected function load($reload = false) {
     if (!$this->xml || $reload) {
 
@@ -152,18 +133,13 @@ class Dev_Source_Module {
     }
     return $this->xml;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'xml':
@@ -175,28 +151,22 @@ class Dev_Source_Module {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     throw ($this->__isset($property)) ?
       new Core_ReadOnlyPropertyException($property) :
       new Core_MissingPropertyException($property);
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'xml':
@@ -207,31 +177,23 @@ class Dev_Source_Module {
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) {
     throw ($this->__isset($property)) ?
       new Core_UndestroyablePropertyException($property) :
       new Core_MissingPropertyException($property);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
 
-/// <class name="Dev.Source.Library">
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Dev.Source.LibraryIteratorInterface" />
+/**
+ * @package Dev\Source
+ */
 //    <implements interface="IteratorAggregate" />
 class Dev_Source_Library
   implements Core_PropertyAccessInterface,
@@ -241,10 +203,9 @@ class Dev_Source_Library
   protected $modules;
   protected $xml;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <body>
+/**
+ */
   public function __construct() {
     $this->modules = Core::hash();
 
@@ -254,14 +215,11 @@ class Dev_Source_Library
     }
 
   }
-///     </body>
-///   </method>
 
-///   <method name="module" returns="Dev.Source.Library">
-///     <args>
-///       <arg name="module" />
-///     </args>
-///     <body>
+/**
+ * @param  $module
+ * @return Dev_Source_Library
+ */
   public function module($module) {
     $module = ($module instanceof Dev_Source_Module) ?
         $module :
@@ -270,28 +228,20 @@ class Dev_Source_Library
     $this->modules[$module->name] = $module;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating" interface="IteratorAggregate">
 
-///   <method name="getIterator" returns="Iterator">
-///     <body>
+/**
+ * @return Iterator
+ */
   public function getIterator() { return $this->modules->getIterator(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'xml':
@@ -300,24 +250,18 @@ class Dev_Source_Library
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'xml':
@@ -326,27 +270,18 @@ class Dev_Source_Library
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="load" returns="Dev.Source.Library">
-///     <args>
-///       <arg name="reload" type="boolean" />
-///     </args>
-///     <body>
+/**
+ * @param boolean $reload
+ * @return Dev_Source_Library
+ */
   public function load($reload = false) {
     if (!$this->xml || $reload) {
       $library = Core::with(
@@ -360,16 +295,12 @@ class Dev_Source_Library
     }
     return $this->xml;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Dev.Source.LibraryDirIterator">
-///   <implements interface="Iterator" />
-///   <implements interface="Dev.Source.LibraryIteratorInterface" />
+/**
+ * @package Dev\Source
+ */
 class Dev_Source_LibraryDirIterator
   implements Iterator,
              Dev_Source_LibraryIteratorInterface {
@@ -377,12 +308,9 @@ class Dev_Source_LibraryDirIterator
   protected $path;
   protected $current;
   protected $dir_iterator;
-///   <protocol name="creating">
-///   <method name="__construct">
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ */
   public function __construct($path) {
     $this->path = (string) $path;
     $this->dir_iterator = IO_FS::Dir($this->path)->query(
@@ -390,49 +318,36 @@ class Dev_Source_LibraryDirIterator
     $this->dir_iterator->rewind();
     $this->current = Dev_Source::Module($this->module_name($this->dir_iterator->current()->path));
   }
-///     </body>
-///   </method>
-///   </protocol>
 
-///   <protocol name="suppotring">
 
-///   <method name="module_name" returns="string">
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ * @return string
+ */
   protected function module_name($path) {
     return Core_Strings::replace(
       Core_Strings::replace(
       Core_Strings::replace($path, $this->path."/", ''), '.php', ''), '/', '.');
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating">
 
-///   <method name="rewind">
-///     <body>
+/**
+ */
   public function rewind() { $this->dir_iterator->rewind(); }
-///     </body>
-///   </method>
 
-///   <method name="current" returns="mixed">
-///     <body>
+/**
+ * @return mixed
+ */
   public function current() { return $this->current; }
-///     </body>
-///   </method>
 
-///   <method name="key" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function key() { return $this->current->name; }
-///     </body>
-///   </method>
 
-///   <method name="next">
-///     <body>
+/**
+ */
   public function next() {
     $this->dir_iterator->next();
     if ($this->dir_iterator->valid())
@@ -440,24 +355,14 @@ class Dev_Source_LibraryDirIterator
       $this->module_name($this->dir_iterator->current()->path));
     else return null;
   }
-///     </body>
-///   </method>
 
-///   <method name="valid" returns="boolean">
-///     <body>
+/**
+ * @return boolean
+ */
   public function valid() { return $this->dir_iterator->valid(); }
-///     </body>
-///   </method>
 
-/// </protocol>
 
 }
-/// </class>
 
-/// <aggregation>
-///   <source class="Dev.Source.Library" role="library" multiplicity="1" />
-///   <target class="Dev.Source.Module"  role="module"  multiplicity="N" />
-/// </aggregation>
 
-/// </module>
 ?>

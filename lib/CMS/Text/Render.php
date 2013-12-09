@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Text\Render
+ */
+
 
 class CMS_Text_Render implements Core_ModuleInterface {
 	const MODULE  = 'CMS.Text.Render';

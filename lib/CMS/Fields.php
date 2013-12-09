@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields
+ */
+
 
 class CMS_Fields implements Core_ModuleInterface {
 
@@ -735,14 +739,16 @@ abstract class CMS_Fields_AbstractField {
 
 		foreach ($types as $t) {
 			if (empty($t)) continue;
-			if (IO_FS::exists($file = Templates::get_path('fields/' . $t . '/' . $name, '.phtml'))) {
-
-				return $template[$key] = $file;
+			$view = Templates_HTML::Template('fields/' . $t . '/' . $name);
+			if ($view->exists()) {
+				return $template[$key] = $view->path;
 			}
 		}
 
-		if (IO_FS::exists($file = Templates::get_path('fields/' . $name, '.phtml')))
-			return $template[$key] = $file;
+		$view = Templates_HTML::Template('fields/' . $name);
+		if ($view->exists()) {
+			return $template[$key] = $view->path;
+		}
 
 		return $template[$key] = $name;
 	}

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Dumps
+ */
+
 Core::load('IO.FS');
 
 class CMS_Dumps implements Core_ModuleInterface {

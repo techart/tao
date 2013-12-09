@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\Stockroom
+ */
+
 
 Core::load('CMS.Controller.Table');
 

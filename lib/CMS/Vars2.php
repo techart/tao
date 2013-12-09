@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2
+ */
+
 
 Core::load('CMS.Fields');
 

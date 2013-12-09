@@ -1,14 +1,18 @@
 <?php
-/// <module name="CMS.Controller.Base" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.Controller.Base
+ * 
+ * @package CMS\Controller\Base
+ * @version 0.0.0
+ */
 Core::load('WebKit.Controller');
-/// <class name="CMS.Controller.Base" stereotype="module" extends="WebKit.Controller.AbstractController">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package CMS\Controller\Base
+ */
 class CMS_Controller_Base extends WebKit_Controller_AbstractController implements Core_ModuleInterface {
 	
-///   <constants>
 	const MODULE  = 'CMS.Controller.Base';
 	const VERSION = '0.0.0';
-///   </constants>
 
 	static $db;
 
@@ -31,10 +35,10 @@ class CMS_Controller_Base extends WebKit_Controller_AbstractController implement
 	}
 
 
-///   <protocol name="creating">
 
-///   <method name="setup" returns="CMS.Controller.Base">
-///     <body>
+/**
+ * @return CMS_Controller_Base
+ */
 	public function setup() {
 		parent::setup();
 
@@ -48,19 +52,14 @@ class CMS_Controller_Base extends WebKit_Controller_AbstractController implement
 		
 		return $this;
 	}
-///     </body>
-///   </method>
 	
 
-///   </protocol>	
 	
 
-///   <protocol name="filter">
 
-///   <method name="restricted_authenticate_filter">
-///     <body>
+/**
+ */
 	protected function restricted_authenticate_filter() {
-
 		$res = CMS_Handlers_RealmAuth::access($this->auth_realm(), array($this, 'extra_auth'));
 
 		if ($res) {
@@ -74,50 +73,37 @@ class CMS_Controller_Base extends WebKit_Controller_AbstractController implement
 			$this->_noauth();
 		}	
 	}
-///     </body>
-///   </method>
 
-///   <method name="extra_auth">
-///     <body>
+/**
+ */
 	public function extra_auth($login,$password,$realm) {
 		if (is_callable(CMS::$extra_auth)) return call_user_func(CMS::$extra_auth,$login,$password,$realm);
 		return false;
 	}
-///     </body>
-///   </method>
 
-///   <method name="after_auth">
-///     <body>
+/**
+ */
 	protected function after_auth($parms) {
 		if (is_callable(CMS::$after_auth)) return call_user_func(CMS::$after_auth,$parms);
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="setup_filter">
-///     <body>
+/**
+ */
 	protected function setup_filter() {
 	}
-///     </body>
-///   </method>
 	
 	
-///   </protocol>
 	
-///   <protocol name="supporting">
 
-///   <method name="_noauth">
-///     <body>
+/**
+ */
 	protected function _noauth() {
 		$title = $this->auth_realm_title();
 		throw new WS_Auth_UnauthenticatedException($title);
 	}
-///     </body>
-///   </method>
 	
 
-///   </protocol>
 
 	protected function render_view($template, array $parms = array(),$layout = '') {
 		$t = parent::render_view($template,$parms,$layout);
@@ -128,7 +114,5 @@ class CMS_Controller_Base extends WebKit_Controller_AbstractController implement
 	
 	
 }
-/// </class>
 
 
-/// </module>

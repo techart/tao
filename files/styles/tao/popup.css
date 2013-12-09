@@ -46,9 +46,9 @@
 }
 
 .ui-dialog, .ui-dialog * {
-  z-index: 2001;
+  z-index: 2001 !important;
 }
 
 .ui-widget-overlay {
-  z-index: 2000;
+  z-index: 2000 !important;
 }

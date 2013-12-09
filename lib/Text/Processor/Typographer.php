@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Processor\Typographer
+ */
+
 
 Core::load('Text.Process');
 

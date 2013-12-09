@@ -1,116 +1,95 @@
 <?php
-/// <module name="WS.REST" version="0.2.0" maintainer="timokhin@techart.ru">
+/**
+ * WS.REST
+ * 
+ * @package WS\Services\REST
+ * @version 0.2.0
+ */
 Core::load('WS', 'WS.Services.REST.URI');
 
 
 //TODO: Events + CMS integration -- current_controller, current_mapper.
 
 
-/// <class name="WS.REST" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="WS.REST.Application" stereotype="creates" />
-///   <depends supplier="WS.REST.Resource" stereotype="creates" />
-///   <depends supplier="WS.REST.Method" stereotype="creates" />
+/**
+ * @package WS\Services\REST
+ */
 class WS_Services_REST implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.2';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Dispatcher" scope="class" returns="WS.REST.Dispatcher">
-///     <args>
-///       <arg name="mappings" type="array" />
-///       <arg name="default" type="string" default="''" />
-///     </args>
-///     <body>
+/**
+ * @param array $mappings
+ * @param string $default
+ * @return WS_REST_Dispatcher
+ */
   public static function Dispatcher($apptication = null, array $mappings = array(), $default = '') { return new WS_Services_REST_Dispatcher($application, $mappings, $default); }
-///     </body>
-///   </method>
 
-///   <method name="Application" scope="class" returns="WS.REST.Application">
-///     <body>
+/**
+ * @return WS_REST_Application
+ */
   public static function Application() { return new WS_Services_REST_Application(); }
-///     </body>
-///   </method>
 
-///   <method name="Resource" scope="class" returns="WS.REST.Resource">
-///     <args>
-///       <arg name="classname" type="string" />
-///       <arg name="path" type="string" default="''" />
-///     </args>
-///     <body>
+/**
+ * @param string $classname
+ * @param string $path
+ * @return WS_REST_Resource
+ */
   public static function Resource($classname, $path = '') {
     return new WS_Services_REST_Resource($classname, $path);
   }
-///     </body>
-///   </method>
 
-///   <method name="Method" scope="class" returns="WS.REST.Method">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return WS_REST_Method
+ */
   public static function Method($name) { return new WS_Services_REST_Method($name); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="WS.REST.Exception" extends="WS.Exception">
+/**
+ * @package WS\Services\REST
+ */
 class WS_Services_REST_Exception extends WS_Exception {}
-/// </class>
 
-/// <class name="WS.REST.Dispatcher">
-///   <implements interface="WS.ServiceInterface" />
+/**
+ * @package WS\Services\REST
+ */
 class WS_Services_REST_Dispatcher extends WS_MiddlewareService /* implements WS_ServiceInterface */ {
 
   protected $mappings = array();
   protected $default  = '';
   protected $env;
 
-///   <protocol name="creating">
 
-///   <method name="__constructor">
-///     <args>
-///       <arg name="mappings" type="array" />
-///       <arg name="default" type="string" default="''" />
-///     </args>
-///     <body>
+/**
+ * @param array $mappings
+ * @param string $default
+ */
   public function __construct($application = null, array $mappings = array(), $default = null) {
     parent::__construct($application);
     $this->mappings($mappings);
     if ($default)
       $this->map('default', $default);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="mappings" returns="WS.REST.Dispatcher">
-///     <args>
-///       <arg name="mappings" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $mappings
+ * @return WS_REST_Dispatcher
+ */
   public function mappings(array $mappings) {
     foreach ($mappings as $k => $v) $this->map($k, $v);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="map" returns="WS.REST.Dispatcher">
-///     <args>
-///       <arg name="path" type="string" />
-///       <arg name="classname" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ * @param string $classname
+ * @return WS_REST_Dispatcher
+ */
   public function map($name, $app) {
     if (is_string($app)) $app = array('class' => $app);
     if (!isset($app['prefix'])) $app['prefix'] = $name;
@@ -119,8 +98,6 @@ class WS_Services_REST_Dispatcher extends WS_MiddlewareService /* implements WS_
     $this->mappings[$name] = $app;
     return $this;
   }
-///     </body>
-///   </method>
 
   public function get_app($name, $parms = array()) {
     if (isset($this->mappings[$name]['instance']))
@@ -138,15 +115,12 @@ class WS_Services_REST_Dispatcher extends WS_MiddlewareService /* implements WS_
   }
   
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="mixed">
-///     <args>
-///       <arg name="env" type="WS.Environment" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Environment $env
+ * @return mixed
+ */
   public function run(WS_Environment $env) {
     $this->env = $env;
     list($prefix, $app_name) = array('', 'default');
@@ -174,8 +148,6 @@ class WS_Services_REST_Dispatcher extends WS_MiddlewareService /* implements WS_
     $app = $app ? $app : $this->get_app($app_name, $app_parms);
     return $this->create_response($app, $env);
   }
-///     </body>
-///   </method>
 
   protected function create_response($app, $env) {
       if ($app) {
@@ -195,26 +167,20 @@ class WS_Services_REST_Dispatcher extends WS_MiddlewareService /* implements WS_
     //   ($this->application instanceof WS_ServiceInterface ? $this->application->run($env) : Net_HTTP::Response(Net_HTTP::NOT_FOUND));
   }
 
-///   </protocol>
 
-///   <method name="setup_env" returns="WS.Environment" access="protected">
-///     <args>
-///       <arg name="env" type="WS.Environment" />
-///       <arg name="prefix" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Environment $env
+ * @param string $prefix
+ * @return WS_Environment
+ */
   protected function setup_env(WS_Environment $env) { return $env->app($this); }
-///     </body>
-///   </method>
 
 
-///   <protocol name="supporting">
 
-///   <method name="load_application" returns="WS.REST.Application" access="protected">
-///     <args>
-///       <arg name="app" type="string|array" />
-///     </args>
-///     <body>
+/**
+ * @param string|array $app
+ * @return WS_REST_Application
+ */
   protected function load_application($name, $parms = array()) {
     $app = $this->mappings[$name];
     if (empty($app)) return null;
@@ -227,18 +193,13 @@ class WS_Services_REST_Dispatcher extends WS_MiddlewareService /* implements WS_
      else
        throw new WS_Services_REST_Exception('Incompatible application class: '.Core_Types::virtual_class_name_for($class_name));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="WS.REST.Application">
-///   <implements interface="WS.ServiceInterface" />
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <depends supplier="WS.REST.URI.MatchResults" stereotype="uses" />
+/**
+ * @package WS\Services\REST
+ */
 class WS_Services_REST_Application
   implements WS_ServiceInterface, Core_PropertyAccessInterface {
 
@@ -274,104 +235,77 @@ class WS_Services_REST_Application
   
   protected $name;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ */
   public function __construct($prefix = '', array $options = array()) {
     $this->prefix = $prefix;
     $this->options = $this->default_options();
     $this->setup($options);
   }
-///     </body>
-///   </method>
 
-///   <method name="default_options" returns="array" access="protected">
-///     <body>
+/**
+ * @return array
+ */
   protected function default_options() { return array(); }
-///     </body>
-///   </method>
 
-///   <method name="setup" access="protected">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ */
   protected function setup(array $options = array()) {}
-///     </body>
-///   </method>
 
 	protected function options(array $options = array()) {
 		$this->options = array_merge($this->options, $options);
 		return $this;
 	}
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="media_type" returns="WS.REST.Application">
-///     <args>
-///       <arg name="format" type="string" />
-///       <arg name="content_type" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $format
+ * @param string $content_type
+ * @return WS_REST_Application
+ */
   public function media_type($format, $content_type, $is_default = false) {
     $this->media_types[$format] = $content_type;
     if ($is_default) $this->default_format = $format;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="media_type_for" returns="string">
-///     <args>
-///       <arg name="format" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $format
+ * @return string
+ */
   public function media_type_for($format) { return $this->media_types[$format]; }
-///     </body>
-///   </method>
 
-///   <method name="format_for" returns="string">
-///     <args>
-///       <arg name="media_type" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $media_type
+ * @return string
+ */
   public function format_for($media_type) { return array_search($media_type, $this->media_types); }
-///     </body>
-///   </method>
 
-///   <method name="resource" returns="WS.REST.Application">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="resource" type="WS.REST.Resource" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param WS_REST_Resource $resource
+ * @return WS_REST_Application
+ */
   public function resource($name, WS_Services_REST_Resource $resource) {
     $this->resources[$name] = $resource;
     $this->classes[Core_Types::real_class_name_for($resource->classname)] = $resource;
     return $this;
   }
-///     </body>
-///   </method>
 
   public function get_resource($name) {
     return $this->resources[$name];
   }
   
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="mixed">
-///     <args>
-///       <arg name="env" type="WS.Environment" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Environment $env
+ * @return mixed
+ */
   public function run(WS_Environment $env) {
     $this->before_run($env->app($this));
     
@@ -379,8 +313,6 @@ class WS_Services_REST_Application
     
     return $this->is_match() ? $this->create_response($env) : Net_HTTP::Response(Net_HTTP::NOT_FOUND);
   }
-///     </body>
-///   </method>
 
 
   public function create_response($env) {
@@ -475,18 +407,14 @@ class WS_Services_REST_Application
   }
   
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="can_produce">
-///     <args>
-///       <arg name="resource" type="WS.REST.Resource" />
-///       <arg name="method" type="WS.REST.Method" />
-///       <arg name="accept_formats" type="array" />
-///       <arg name="exstension" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param WS_REST_Resource $resource
+ * @param WS_REST_Method $method
+ * @param array $accept_formats
+ * @param string $exstension
+ */
     protected function can_produce(WS_Services_REST_REsource $resource, WS_Services_REST_Method $method, $accept_formats, $extension) {
     $formats = array_merge($resource->formats, $method->formats);
     
@@ -511,37 +439,25 @@ class WS_Services_REST_Application
     if (in_array($this->default_format, $formats)) return $this->media_types[$this->default_format];
     return false;
   }
-///     </body>
-///   </method>
 
-///   <method name="before_run" access="protected">
-///     <args>
-///       <arg name="env" type="WS.Environment" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Environment $env
+ */
   protected function before_run(WS_Environment $env) { }
-///     </body>
-///   </method>
 
-///   <method name="after_instantiate" access="protected">
-///     <args>
-///       <arg name="resource" />
-///     </args>
-///     <body>
+/**
+ * @param  $resource
+ */
   protected function after_instantiate($resource)
   {
     if (method_exists($resource, 'run_filters')) {
       return $resource->run_filters('before', array());
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="parse_formats">
-///     <args>
-///       <arg name="request" type="" />
-///     </args>
-///     <body>
+/**
+ * @param  $request
+ */
   protected function parse_formats($request) {
     $formats = array();
     if (!$request->headers->accept) return array();
@@ -553,15 +469,12 @@ class WS_Services_REST_Application
     arsort($formats);
     return $formats;
   }
-///     </body>
-///   </method>
 
-///   <method name="canonicalize" returns="array" access="protected">
-///     <args>
-///       <arg name="uri" type="string" />
-///       <arg name="default_format" type="string" default="'html'" />
-///     </args>
-///     <body>
+/**
+ * @param string $uri
+ * @param string $default_format
+ * @return array
+ */
   protected function canonicalize($uri) {
     switch (true) {
       case $uri[strlen($uri) -1] == '/':
@@ -573,46 +486,37 @@ class WS_Services_REST_Application
     }
 
   }
-///     </body>
-///   </method>
 
 
-///   <method name="lookup_resource_for" returns="WS.REST.Resource">
-///     <args>
-///       <arg name="object" />
-///     </args>
-///     <body>
+/**
+ * @param  $object
+ * @return WS_REST_Resource
+ */
   protected function lookup_resource_for($object) {
     foreach (Core_Types::class_hierarchy_for($object) as $classname) {
       if (isset($this->classes[$classname])) return $this->classes[$classname];
     }
     return null;
   }
-///     </body>
-///   </method>
 
-///   <method name="execute" returns="mixed" access="protected">
-///     <args>
-///       <arg name="instance" type="object" />
-///       <arg name="method" type="string" />
-///       <arg name="env" type="WS.Environment" />
-///       <arg name="parms" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param object $instance
+ * @param string $method
+ * @param WS_Environment $env
+ * @param array $parms
+ * @return mixed
+ */
   protected function execute($instance, $method, WS_Environment $env, array $parms, $format = null, $defaults = array(), $extension = null) {
     $reflection = new ReflectionMethod($instance, $method);
     return $reflection->invokeArgs($instance, $this->make_args($reflection->getParameters(), $env, $parms, $format, $defaults, $extension));
   }
-///     </body>
-///   </method>
 
-///   <method name="instantiate" returns="mixed">
-///     <args>
-///       <arg name="classname" type="string" />
-///       <arg name="env" type="WS.Environment" />
-///       <arg name="parms" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param string $classname
+ * @param WS_Environment $env
+ * @param array $parms
+ * @return mixed
+ */
   protected function instantiate(WS_Services_REST_Resource $resource, WS_Environment $env, array $parms) {
     if ($resource->need_load) {
       Core::autoload($resource->classname);
@@ -627,16 +531,13 @@ class WS_Services_REST_Application
       $r->newInstanceArgs($this->make_args($c->getParameters(), $env, $parms)) :
       $r->newInstance();
   }
-///     </body>
-///   </method>
 
-///   <method name="make_args" returns="array">
-///     <args>
-///       <arg name="args"  type="array" />
-///       <arg name="env"   type="WS.Environment" />
-///       <arg name="parms" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $args
+ * @param WS_Environment $env
+ * @param array $parms
+ * @return array
+ */
   protected function make_args(array $args, WS_Environment $env, array $parms, $format = null, $defaults = array(), $extension = null) {
     $vals = array();
     $parms = array_merge($defaults, $parms);
@@ -659,18 +560,13 @@ class WS_Services_REST_Application
     }
     return $vals;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch (true) {
       case property_exists($this, $property): return $this->$property;
@@ -680,15 +576,12 @@ class WS_Services_REST_Application
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     if ($property == 'name') return $this->$property = (string) $name;
     throw property_exists($this, $property) ||
@@ -697,28 +590,21 @@ class WS_Services_REST_Application
       new Core_ReadOnlyPropertyException($property) :
       new Core_MissingPropertyException($property);
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     return property_exists($this, $property) ||
            method_exists($this, 'isset_'.$property) ||
            method_exists($this, 'get_'.$property) ||
            isset($this->options[$property]);
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) {
     throw property_exists($this, $property) ||
           method_exists($this, 'get_'.$property) ||
@@ -726,23 +612,14 @@ class WS_Services_REST_Application
       new Core_ReadOnlyPropertyException($property) :
       new Core_MissingPropertyException($property);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <composition>
-///   <source class="WS.REST.Application" role="Application" multiplicity="1" />
-///   <target class="WS.REST.Resource" role="Resources" multiplicity="N" />
-/// </composition>
 
-/// <class name="WS.REST.Resource">
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="IteratorAggregate" />
-///   <implements interface="Core.EqualityInterface" />
+/**
+ * @package WS\Services\REST
+ */
 class WS_Services_REST_Resource implements
   Core_PropertyAccessInterface, IteratorAggregate, Core_EqualityInterface {
 
@@ -753,45 +630,34 @@ class WS_Services_REST_Resource implements
   protected $methods     = array();
   protected $formats     = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="classname" type="string" />
-///       <arg name="path" type="string" default="''" />
-///     </args>
-///     <body>
+/**
+ * @param string $classname
+ * @param string $path
+ */
   public function __construct($classname, $path = '') {
     $this->classname($classname);
     $this->path($path);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="produces" returns="WS.REST.Resource" varargs="true">
-///     <body>
+/**
+ * @return WS_REST_Resource
+ */
   public function produces() {
     foreach (Core::normalize_args(func_get_args()) as $format) $this->formats[] = trim((string) $format);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="method" returns="WS.REST.Resource">
-///     <args>
-///       <arg name="method" type="WS.REST.Method" />
-///     </args>
-///     <body>
+/**
+ * @param WS_REST_Method $method
+ * @return WS_REST_Resource
+ */
   public function method(WS_Services_REST_Method $method) {
     $this->methods[$method->name] = $method;
     return $this;
   }
-///     </body>
-///   </method>
 
   public function get_method($name) {
     return $this->methods[$name];
@@ -817,25 +683,19 @@ class WS_Services_REST_Resource implements
     return $this;
   }
   
-///   </protocol>
 
-///   <protocol name="iterating" interface="IteratorAggregate">
 
-///   <method name="getIterator" returns="ArrayIterator">
-///     <body>
+/**
+ * @return ArrayIterator
+ */
   public function getIterator() { return new ArrayIterator($this->methods); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'path':
@@ -849,24 +709,18 @@ class WS_Services_REST_Resource implements
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'path':
@@ -880,26 +734,17 @@ class WS_Services_REST_Resource implements
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
-///   <method name="equals" returns="boolean">
-///     <args>
-///       <arg name="to" />
-///     </args>
-///     <body>
+/**
+ * @param  $to
+ * @return boolean
+ */
   public function equals($to) {
     return get_class($this) == get_class($to) &&
       $this->classname == $to->classname &&
@@ -908,26 +753,14 @@ class WS_Services_REST_Resource implements
       Core::equals($this->methods, $to->methods) &&
       Core::equals($this->formats, $to->formats);
   }
-///     </body>
-///   </method>
-///</protocol>
 }
-/// </class>
-
-/// <aggregation>
-///   <source class="WS.REST.Resource" role="resource" multiplicity="1" />
-///   <target class="WS.REST.URI.Template" role="path" multiplicity="1" />
-/// </aggregation>
-
-/// <composition>
-///   <source class="WS.REST.Resource" role="Resource" multiplicity="1" />
-///   <target class="WS.REST.Method" role="Methods" multiplicity="N" />
-/// </composition>
 
 
-/// <class name="WS.REST.Method">
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.EqualityInterface>" />
+
+
+/**
+ * @package WS\Services\REST
+ */
 class WS_Services_REST_Method
   implements Core_PropertyAccessInterface, Core_EqualityInterface {
 
@@ -938,70 +771,53 @@ class WS_Services_REST_Method
   protected $defaults = array();
 
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ */
   public function __construct($name) { $this->name = $name; }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
   public function defaults($value) {
     $this->defaults = $value;
     return $this;
   }
 
-///   <method name="produces" returns="WS.REST.Method" varargs="true">
-///     <body>
+/**
+ * @return WS_REST_Method
+ */
   public function produces() {
     foreach (Core::normalize_args(func_get_args()) as $format) $this->formats[] = trim((string) $format);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="http" returns="WS.REST.Method">
-///     <args>
-///       <arg name="mask" type="int" />
-///     </args>
-///     <body>
+/**
+ * @param int $mask
+ * @return WS_REST_Method
+ */
   public function http($mask) {
     $this->http_mask = (int)$mask;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="path" returns="WS.REST.Method">
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ * @return WS_REST_Method
+ */
   public function path($path) {
     $this->path = ($path instanceof WS_Services_REST_URI_Template) ?
       $path :
       WS_Services_REST_URI::Template((string) $path);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'name':
@@ -1014,15 +830,12 @@ class WS_Services_REST_Method
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'name':
@@ -1037,14 +850,11 @@ class WS_Services_REST_Method
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'name':
@@ -1056,14 +866,10 @@ class WS_Services_REST_Method
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) {
     switch ($property) {
       case 'name':
@@ -1075,17 +881,12 @@ class WS_Services_REST_Method
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
-///   <method name="equals" returns="boolean">
-///     <args>
-///       <arg name="to" />
-///     </args>
-///     <body>
+/**
+ * @param  $to
+ * @return boolean
+ */
   public function equals($to) {
     return get_class($this) === get_class($to) &&
       $this->name == $to->name &&
@@ -1093,17 +894,8 @@ class WS_Services_REST_Method
       Core::equals($this->path, $to->path) &&
       Core::equals($this->formats, $to->formats);
   }
-///     </body>
-///   </method>
-///</protocol>
 
 }
-/// </class>
-
-/// <aggregation>
-///   <source class="WS.REST.Method" role="method" multiplicity="1" />
-///   <target class="WS.REST.URI.Template" role="path" multiplicity="0..1" />
-/// </aggregation>
 
 
-/// </module>
+

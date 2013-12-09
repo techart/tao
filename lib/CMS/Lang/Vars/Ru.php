@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Lang\Vars\Ru
+ */
+
 
 class CMS_Lang_Vars_Ru implements Core_ModuleInterface {
 

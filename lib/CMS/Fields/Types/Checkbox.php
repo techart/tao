@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Checkbox
+ */
+
 
 class CMS_Fields_Types_Checkbox extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 
@@ -6,6 +10,11 @@ class CMS_Fields_Types_Checkbox extends CMS_Fields_AbstractField implements Core
 
 	public function form_fields($form,$name,$data) {
 		return $form->checkbox($name);
+	}
+	
+	public function sqltype()
+	{
+		return 'tinyint(4)';
 	}
 
 }

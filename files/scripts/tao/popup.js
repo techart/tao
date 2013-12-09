@@ -1,18 +1,33 @@
 window.TAO = window.TAO || {};
 TAO.popup = TAO.popup || { plugins : {}, default_plugin: 'magnific' };
 
-TAO.popup.create = function (options, initialize, plugin) {
+
+
+TAO.popup.create = function (options, initialize, plugin, callback) {
 	var set_current = false;
-	if (typeof(initialize) === 'undefined') initialize = true;
+	if (typeof(options) === 'function') {
+		callback = options;
+		options = {};
+	}
+	if (typeof(options) === 'string') {
+		plugin = options;
+		options = {};
+	}
+	if (typeof(initialize) === 'function') {
+		callback = initialize;
+		initialize = true;
+	}
+	if (typeof(initialize) === 'undefined') {
+		initialize = true;
+	}
 	if (typeof(plugin) === 'undefined') {
 		plugin = TAO.popup.default_plugin;
 		set_current = true;
 	}
 	var def = TAO.popup.plugins[plugin];
 
-	// ассинхронная подгрузка, может не успеть загрузиться :-)
 	if (initialize) {
-		def.initialize(options);
+		def.initialize(options, callback);
 	}
 
 	var res = new def(options);
@@ -20,6 +35,12 @@ TAO.popup.create = function (options, initialize, plugin) {
 		TAO.popup.current_plugin = res;
 	}
 	return res;
+}
+
+TAO.popup.type = function(plugin, callback, options, initialize) {
+	if (typeof(initialize) === 'undefined') initialize = true;
+	if (typeof(options) === 'undefined') options = {};
+	return TAO.popup.create(options, initialize, plugin, callback);
 }
 
 TAO.popup.get_current_plugin = function () {
@@ -50,12 +71,34 @@ TAO.popup.get_instance = function(opts) {
 	return TAO.popup.get_current_plugin().get_instance(opts);
 }
 
-TAO.popup.include = function(paths, callback) {
-	for (k in paths.js) {
-		TAO.helpers.addScript(paths.js[k], callback);
+TAO.popup.extra_paths = function(paths, opts)
+{
+	if (opts.extra_paths) {
+		if (opts.extra_paths.js) {
+			paths.js = $.merge(paths.js, opts.extra_paths.js);
+		}
+		if (opts.extra_paths.css) {
+			paths.css = $.merge(paths.css, opts.extra_paths.css);
+		}
 	}
+	return paths;
+}
+
+TAO.popup.include = function(paths, callback) {
+	var count = paths.css.length;
+	var number = 0;
+	var wait_all_css = function() {
+		number++;
+		if (number >= count) {
+			// load js
+			for (k in paths.js) {
+				// TODO: maybe use TAO.require
+				TAO.helpers.addScript(paths.js[k], callback);
+			}
+		}
+	};
 	for (k in paths.css) {
-		TAO.helpers.addStylesheet(paths.css[k]);
+		TAO.helpers.addStylesheet(paths.css[k], wait_all_css);
 	}
 }
 
@@ -84,14 +127,14 @@ TAO.popup.plugins.magnific = function(options) {
 		process: function (opts) {
 			var content = opts.content;
 			delete opts.content;
-			return $(conent).magnificPopup(opts);
+			return $(content).magnificPopup(opts);
 		},
 
 		ajax: function(opts) {
 			var content = opts.content;
 			delete opts.content;
 			opts.type = 'ajax';
-			return $(conent).magnificPopup(opts);
+			return $(content).magnificPopup(opts);
 		},
 
 		close: function(opts) {
@@ -108,7 +151,7 @@ TAO.popup.plugins.magnific = function(options) {
 	}
 };
 
-TAO.popup.plugins.magnific.initialize = function(opts) {
+TAO.popup.plugins.magnific.initialize = function(opts, callback) {
 	if (typeof(opts) === 'undefined') opts = {};
 	if (!this.init_complete) {
 		var p = TAO.settings.base_lib_static_path;
@@ -116,7 +159,16 @@ TAO.popup.plugins.magnific.initialize = function(opts) {
 			js: [p + 'scripts/jquery/popup/magnific-popup.js'],
 			css: [p + 'styles/jquery/magnific-popup.css', p + 'styles/tao/popup.css']
 		};
-		TAO.popup.include(paths);
+		paths = TAO.popup.extra_paths(paths, opts);
+		TAO.popup.include(paths, function() {
+			if (callback) {
+				callback(TAO.popup.type('magnific'));
+			}
+		});
+	} else {
+		if (callback) {
+			callback(TAO.popup.type('magnific'));
+		}
 	}
 	this.init_complete = true;
 }
@@ -141,7 +193,7 @@ TAO.popup.plugins.colorbox = function(options) {
 		process: function(opts) {
 			var content = opts.content;
 			delete opts.content;
-			return $(conent).colorbox(opts);
+			return $(content).colorbox(opts);
 		},
 
 		close: function(opts) {
@@ -158,7 +210,7 @@ TAO.popup.plugins.colorbox = function(options) {
 	}
 };
 
-TAO.popup.plugins.colorbox.initialize = function(opts) {
+TAO.popup.plugins.colorbox.initialize = function(opts, callback) {
 	if (typeof(opts) === 'undefined') opts = {};
 	if (!this.init_complete) {
 		var p = TAO.settings.base_lib_static_path;
@@ -166,7 +218,16 @@ TAO.popup.plugins.colorbox.initialize = function(opts) {
 			js: [p + 'scripts/jquery/popup/colorbox.js'],
 			css: [p + 'styles/jquery/colorbox/colorbox.css', p + 'styles/tao/popup.css']
 		};
-		TAO.popup.include(paths);
+		paths = TAO.popup.extra_paths(paths, opts);
+		TAO.popup.include(paths, function() {
+			if (callback) {
+				callback(TAO.popup.type('colorbox'));
+			}
+		});
+	} else {
+		if (callback) {
+			callback(TAO.popup.type('colorbox'));
+		}
 	}
 	this.init_complete = true;
 }
@@ -189,6 +250,10 @@ TAO.popup.plugins.uidialog = function(options) {
 			delete opts.content;
 			this._fix(content);
 			content.dialog(opts);
+		},
+
+		process: function(opts) {
+			return self.inline(opts);
 		},
 
 		ajax: function(opts) {
@@ -215,19 +280,24 @@ TAO.popup.plugins.uidialog = function(options) {
 };
 
 
-TAO.popup.plugins.uidialog.initialize = function(opts) {
+TAO.popup.plugins.uidialog.initialize = function(opts, callback) {
 	if (typeof(opts) === 'undefined') opts = {};
+	var self = this;
 	if (!this.init_complete) {
 		var p = TAO.settings.base_lib_static_path;
 		var paths = opts.paths || {
 			js: [p + 'scripts/jquery/ui.js'],
 			css: [p + 'styles/jquery/ui.css', p + 'styles/tao/popup.css']
 		};
+		paths = TAO.popup.extra_paths(paths, opts);
 		TAO.popup.include(paths, function() { //fix
 			$.ui.dialog.prototype._makeDraggable = function() { 
 				this.uiDialog.draggable({
 					containment: false
 				});
+				if (callback) {
+					callback(TAO.popup.type('uidialog'));
+				}
 			};
 			$.widget("ui.dialog", $.extend({}, $.ui.dialog.prototype, {
 				_createOverlay: function() {
@@ -245,6 +315,10 @@ TAO.popup.plugins.uidialog.initialize = function(opts) {
 				}
     		}));
 		});
+	} else {
+		if (callback) {
+			callback(TAO.popup.type('uidialog'));
+		}
 	}
 	this.init_complete = true;
 }

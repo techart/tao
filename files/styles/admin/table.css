@@ -21,6 +21,7 @@ table.table-data {
 	border: none;
 	border-spacing: 1px;
 	position: relative;
+	border-collapse: separate;
 }
 
 	table.table-data th {
@@ -38,7 +39,7 @@ table.table-data {
 		}
 
 		table.table-data tr td {
-			padding: 2px;
+			padding: 2px 3px;
 		}
 
 		table.table-data tr.odd td {
@@ -60,6 +61,7 @@ table.table-data {
 	table.table-data td.action-button {
 		width: 18px;
 		text-align: center;
+		padding: 1px;
 	}
 
 		table.table-data td.action-button a {
@@ -229,10 +231,24 @@ div.table-admin-filters-form {
 			padding: 0 0 0 2px;
 		}
 
+			table.table-admin-filters-form td input[type="text"] {
+				height: 16px;
+				padding: 2px 2px;
+				font-size: 12px;
+			}
+
 		.filters-submit-button {
 			background-color: #8ADCE8;
 			border: 1px solid #888;
-			padding: 1px;
+			border-collapse: collapse;
+			height: 22px;
+			padding: 2px 4px;
+			line-height: normal;
+			cursor: pointer;
+			font-size: 13px;
+			font-style: normal;
+			letter-spacing: 0;
+			font-family: inherit;
 		}
 
 

@@ -1,30 +1,35 @@
 <?php
-/// <module name="Text.Stem.Ru" version="0.2.0" maintainer="timokhin@techart.ru">
-///   <brief>Поиск основ слов русского языка</brief>
-/// <class name="Text.Stem.RU" stereotype="module">
+/**
+ * Text.Stem.Ru
+ * 
+ * Поиск основ слов русского языка
+ * 
+ * @package Text\Stem\RU
+ * @version 0.2.0
+ */
+/**
+ * @package Text\Stem\RU
+ */
 class Text_Stem_RU implements Core_ModuleInterface {
-///   <constants>
   const VERSION = '0.2.0';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Stemmer" returns="Text.Stem.RU.Stemmer" scope="class">
-///     <brief>Фабричный метод, возвращает объек класса Text.Stem.RU.Stemmer</brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объек класса Text.Stem.RU.Stemmer
+ * 
+ * @return Text_Stem_RU_Stemmer
+ */
   static public  function Stemmer()  { return new Text_Stem_RU_Stemmer; }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Text.Stem.RU.Stemmer">
-///     <brief>Класс осeществляющий поиск основ слов</brief>
+/**
+ * Класс осeществляющий поиск основ слов
+ * 
+ * @package Text\Stem\RU
+ */
 class Text_Stem_RU_Stemmer {
 
-///   <constants>
   const VOWEL = '/аеиоуыэюя/';
   const PERFECTIVEGROUND = '/((ив|ивши|ившись|ыв|ывши|ывшись)|((?<=[ая])(в|вши|вшись)))$/';
   const REFLEXIVE = '/(с[яь])$/';
@@ -34,57 +39,48 @@ class Text_Stem_RU_Stemmer {
   const NOUN = '/(а|ев|ов|ие|ье|е|иями|ями|ами|еи|ии|и|ией|ей|ой|ий|й|иям|ям|ием|ем|ам|ом|о|у|ах|иях|ях|ы|ь|ию|ью|ю|ия|ья|я)$/';
   const RVRE = '/^(.*?[аеиоуыэюя])(.*)$/';
   const DERIVATIONAL = '/[^аеиоуыэюя][аеиоуыэюя]+[^аеиоуыэюя]+[аеиоуыэюя].*(?<=о)сть?$/';
-///   </constants>
 
   protected $cache = array();
   protected $use_cache = true;
 
-///   <protocol name="configuring">
 
-///   <method name="use_cache" returns="Text.Stem.RU.Stemmer">
-///     <brief>Включает или выключает кеширование</brief>
-///     <args>
-///       <arg name="use_cache" type="boolean" brief="булевый флаг" />
-///     </args>
-///     <body>
+/**
+ * Включает или выключает кеширование
+ * 
+ * @param boolean $use_cache
+ * @return Text_Stem_RU_Stemmer
+ */
   public function use_cache($use_cache) {
     $this->use_cache = (boolean) $use_cache;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="processing">
 
-///   <method name="stem">
-///     <brief>Возвращает основу слова</brief>
+/**
+ * Возвращает основу слова
+ * 
+ * @param string $word
+ */
 //TODO: зачем два одинаковыч метода stem и stem_word
-///     <args>
-///       <arg name="word" type="string" brief="слово" />
-///     </args>
-///     <body>
   public function stem($words) { return $this->stem_word($words); }
-///     </body>
-///   </method>
 
-///   <method name="clear_cache" returns="Text.Stem.RU.Stemmer">
-///     <brief>Очищает кэш</brief>
-///     <body>
+/**
+ * Очищает кэш
+ * 
+ * @return Text_Stem_RU_Stemmer
+ */
   public function clear_cache() {
     $this->cache = array();
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="stem_word" returns="string">
-///     <brief>Возвращает основу слова</brief>
-///     <args>
-///       <arg name="word" type="string" brief="слово" />
-///     </args>
-///     <body>
+/**
+ * Возвращает основу слова
+ * 
+ * @param string $word
+ * @return string
+ */
   public function stem_word($word) {
     $word = strtr(mb_strtolower($word), array('ё' => 'е'));
 
@@ -118,11 +114,6 @@ class Text_Stem_RU_Stemmer {
       $this->cache[$word] = $start.$rv :
       $start.$rv;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

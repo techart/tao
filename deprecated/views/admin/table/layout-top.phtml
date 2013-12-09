@@ -1,0 +1,103 @@
+<?php
+$calias = $c->alias();
+
+$lyt = $c->get_layout('top');
+$lyb = $c->get_layout('bottom');
+$lyl = $c->get_layout('left');
+$lyr = $c->get_layout('right');
+
+$this->use_styles('/tao/styles/jquery/ui.css','/tao/styles/layout.css');
+$this->use_scripts('jquery.js','/tao/scripts/jquery/ui.js','/tao/scripts/jquery/layout.js','/tao/scripts/jquery/cookie.js');
+
+$lsize = isset($_COOKIE[$calias.'_size_west'])?(int)$_COOKIE[$calias.'_size_west']:false;
+//if (!$lsize) $lsize = "'auto'";
+if (!$lsize) $lsize = "300";
+
+CMS::$globals['admin_layout_styles'] = array();
+CMS::$globals['admin_layout_scripts'] = array();
+
+
+$layout_autofit = CMS::check_yes(CMS::$cfg->admin->layout_autofit);
+$layout_height = (int)CMS::$cfg->admin->layout_height;
+if ($layout_height==0) $layout_height = 1500;
+
+
+?>
+
+<script type="text/javascript">
+<!--
+
+	var main_layout = false;
+	var main_layout_container = false;
+
+	$(function(){
+
+		main_layout_container = $('#layout-container');
+
+		<?php if ($layout_autofit) { ?>
+		main_layout_container.height($(window).height()-main_layout_container.offset().top-30);
+		<?php } ?>
+
+		main_layout = main_layout_container.layout();
+		main_layout.sizePane('west',<?= $lsize ?>);
+
+		function save_size(name,size) {
+			$.cookie('<?= $calias ?>_size_'+name,size,{path:'/',expires:100});
+		}
+
+		main_layout.options.west.onresize = function(pane,element,state,options) {
+			save_size('west',state.size);
+		}
+	});
+
+
+//-->
+</script>
+
+
+<div id="layout-container" style="width:100%;height:<?= $layout_height ?>px;">
+
+	<?php if ($lyl) { ?>
+	<div class="ui-layout-west" style="display:none;"><div id="layout-content-left"><?= admin_table_layout_element($lyl) ?></div></div>
+	<?php } ?>
+
+	<?php if ($lyr) { ?>
+	<div class="ui-layout-east" style="display:none;"><?= admin_table_layout_element($lyr) ?></div>
+	<?php } ?>
+
+	<?php if ($lyt) { ?>
+	<div class="ui-layout-north" style="display:none;"><?= admin_table_layout_element($lyt) ?></div>
+	<?php } ?>
+
+	<?php if ($lyb) { ?>
+	<div class="ui-layout-south" style="display:none;"><?= admin_table_layout_element($lyb) ?></div>
+	<?php } ?>
+
+
+	<div class="ui-layout-center" style="display:none;"><div id="layout-content">
+
+
+
+<?php
+
+
+foreach(CMS::$globals['admin_layout_styles'] as $s) $this->use_styles($s);
+foreach(CMS::$globals['admin_layout_scripts'] as $s) $this->use_scripts($s);
+
+
+function admin_table_layout_element($src) {
+	if (is_string($src)) return $src;
+	$out = '';
+	if (Core_Types::is_iterable($src))
+		foreach($src as $element)
+			$out .= admin_table_layout_element($element);
+	else {
+		$out = $src->html();
+		foreach($src->styles() as $s) CMS::$globals['admin_layout_styles'][] = $s;
+		foreach($src->scripts() as $s) CMS::$globals['admin_layout_scripts'][] = $s;
+		
+	}
+	return $out;
+}
+
+?>

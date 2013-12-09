@@ -1,37 +1,40 @@
 <?php
-/// <module name="WS.Middleware.PDF" version="0.0.1" maintainer="svistunov@techart.ru">
+/**
+ * WS.Middleware.PDF
+ * 
+ * @package WS\Middleware\PDF
+ * @version 0.0.1
+ */
 Core::load('WS');
 
-/// <class name="WS.Middleware.PDF" stereotype="module">
-///   <brief>Класс модуля</brief>
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * Класс модуля
+ * 
+ * @package WS\Middleware\PDF
+ */
 class WS_Middleware_PDF implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.0.1';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Service" returns="WS.Middleware.PDF.Service" scope="class">
-///     <brief>Создает объект класса WS.Middleware.PDF.Service</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///     </args>
-///     <body>
+/**
+ * Создает объект класса WS.Middleware.PDF.Service
+ * 
+ * @param WS_ServiceInterface $application
+ * @return WS_Middleware_PDF_Service
+ */
   static public function Service(WS_ServiceInterface $application, $title = null, $clear_url = true, $patterns = null, $options = array()) {
     return new WS_Middleware_PDF_Service($application, $title, $clear_url, $patterns, $options);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="WS.Middleware.PDF.Service" extends="WS.MiddlewareService">
-///   <brief>Конфигурационный сервис</brief>
+/**
+ * Конфигурационный сервис
+ * 
+ * @package WS\Middleware\PDF
+ */
 class WS_Middleware_PDF_Service extends WS_MiddlewareService {
 
   protected $patterns = array(
@@ -47,14 +50,12 @@ class WS_Middleware_PDF_Service extends WS_MiddlewareService {
   
   protected $title = 'output.pdf';
   
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param WS_ServiceInterface $application
+ */
   public function __construct(WS_ServiceInterface $application, $title = null, $clear_url = true, $patterns = null, $options = array()) {
     parent::__construct($application);
     if (is_array($patterns)) $this->patterns = $patterns;
@@ -62,19 +63,15 @@ class WS_Middleware_PDF_Service extends WS_MiddlewareService {
     $this->clear_url = $clear_url;
     $this->options = $options;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="mixed">
-///     <brief>Выполняет обработку запроса</brief>
-///     <args>
-///       <arg name="env" type="WS.Environment" brief="объект окружения" />
-///     </args>
-///     <body>
+/**
+ * Выполняет обработку запроса
+ * 
+ * @param WS_Environment $env
+ * @return mixed
+ */
   public function run(WS_Environment $env) {
     $m = false;
     foreach ($this->patterns as $p => $r) {
@@ -109,11 +106,6 @@ class WS_Middleware_PDF_Service extends WS_MiddlewareService {
     else
       return $r;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

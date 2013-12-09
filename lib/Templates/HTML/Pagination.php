@@ -1,41 +1,42 @@
 <?php
-/// <module name="Templates.HTML.Pagination" version="0.2.1" maintainer="timokhin@techart.ru">
-///   <brief>Хелпер для вывода HTML-pager в шаблоне</brief>
+/**
+ * Templates.HTML.Pagination
+ * 
+ * Хелпер для вывода HTML-pager в шаблоне
+ * 
+ * @package Templates\HTML\Pagination
+ * @version 0.2.1
+ */
 
 Core::load('Templates.HTML', 'Data.Pagination');
 
-/// <class name="Templates.HTML.Pagination" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <implements interface="Templates.HelperInterface" />
+/**
+ * @package Templates\HTML\Pagination
+ */
 class Templates_HTML_Pagination
   implements Core_ModuleInterface,
              Templates_HelperInterface {
-///   <constants>
   const VERSION = '0.2.1';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="instance" returns="Templates.HTML.Pagination" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Templates.HTML.Pagination </brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Templates.HTML.Pagination
+ * 
+ * @return Templates_HTML_Pagination
+ */
   static public function instance() { return new Templates_HTML_Pagination(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="generating">
 
-///   <method name="pager" returns="string">
-///     <brief>Формирует HTML-pager</brief>
-///     <args>
-///       <arg name="t" type="Templates.HTML.Template" brief="шаблон" />
-///       <arg name="pager" type="Data.Pagination.Pager" />
-///       <arg name="call" type="array" brief="callback массив" />
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * Формирует HTML-pager
+ * 
+ * @param Templates_HTML_Template $t
+ * @param Data_Pagination_Pager $pager
+ * @param array $call
+ * @param array $options
+ * @return string
+ */
   public function pager(Templates_HTML_Template $t, Data_Pagination_Pager $pager, array $call, array $options = array()) {
     $res = '';
 
@@ -61,12 +62,7 @@ class Templates_HTML_Pagination
       $res,
       array('class' => (isset($options['class']) ? $options['class'].' ' : '').'pager'));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// </module>

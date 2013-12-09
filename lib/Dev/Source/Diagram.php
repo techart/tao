@@ -1,37 +1,34 @@
 <?php
-/// <module name="Dev.Source.Diagram" maintainer="timokhin@techart.ru" version="0.4.0">
+/**
+ * Dev.Source.Diagram
+ * 
+ * @package Dev\Source\Diagram
+ * @version 0.4.0
+ */
 Core::load('CLI.Application', 'IO.FS', 'Dev.Source', 'Text', 'Proc');
 
-/// <class name="Dev.Source.Diagram" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package Dev\Source\Diagram
+ */
 class Dev_Source_Diagram implements Core_ModuleInterface, CLI_RunInterface {
-///   <constants>
   const VERSION = '0.4.0';
-///   </constants>
 
-///   <protocol name="performing">
 
-///   <method name="main" scope="class">
-///     <args>
-///       <arg name="argv" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $argv
+ */
   static public function main(array $argv) {
     Core::with(new Dev_Source_Diagram_Application())->main($argv);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Dev.Diagram.Exception" extends="Core.Exception">
+/**
+ * @package Dev\Source\Diagram
+ */
 class Dev_Diagram_Exception extends Core_Exception {}
-/// </class>
 
-/// <ignore>
 class Dev_Source_Diagram_XSL {
   static public function class_diagram() {
     return <<<XSL
@@ -211,18 +208,17 @@ digraph library {
 XSL;
   }
 }
-/// </ignore>
 
-/// <class name="Dev.Source.Diagram.Application" extends="CLI.Application.Base">
+/**
+ * @package Dev\Source\Diagram
+ */
 class Dev_Source_Diagram_Application extends CLI_Application_Base {
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="int">
-///     <args>
-///       <arg name="argv" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $argv
+ * @return int
+ */
   public function run(array $argv) {
     try {
       $xslt = new XSLTProcessor();
@@ -241,15 +237,11 @@ class Dev_Source_Diagram_Application extends CLI_Application_Base {
 
     return 0;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="setup" access="protected">
-///     <body>
+/**
+ */
   protected function setup() {
     $this->options->
       brief('Dev.Source.Diagram '.Dev_Source_Diagram::VERSION.': TAO module visualization utility')->
@@ -264,11 +256,9 @@ class Dev_Source_Diagram_Application extends CLI_Application_Base {
     $this->config->dump   = false; 
 
   }
-///     </body>
-///   </method>
 
-///   <method name="output" access="protected">
-///     <body>
+/**
+ */
   protected function output($result) {
     switch ($application = $this->config->application) {
       case 'dot':
@@ -289,14 +279,10 @@ class Dev_Source_Diagram_Application extends CLI_Application_Base {
           Core_Strings::format('Unknown application (%s)', $application));
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="dump_errors" access="protected">
-///     <args>
-///       <arg name="exception" type="Dev.Source.InvalidSourceException" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Source_InvalidSourceException $exception
+ */
   protected function dump_errors(Dev_Source_InvalidSourceException $exception) {
     $stderr = IO::stderr();
 
@@ -307,11 +293,6 @@ class Dev_Source_Diagram_Application extends CLI_Application_Base {
 
     foreach ($exception->errors as $error) $stderr->format("%d : %s", $error->line, $error->message);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

@@ -15,20 +15,15 @@ class CMS_Images implements Core_ModuleInterface {
 	static $default_watermark_parms = array('mode' => 5, 'opacity' => 1);
 	static $cache_dir = 'files/cache/images';
 
-///   <protocol name="creating">
 
-///   <method scope="class" name="initialize">
-///     <args>
-///       <arg name="config" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $config
+ * 
+ */
 	static function initialize($config=array()) {
 		foreach($config as $key => $value) self::$$key = $value;
 	}
-///     </body>
-///   </method>
 
-///   </protocol>
 
 	static function Image($file=false) {
 		$class = 'CMS.Image.GD';

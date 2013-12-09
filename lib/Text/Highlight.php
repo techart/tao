@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Highlight
+ */
+
 
 Core::load('Text.Process');
 

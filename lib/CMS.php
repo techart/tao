@@ -1,44 +1,19 @@
 <?php
-
-//TODO: configure to site.php?
-Core::configure(array(
-	'Templates.HTML' => array(
-		'template_class'=>'CMS.Views.View'
-	),
-	'WS.DSL' => array(
-		'middleware' => array(
-			'cms_std' => 'CMS.Handlers.StdControlsHandler',
-			'cms_configure' => 'CMS.Handlers.Configure',
-			'cms_restricted' => 'CMS.Handlers.RestrictedRealms',
-			'cms_static' => 'CMS.Handlers.Static',
-			'cms_realm_auth' => 'CMS.Handlers.RealmAuth',
-		),
-		'handlers' => array(
-			'cms_action' => 'CMS.Handlers.ActionHandler'
-		),
-	)
-));
-
-
-/// <module name="CMS" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS
+ * 
+ * @package CMS
+ * @version 0.0.0
+ */
 
 Core::load('WS', 'Events');
 
-/// <class name="CMS" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="CMS.Lang" stereotype="creates" />
-///   <depends supplier="CMS.PageNavigator" stereotype="creates" />
-///   <depends supplier="CMS.Vars" stereotype="uses" />
-///   <depends supplier="CMS.Insertions" stereotype="uses" />
-///   <depends supplier="CMS.Admin" stereotype="uses" />
-///   <depends supplier="CMS.Handlers" stereotype="uses" />
-///   <depends supplier="CMS.Parser" stereotype="uses" />
-///   <depends supplier="CMS.WikiParser" stereotype="uses" />
+/**
+ * @package CMS
+ */
 class CMS implements Core_ModuleInterface {
-///   <constants>
 	const MODULE  = 'CMS';
-	const VERSION = '2.0.13';
-///   </constants>
+	const VERSION = '2.0.20';
 
 	static $libpath		= '';
 	static $taopath		= '';
@@ -69,12 +44,6 @@ class CMS implements Core_ModuleInterface {
 	static $admin		= 'admin';
 	static $admin_realm	= 'admin';
 	static $www		= 'www';
-	static $chmod_dir	= 0777;
-	static $chmod_file	= 0666;
-	static $chgrp_dir	= false;
-	static $chgrp_file	= false;
-	static $chown_dir	= false;
-	static $chown_file	= false;
 	static $user_lang	= false;
 	static $parser		= false;
 	static $wiki_parser	= false;
@@ -163,7 +132,6 @@ class CMS implements Core_ModuleInterface {
 		return self::$env;
 	}
 
-/// <protocol name="creating">
 	static protected function configure_paths() {
 		$path_info = IO_FS::Path(__FILE__);
 		self::$libpath = $path_info->dirname;
@@ -181,17 +149,6 @@ class CMS implements Core_ModuleInterface {
 		}
 	}
   
-	static protected function configure_permissions() {
-		IO_FS::options(array(
-			'dir_mod'  => self::$chmod_dir,
-			'file_mod' => self::$chmod_file,
-			'dir_own'  => self::$chown_dir,
-			'file_own' => self::$chown_file,
-			'dir_grp'  => self::$chgrp_dir,
-			'file_grp' => self::$chgrp_file,
-		));
-	}
-
 	static protected function configure_loader() {
 		Core::load('Core.Loader');
 		$base_path = self::$app_path;
@@ -216,11 +173,9 @@ class CMS implements Core_ModuleInterface {
 			Events::add_listener($e, $l);
 	}
 
-///   <method scope="class" name="initialize">
-///     <args>
-///       <arg name="config" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $config
+ */
 	static function initialize($config=array()) {
 		try {
 			self::$globals = new ArrayObject();
@@ -231,17 +186,16 @@ class CMS implements Core_ModuleInterface {
 			foreach(array('files_path','stdfiles_cache','assets_dir') as $key) self::$$key = str_replace('%files%',Core::option('files_name'),self::$$key);
 
 			self::configure_paths();
-			self::configure_permissions();
 
 			self::configure_loader();
 			
 			Core::load('Events');
 			/**
-			
-			@event cms.initialize.start
-			Вызывается в начале инициализации при загрузке модуля CMS. Если возвращено значение, отличное от null, то дальнейшая инициализация произведена не будет.
-			
-			*/
+			 *
+			 * @event cms.initialize.start
+			 * Вызывается в начале инициализации при загрузке модуля CMS. Если возвращено значение, отличное от null, то дальнейшая инициализация произведена не будет.
+			 *
+			 */
 			$rc = Events::call('cms.initialize.start');
 			if (!is_null($rc)) return $rc;
 			
@@ -263,18 +217,18 @@ class CMS implements Core_ModuleInterface {
 				->db()
 				->cache()
 				->cms_configure()
-				->cms_restricted();
+				;
 
 			if (CMS::$orm_autoload) self::common_application()->orm(CMS::orm());//TODO: не создавать объект
 			//FIXME: не запускать сразу
 			self::dummy_run();
 
 			/**
-			
-			@event cms.initialize.ready
-			Вызывается в конце инициализации при загрузке модуля CMS
-			
-			*/
+			 *
+			 * @event cms.initialize.ready
+			 * Вызывается в конце инициализации при загрузке модуля CMS
+			 *
+			 */
 			$rc = Events::call('cms.initialize.ready');
 			if (!is_null($rc)) return $rc;
 			
@@ -299,8 +253,6 @@ class CMS implements Core_ModuleInterface {
 			self::root_catcher($e);
 		}
 	}
-///     </body>
-///   </method>
 
 	static public function spl_autoload($class) {
   		if (in_array($class, array('CMS_Mapper','CMS_Router')))
@@ -370,9 +322,9 @@ class CMS implements Core_ModuleInterface {
 	//TODO: сделать callback
 	static protected function before_run($env) {
 		/**
-		@event cms.run
-		Вызывается после инициализации всех компонентов - в начале работы CMS::run()
-		*/
+		 * @event cms.run
+		 * Вызывается после инициализации всех компонентов - в начале работы CMS::run()
+		 */
 		Events::call('cms.run');
  		$env->urls = WebKit_Controller::Mapper();
 		foreach(CMS::$mappers as $name => $mapper) $env->urls->map(strtolower($name),$mapper);
@@ -388,9 +340,10 @@ class CMS implements Core_ModuleInterface {
 		return self::$is_offline;
 	}
 
-///   <method scope="class" name="run">
-///     <brief>Производит запуск веб-приложения</brief>
-///     <body>
+/**
+ * Производит запуск веб-приложения
+ * 
+ */
 	public function run() {
 
 		try {
@@ -422,26 +375,24 @@ class CMS implements Core_ModuleInterface {
 			self::root_catcher($e);
 		}
 	}
-///     </body>
-///   </method>
 
 
 
-///   <method scope="class" name="root_catcher">
-///     <brief>Корневой перехватчик исключений</brief>
-///     <body>
+/**
+ * Корневой перехватчик исключений
+ * 
+ */
 	public function root_catcher($e) {
 		Core::load(self::$root_exception_catcher);
 		$class = str_replace('.','_',self::$root_exception_catcher);
 		call_user_func(array($class,'run'),$e);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="cached_run">
-///     <brief>Кешированный вызов. Метод run переданного модуля вызывается только один раз после модификации файла модуля.</brief>
-///     <body>
+/**
+ * Кешированный вызов. Метод run переданного модуля вызывается только один раз после модификации файла модуля.
+ * 
+ */
 	public function cached_run($module,$method='run') {
 		$class = Core_Types::real_class_name_for($module);
 		$key = "cms:cached_run:{$class}";
@@ -457,23 +408,21 @@ class CMS implements Core_ModuleInterface {
 			WS::env()->cache->set($key,$tm,0);
 		}
 	}
-///     </body>
-///   </method>
-
-
-/// </protocol>
 
 
 
 
 
 
-/// <protocol name="building">
 
 
-///   <method scope="class" name="lang" returns="CMS.Lang">
-///     <brief>Возвращает экземпляр языкового модуля (для многоязычных сайтов)</brief>
-///     <body>
+
+
+/**
+ * Возвращает экземпляр языкового модуля (для многоязычных сайтов)
+ * 
+ * @return CMS_Lang
+ */
 	static function lang($code=false,$force=false) {
 		if (!self::$user_lang) {
 			Core::load('CMS.Lang');
@@ -498,15 +447,13 @@ class CMS implements Core_ModuleInterface {
 		}
 		return self::$user_lang;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="navigation" returns="CMS.Navigation">
-///     <brief>Возвращает экземпляр объекта навигации сайта</brief>
-///     <args>
-///       <arg name="set" type="boolean" default="false" />
-///     </args>
-///     <body>
+/**
+ * Возвращает экземпляр объекта навигации сайта
+ * 
+ * @param boolean $set
+ * @return CMS_Navigation
+ */
 	static function navigation($set=false) {
 		if (!self::$navigation) {
 			self::process_navigation();
@@ -518,24 +465,24 @@ class CMS implements Core_ModuleInterface {
 		}
 		return is_string($set)?self::$navigation[$set]:self::$navigation;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="objects" returns="object">
-///     <brief>Возвращает экземпляр модуля взаимодействия компонентов</brief>
-///     <body>
+/**
+ * Возвращает экземпляр модуля взаимодействия компонентов
+ * 
+ * @return object
+ */
 	static function objects() {
 		if (!self::$objects_builder) self::$objects_builder = new CMS_ObjectsBuilder();
 		return self::$objects_builder;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="db" returns="object">
-///     <brief>Возвращает подключение к базе данных</brief>
-///     <body>
+/**
+ * Возвращает подключение к базе данных
+ * 
+ * @return object
+ */
 //TODO: замениться на WS::env->db->name
 	static function db($name='__default') {
 		if (!isset(self::$db_connections[$name])||!self::$db_connections[$name]) {
@@ -548,12 +495,12 @@ class CMS implements Core_ModuleInterface {
 		}
 		return self::$db_connections[$name];
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="orm" returns="object">
-///     <brief>Возвращает корневой ORM-маппер</brief>
-///     <body>
+/**
+ * Возвращает корневой ORM-маппер
+ * 
+ * @return object
+ */
 	static function orm() {
 		if (!self::$orm_root) {
 			Core::load('CMS.ORM');
@@ -561,11 +508,6 @@ class CMS implements Core_ModuleInterface {
 		}
 		return self::$orm_root;
 	}
-///     </body>
-///   </method>
-
-
-/// </protocol>
 
 
 
@@ -579,30 +521,33 @@ class CMS implements Core_ModuleInterface {
 
 
 
-/// <protocol name="quering">
 
-///   <method scope="class" name="admin" returns="boolean">
-///     <brief>Определяет находимся ли мы в данный момент в админе</brief>
-///     <body>
+
+
+/**
+ * Определяет находимся ли мы в данный момент в админе
+ * 
+ * @return boolean
+ */
 	static function admin() { return self::$in_admin; }
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="www" returns="string">
-///     <brief>Возвращает имя каталога DOCUMENT_ROOT (не полный путь, а только последный подкаталог - он может по-разному называться на разный хостингах)</brief>
-///     <body>
+/**
+ * Возвращает имя каталога DOCUMENT_ROOT (не полный путь, а только последный подкаталог - он может по-разному называться на разный хостингах)
+ * 
+ * @return string
+ */
 	static function www() {
 		$www = trim(self::$www);
 		return $www==''?'www':$www;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="temp_dir" returns="string">
-///     <brief>Возвращает имя каталога для хранения временных файлов</brief>
-///     <body>
+/**
+ * Возвращает имя каталога для хранения временных файлов
+ * 
+ * @return string
+ */
 	static function temp_dir() {
 		if (self::$temp_dir === true) return rtrim(sys_get_temp_dir(),'/');
 		if (is_string(self::$temp_dir)) return rtrim(self::$temp_dir,'/');
@@ -612,69 +557,59 @@ class CMS implements Core_ModuleInterface {
 		if (!IO_FS::exists('./'.Core::option('files_name').'/tmp')) self::mkdirs('./'.Core::option('files_name').'/tmp');
 		return './'.Core::option('files_name').'/tmp';
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="site_dir" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function site_dir() {
 		$s = getcwd();
 		$s = preg_replace('{[^/]+$}','',$s);
 		return $s;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="component_exists" returns="boolean">
-///     <brief>Возвращает true если компонент с заданным именем зарегистрирован в системе</brief>
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * Возвращает true если компонент с заданным именем зарегистрирован в системе
+ * 
+ * @param string $name
+ * @return boolean
+ */
 	static function component_exists($name) {
 		return isset(self::$component_names[$name]);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="component_class_name" returns="string|false">
-///     <brief>Возвращает имя класса - компонета с заданным именем или false если такого компонента не зарегистрировано</brief>
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * Возвращает имя класса - компонета с заданным именем или false если такого компонента не зарегистрировано
+ * 
+ * @param string $name
+ * @return string|false
+ */
 	static function component_class_name($name) {
 		if (!self::component_exists($name)) return false;
 		return self::$component_names[$name];
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="ip" returns="string">
-///     <brief>Возвращает удаленный IP</brief>
-///     <body>
+/**
+ * Возвращает удаленный IP
+ * 
+ * @return string
+ */
 	static function ip() {
 		if (isset($_SERVER['X_REAL_IP'])) return $_SERVER['X_REAL_IP'];
 		if (isset($_SERVER['HTTP_X_REAL_IP'])) return $_SERVER['HTTP_X_REAL_IP'];
 		return $_SERVER['REMOTE_ADDR'];
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="site_title" returns="string">
-///     <brief>Возвращает наименование сайта или домен если не задано</brief>
-///     <details>
-///       В качестве аргумента передается падеж.
-///     </details>
-///     <args>
-///       <arg name="p" type="string" />
-///     </args>
-///     <body>
+/**
+ * Возвращает наименование сайта или домен если не задано
+ * 
+ * @param string $p
+ * @return string
+ */
 	static function site_title($p=false) {
 		$title = false;
 		$titlei = self::$cfg->site->title;
@@ -699,13 +634,13 @@ class CMS implements Core_ModuleInterface {
 		if (!$title) $title = $titlei;
 		return $title;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="is_local" returns="boolean">
-///     <brief>Возвращает true если приложение исполняется на локальном проекте (не на хостинге)</brief>
-///     <body>
+/**
+ * Возвращает true если приложение исполняется на локальном проекте (не на хостинге)
+ * 
+ * @return boolean
+ */
 	static function is_local() {
 		if (isset(self::$cfg->site)) {
 			$local = trim(self::$cfg->site->local);
@@ -713,21 +648,21 @@ class CMS implements Core_ModuleInterface {
 		}
 		return isset($_SERVER['IS_TECHART']);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="site" returns="string">
-///     <brief>Возвращает код текущего сайта (для многосайтовых конфигураций)</brief>
-///     <body>
+/**
+ * Возвращает код текущего сайта (для многосайтовых конфигураций)
+ * 
+ * @return string
+ */
 	static function site() {
 		return self::$site;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="site_lang" returns="string">
-///     <brief>Возвращает язык текущего сайта (для многосайтовых конфигураций) или админа</brief>
-///     <body>
+/**
+ * Возвращает язык текущего сайта (для многосайтовых конфигураций) или админа
+ * 
+ * @return string
+ */
 	static function site_lang() {
 		if (self::$forced_lang) return self::$forced_lang;
 		if (CMS::admin()) return CMS_Admin::$lang;
@@ -736,24 +671,22 @@ class CMS implements Core_ModuleInterface {
 		if (!isset($data['lang'])) return self::$default_lang;
 		return $data['lang'];
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="site_set_lang">
-///     <brief>Устанавливает язык интерфейса вне зависимости от настроек текущего сайта и админа</brief>
-///     <body>
+/**
+ * Устанавливает язык интерфейса вне зависимости от настроек текущего сайта и админа
+ * 
+ */
 	static function site_set_lang($lang) {
 		self::$forced_lang = $lang;
 		Core::load('CMS.Lang');
 		CMS_Lang::reset();
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="site_prefix">
-///     <brief>Возвращает URI-префикс текущего или указанного (если передан параметр) сайта (для многосайтовых конфигураций)</brief>
-///     <body>
+/**
+ * Возвращает URI-префикс текущего или указанного (если передан параметр) сайта (для многосайтовых конфигураций)
+ * 
+ */
 	static function site_prefix($site=false) {
 		if (!$site) return self::$site_prefix;
 		if (isset(self::$sites[$site])) {
@@ -764,12 +697,11 @@ class CMS implements Core_ModuleInterface {
 		}
 		return '';
 	}
-///     </body>
-///   </method>
 
-///   <method name="site_host">
-///     <brief>Возвращает доменное имя указанного сайта (для многосайтовых конфигураций)</brief>
-///     <body>
+/**
+ * Возвращает доменное имя указанного сайта (для многосайтовых конфигураций)
+ * 
+ */
 	static function site_host($site) {
 		$rhost = self::$env->request->host;
 		if (isset(self::$sites[$site])) {
@@ -780,35 +712,32 @@ class CMS implements Core_ModuleInterface {
 		}
 		return $rhost;
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="component_dir">
-///     <brief>Возвращает путь к каталогу указанного компонента</brief>
-///     <body>
+/**
+ * Возвращает путь к каталогу указанного компонента
+ * 
+ */
 	static function component_dir($component,$dir=false) {
 		 $rc = self::$app_path.'/components/'.$component;
 		 if ($dir) $rc .= "/$dir";
 		 return $rc;
 	}
-///     </body>
-///   </method>
 
-///   <method name="current_component_dir">
-///     <brief>Возвращает путь к каталогу текущего (в данный момент работающего) компонента</brief>
-///     <body>
+/**
+ * Возвращает путь к каталогу текущего (в данный момент работающего) компонента
+ * 
+ */
 	static function current_component_dir($dir=false) {
 		$rc = self::component_dir(self::$current_component_name);
 		if ($dir) $rc .= "/$dir";
 		return $rc;
 	}
-///     </body>
-///   </method>
 
-///   <method name="static_url">
-///     <brief>Возвращает URL для скачивания статического файла из каталога текущего компонента</brief>
-///     <body>
+/**
+ * Возвращает URL для скачивания статического файла из каталога текущего компонента
+ * 
+ */
 	static function static_url($file,$component=false) {
 		$path = self::component_static_path($file, $component);
 		$url = Templates_HTML::extern_filepath($path);
@@ -819,12 +748,11 @@ class CMS implements Core_ModuleInterface {
 		// $m = IO_FS::exists($path)? filemtime($path) : "0";
 		// return "/component-static/$component/$file/$m/";
 	}
-///     </body>
-///   </method>
 
-///   <method name="component_static_path">
-///     <brief>Возвращает конструкцию вида file://.... для файла из каталога текущего компонента</brief>
-///     <body>
+/**
+ * Возвращает конструкцию вида file://.... для файла из каталога текущего компонента
+ * 
+ */
 	static function component_static_path($file,$component=false) {
 		if (!$component) $component = self::$current_component_name;
 		$app_path = self::component_dir($component)."/app/$file";
@@ -834,10 +762,6 @@ class CMS implements Core_ModuleInterface {
 		$path = self::component_dir($component)."/$file";
 		return "file://".$path;
 	}
-///     </body>
-///   </method>
-
-/// </protocol>
 
 
 
@@ -852,16 +776,16 @@ class CMS implements Core_ModuleInterface {
 
 
 
-/// <protocol name="processing">
 
-///   <method scope="class" name="maillist" returns="string">
-///     <brief>Производит рассылку по майллисту.</brief>
-///     <args>
-///       <arg name="mail" type="Mail.Message" />
-///       <arg name="list" type="array" />
-///       <arg name="dir" type="string" />
-///     </args>
-///     <body>
+
+/**
+ * Производит рассылку по майллисту.
+ * 
+ * @param Mail_Message $mail
+ * @param array $list
+ * @param string $dir
+ * @return string
+ */
 	static function maillist($mail,$list,$dir='../bin/maillist') {
 		$dir = rtrim($dir,'/');
 		CMS::mkdirs("$dir/messages");
@@ -883,32 +807,25 @@ class CMS implements Core_ModuleInterface {
 
 		Mail_List::Spawner($mail, $emails)->id(time().rand(1111,9999))->spawn();
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="process_insertions" returns="string">
-///     <brief>Производит замену всех вставок (Insertions).</brief>
-///     <args>
-///       <arg name="source" type="string" />
-///     </args>
-///     <body>
+/**
+ * Производит замену всех вставок (Insertions).
+ * 
+ * @param string $source
+ * @return string
+ */
 	static function process_insertions($src) {
 	  return Text_Insertions::filter()->process($src);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="parse_parms" returns="array">
-///     <brief>Парсит текст, превращая его в массив</brief>
-///     <details>
-///       Текст должен быть в соответствующем формате. В этом формате описывается, например, навигация сайта.
-///     </details>
-///     <args>
-///       <arg name="src" type="string" />
-///     </args>
-///     <body>
+/**
+ * Парсит текст, превращая его в массив
+ * 
+ * @param string $src
+ * @return array
+ */
 	static function parse_parms($src) {
 		if (!self::$parser) {
 			Core::load(self::$parser_module);
@@ -916,18 +833,13 @@ class CMS implements Core_ModuleInterface {
 		}
 		return self::$parser->parse($src);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="unparse_parms" returns="string">
-///     <brief>Производит действие, обратное parse_parms</brief>
-///     <details>
-///       На входе должен быть итератор. В противном случае производится простое приведение к строковому типу
-///     </details>
-///     <args>
-///       <arg name="src" type="iterable" />
-///     </args>
-///     <body>
+/**
+ * Производит действие, обратное parse_parms
+ * 
+ * @param iterable $src
+ * @return string
+ */
 	static function unparse_parms($src) {
 		if (!self::$parser) {
 			Core::load(self::$parser_module);
@@ -935,55 +847,45 @@ class CMS implements Core_ModuleInterface {
 		}
 		return self::$parser->unparse($src);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="parse_wiki" returns="string">
-///     <brief>Трансформирует wiki-разметку в HTML</brief>
-///     <args>
-///       <arg name="src" type="string" />
-///     </args>
-///     <body>
-	static function parse_wiki($src) {
+/**
+ * Трансформирует wiki-разметку в HTML
+ * 
+ * @param string $src
+ * @return string
+ */
+	static function parse_wiki($src,$config=array()) {
 		if (!self::$wiki_parser) {
 			Core::load(self::$wiki_parser_module);
 			self::$wiki_parser = Core_Types::reflection_for(str_replace('.','_',self::$wiki_parser_module))->newInstance();
 		}
-		return self::$wiki_parser->parse($src);
+		return self::$wiki_parser->parse($src,$config);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="abs_refs" returns="string">
-///     <brief>В переданном тексте заменяет относительные ссылки на абсолютные (в текущем домене)</brief>
-///     <args>
-///       <arg name="source" type="string" />
-///     </args>
-///     <body>
+/**
+ * В переданном тексте заменяет относительные ссылки на абсолютные (в текущем домене)
+ * 
+ * @param string $source
+ * @return string
+ */
 	static function abs_refs($s) {
 		$s = preg_replace_callback('{<a([^>]+)href="([^"]+)"}ism',array(self,'abs_refs_cb'),$s);
 		return $s;
 	}
-///     </body>
-///   </method>
-
-
-
-/// </protocol>
 
 
 
 
-/// <protocol name="performing">
 
 
-///   <method name="log">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="text" type="string" />
-///     </args>
-///     <body>
+
+
+
+/**
+ * @param string $name
+ * @param string $text
+ */
 	static function log($name,$text) {
 		$text = trim($text);
 		$f = fopen("../logs/$name.log","a");
@@ -992,21 +894,15 @@ class CMS implements Core_ModuleInterface {
 		fputs($f, "$t [$ip] $text\n");
 		fclose($f);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="add_component">
-///     <brief>Регистрирует в системе компонент</brief>
-///     <details>
-///       Этот метод рекомендуется вызывать в методе initialize класса - модуля компонента.
-///     </details>
-///     <args>
-///       <arg name="name" type="string" brief="Название компонента" />
-///       <arg name="mapper" type="WebKit.Controller.AbstractMapper" brief="Экземпляр маппера, который будет обрабатывать запросы для данного компонента" />
-///       <arg name="layout" type="" default="work" brief="Layout по умолчанию, в котором будут отображаться страницы компонента" />
-///     </args>
-///     <body>
+/**
+ * Регистрирует в системе компонент
+ * 
+ * @param string $name
+ * @param WebKit_Controller_AbstractMapper $mapper
+ * @param  $layout
+ */
 	static protected $components = array();
 
 	static public function add_component_object($obj, $mapper = null, $layout = 'work') {
@@ -1072,20 +968,13 @@ class CMS implements Core_ModuleInterface {
 			$dir.'/views',
 		));
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="register_insertions" varargs="true">
-///     <brief>Регистрирует в системе "вставку" (Insertion)</brief>
-///     <details>
-///       Вствка (Insertion) - конструкция вида %ИМЯ{параметры}, которую можно использовать в администрируемом контенте, и которая будет заменяться на выводимой странице по определенному алгоритму.
-///       В данной функции необходимо указать класс и произвольное количество статических методов в нем, которые будут обрабатывать вставки.
-///     </details>
-///     <args>
-///       <arg name="class" type="string" brief="Имя класса, в котором находится метод" />
-///       <arg name="method" type="string" brief="Имя вставки(метода) или 'вставка:метод' если имя метода отличается от имени вставки" />
-///     </args>
-///     <body>
+/**
+ * Регистрирует в системе "вставку" (Insertion)
+ * 
+ * @param string $class
+ * @param string $method
+ */
 	static function register_insertions() {
 		$args = func_get_args();
 		$class = $args[0];
@@ -1100,34 +989,25 @@ class CMS implements Core_ModuleInterface {
 			Text_Insertions::register_filter(array(strtolower($name) => new Core_Call($class, $func)));
 		}
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="register_object" varargs="true">
-///     <brief>Регистрирует в системе объект взаимодействия компонентов</brief>
-///     <args>
-///       <arg name="name" type="string" brief="Имя объекта" />
-///       <arg name="module" type="string" brief="Имя модуля" />
-///     </args>
-///     <body>
+/**
+ * Регистрирует в системе объект взаимодействия компонентов
+ * 
+ * @param string $name
+ * @param string $module
+ */
 	static function register_object($name,$module) {
 		self::$registered_objects[$name] = $module;
 	}
-///     </body>
-///   </method>
 
 
 
-///   <method scope="class" name="add_command" varargs="true">
-///     <brief>Добавляет комманду в очередь</brief>
-///     <args>
-///       <arg name="chapter" type="string" brief="Имя раздела (получателя)" />
-///       <arg name="command" type="string" brief="Комманда (имя метода)" />
-///     </args>
-///     <details>
-///       Этот механизм предназначен для взаимодействия компонентов CMS между собой. Один компонент может послать другому сигнал, не заботясь о том, установлен ли компонент-адресат.
-///     </details>
-///     <body>
+/**
+ * Добавляет комманду в очередь
+ * 
+ * @param string $chapter
+ * @param string $command
+ */
 	static function add_command() {
 		$args = func_get_args();
 		$chapter = trim($args[0]);
@@ -1139,35 +1019,26 @@ class CMS implements Core_ModuleInterface {
 			'args' => $args,
 		);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="on_before_dispatch">
-///     <brief>Добавляет в очередь функцию, которая должна быть выполнениа непосредственно перед диспетчеризацией HTTP-запроса.</brief>
-///     <args>
-///       <arg name="class" type="string" brief="Имя класса, в котором находится функция" />
-///       <arg name="method" type="string" brief="Имя метода" />
-///     </args>
-///     <body>
+/**
+ * Добавляет в очередь функцию, которая должна быть выполнениа непосредственно перед диспетчеризацией HTTP-запроса.
+ * 
+ * @param string $class
+ * @param string $method
+ */
 	static function on_before_dispatch($class,$method) {
 		self::$plugins_before_dispatch[$class] = $method;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="calc_pages">
-///     <brief>Вычисляет количество страниц и валидность номера страницы для постраничной навигации какого-либо списка</brief>
-///     <args>
-///       <arg name="count" type="int" brief="Количество записей в списке" />
-///       <arg name="per_page" type="int" brief="Количество записей на одной странице" />
-///       <arg name="page_number" type="int" brief="Номер текущей страницы (передается по ссылке)" />
-///     </args>
-///     <details>
-///       В случае если номер текущей страницы неправильный (меньше единицы или больше числа страниц), то он будет установлен равным единице.
-///     </details>
-///     <body>
+/**
+ * Вычисляет количество страниц и валидность номера страницы для постраничной навигации какого-либо списка
+ * 
+ * @param int $count
+ * @param int $per_page
+ * @param int $page_number
+ */
 	static function calc_pages($cnt,$perpage,&$page) {
 		if ($page<1) $page = 1;
 		$num_pages = $cnt/$perpage;
@@ -1176,120 +1047,95 @@ class CMS implements Core_ModuleInterface {
 		if ($page>$num_pages) $page = 1;
 		return $num_pages;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="page_navigator" returns="string">
-///     <brief>Возвращает HTML-код постраничного навигатора.</brief>
-///     <details>
-///       Шаблон навигатора находится в файле app/views/page-navigator.phtml. Если же такого файла нет, то будет использован стандартный tao/views/page-navigator.phtml.
-///     </details>
-///     <args>
-///       <arg name="page" type="int" brief="Номер текущей страницы" />
-///       <arg name="num_of_pages" type="int" brief="Количество страниц" />
-///       <arg name="url_template" type="string" brief="Шаблон URL, в котором в качестве места для номера страницы стоит знак %" />
-///     </args>
-///     <body>
+/**
+ * Возвращает HTML-код постраничного навигатора.
+ * 
+ * @param int $page
+ * @param int $num_of_pages
+ * @param string $url_template
+ * @return string
+ */
 	static function page_navigator($page,$numpages,$url) {
 		return self::$page_navigator->invokeArgs(NULL,array($page,$numpages,$url));
 	}
-///     </body>
-///   </method>
 
 
 
-///   <method scope="class" name="translit" returns="string">
-///     <brief>Преобразует в строке русские буквы в транслит</brief>
-///     <args>
-///       <arg name="value" type="string" />
-///     </args>
-///     <body>
+/**
+ * Преобразует в строке русские буквы в транслит
+ * 
+ * @param string $value
+ * @return string
+ */
 	static function translit($s) {
 		return Core::make('Text.Process')->process($s, 'translit');
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="check_yes" returns="boolean">
-///     <brief>Возвращает true если строковой параметр равен одному из значений: '1','yes','true','on'</brief>
-///     <args>
-///       <arg name="value" type="string" />
-///     </args>
-///     <body>
+/**
+ * Возвращает true если строковой параметр равен одному из значений: '1','yes','true','on'
+ * 
+ * @param string $value
+ * @return boolean
+ */
 	static function check_yes($s) {
 		return in_array($s,array('1','yes','true','on'));
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="check_no" returns="boolean">
-///     <brief>Возвращает true если строковой параметр равен одному из значений: '0','none','no','false','off'</brief>
-///     <args>
-///       <arg name="value" type="string" />
-///     </args>
-///     <body>
+/**
+ * Возвращает true если строковой параметр равен одному из значений: '0','none','no','false','off'
+ * 
+ * @param string $value
+ * @return boolean
+ */
 	static function check_no($s) {
 		return in_array($s,array('0','none','no','false','off',''));
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="setup_meta">
-///     <brief>Устанавливает мета-теги если таковые описаны в переданном хеше - в элементах meta.title, meta.description, meta.keywords</brief>
-///     <args>
-///       <arg name="parms" type="array|Data.Hash" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает мета-теги если таковые описаны в переданном хеше - в элементах meta.title, meta.description, meta.keywords
+ * 
+ * @param array|Data_Hash $parms
+ */
 	static function setup_meta($parms) {
 	  foreach ($parms as $name => $value)
       if (preg_match('{meta\.(.*)}', $name, $m))
         self::env()->meta->{$m[1]} = $value;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="render_view" returns="CMS.Views.TemplateView">
-///     <args>
-///       <arg name="template" type="string" />
-///       <arg name="parms" type="array" />
-///       <arg name="layout" type="string" default="false" />
-///     </args>
-///     <body>
+/**
+ * @param string $template
+ * @param array $parms
+ * @param string $layout
+ * @return CMS_Views_TemplateView
+ */
 	static function render_view($tpl,$parms=array(),$layout=false) {
 		Core::load('CMS.Views');
 		$view = Templates_HTML::Template($tpl)->with($parms);
 		if ($layout) $view->within_layout($layout);
 		return $view;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="render" returns="string">
-///     <args>
-///       <arg name="template" type="string" />
-///       <arg name="parms" type="array" />
-///       <arg name="layout" type="string" default="false" />
-///     </args>
-///     <body>
+/**
+ * @param string $template
+ * @param array $parms
+ * @param string $layout
+ * @return string
+ */
 	static function render($tpl,$parms=array(),$layout=false) {
 		$view = self::render_view($tpl,$parms,$layout);
 		return $view->as_string();
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="render_in_page" returns="string">
-///     <args>
-///       <arg name="template" type="string" />
-///       <arg name="parms" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param string $template
+ * @param array $parms
+ * @return string
+ */
 	static function render_in_page($tpl,$parms=array()) {
 		if (!self::$i_view) return self::render($tpl,$parms);
 		return self::$i_view->partial($tpl,$parms);
 	}
-///     </body>
-///   </method>
 
 	static function render_in_page_cache($tpl,$parms=array()) {
 		if (!self::$i_view) return self::render($tpl,$parms);
@@ -1298,21 +1144,15 @@ class CMS implements Core_ModuleInterface {
 
 
 
-///   <method scope="class" name="units" returns="string">
-///     <brief>Возвращает единицу измерения в числе и падеже, соответствующем заданному числу</brief>
-///     <details>
-///       Вызываем CMS::units($n,'рубль','рубля','рублей');
-///       При $n, равном 1,21,161 и т.д., вернет 'рубль'
-///       При $n, равном 2,22,162 и т.д., вернет 'рубля'
-///       При $n, равном 5,11,168 и т.д., вернет 'рублей'
-///     </details>
-///     <args>
-///       <arg name="number" type="int" brief="Число" />
-///       <arg name="ei" type="string" brief="Единственное число, именительный падеж" />
-///       <arg name="er" type="string" brief="Единственное число, родительный падеж" />
-///       <arg name="mr" type="string" brief="Множественное число, родительный падеж" />
-///     </args>
-///     <body>
+/**
+ * Возвращает единицу измерения в числе и падеже, соответствующем заданному числу
+ * 
+ * @param int $number
+ * @param string $ei
+ * @param string $er
+ * @param string $mr
+ * @return string
+ */
 	static function units($num,$ei,$er,$mr) {
 		$num = (int)$num;
 		if ($num>10&&$num<15) return $mr;
@@ -1322,16 +1162,14 @@ class CMS implements Core_ModuleInterface {
 		if ($num<5)  return $er;
 		return $mr;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="close_tags" returns="string">
-///     <brief>Находит в HTML-тексте незакрытые теги и закрывает их</brief>
-///     <args>
-///       <arg name="html" type="string" brief="HTML-текст" />
-///     </args>
-///     <body>
+/**
+ * Находит в HTML-тексте незакрытые теги и закрывает их
+ * 
+ * @param string $html
+ * @return string
+ */
 	static function close_tags($html) {
 		$single_tags = array('meta','img','br','link','area','input','hr','col','param','base');
 		preg_match_all('~<([a-z0-9]+)(?: .*)?(?<![/|/ ])>~iU', $html, $result);
@@ -1355,100 +1193,81 @@ class CMS implements Core_ModuleInterface {
 		}
 		return $html;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="html_clear" returns="string">
-///     <brief>Удаляет из HTML-текста теги (кроме IMG) и пробельные символы (в т.ч. и nbsp) для детекта пустого текста</brief>
-///     <args>
-///       <arg name="html" type="string" brief="HTML-текст" />
-///     </args>
-///     <body>
+/**
+ * Удаляет из HTML-текста теги (кроме IMG) и пробельные символы (в т.ч. и nbsp) для детекта пустого текста
+ * 
+ * @param string $html
+ * @return string
+ */
 	static function html_clear($html) {
 		$s = strip_tags($html,'<img>');
 		$s = str_ireplace('&nbsp;','',$s);
 		$s = trim($s);
 		return $s;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="rmdir">
-///     <brief>Удаляет каталог рекурсивно вместе со всеми его подкаталогами и содержащимися в нем файлами</brief>
-///     <args>
-///       <arg name="dir" type="string" />
-///     </args>
-///     <body>
+/**
+ * Удаляет каталог рекурсивно вместе со всеми его подкаталогами и содержащимися в нем файлами
+ * 
+ * @param string $dir
+ */
 	static function rmdir($dir) {
 		$fo = IO_FS::file_object_for($dir);
 		if ($fo) $fo->rm();
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="copy">
-///     <brief>Копирует рекурсивно вместе со всеми подкаталогами и содержащимися в нем файлами</brief>
-///     <args>
-///       <arg name="from" type="string" />
-///       <arg name="to" type="string" />
-///     </args>
-///     <body>
+/**
+ * Копирует рекурсивно вместе со всеми подкаталогами и содержащимися в нем файлами
+ * 
+ * @param string $from
+ * @param string $to
+ */
 	static function copy($from,$to) {
 		IO_FS::cp($from, $to);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="chmod_file">
-///     <brief>Устанавливает права на файл, созданный движком</brief>
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает права на файл, созданный движком
+ * 
+ * @param string $name
+ */
 	static function chmod_file($name) {
 	  return IO_FS::file_object_for($name)->set_permission();
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="chmod_dir">
-///     <brief>Устанавливает права на каталог, созданный движком</brief>
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает права на каталог, созданный движком
+ * 
+ * @param string $name
+ */
 	static function chmod_dir($name) {
 	  return IO_FS::file_object_for($name)->set_permission();
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="mkdirs">
-///     <brief>Создает каталог рекурсивно</brief>
-///     <args>
-///       <arg name="dir" type="string" />
-///     </args>
-///     <body>
+/**
+ * Создает каталог рекурсивно
+ * 
+ * @param string $dir
+ */
 	public function mkdirs($dirs) {
 	  return IO_FS::Dir($dirs)->create();
 	}
-///     </body>
-///   </method>
 
 
 //FIXME: НЛО прилетео и написало это:
 	static $ifs_cache = array();
 
 
-///   <method scope="class" name="items_for_select" returns="array">
-///     <brief>Создает массив вида ключ=>значение на основании переданного источника</brief>
-///     <args>
-///       <arg name="source" type="string|iterable" />
-///     </args>
-///     <body>
+/**
+ * Создает массив вида ключ=>значение на основании переданного источника
+ * 
+ * @param string|iterable $source
+ * @return array
+ */
 
 
 	static function items_for_select($s) {
@@ -1531,40 +1350,30 @@ class CMS implements Core_ModuleInterface {
 
 		else return array();
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="gallery_sort" returns="array">
-///     <brief>Сортирует объекты в галерее в соответствии с установленным порядком</brief>
-///     <args>
-///       <arg name="source" type="array" />
-///     </args>
-///     <body>
+/**
+ * Сортирует объекты в галерее в соответствии с установленным порядком
+ * 
+ * @param array $source
+ * @return array
+ */
 	static function gallery_sort(&$ar) {
 		uasort($ar,array('CMS','gallery_sort_cb'));
 		return $ar;
 	}
-///     </body>
-///   </method>
 
 /** --------------------------------------------------------------- */
 
-///   <method scope="class" name="s2date" returns="int">
-///     <brief>Переводит дату из строкового представления в timestamp</brief>
-///     <details>
-///       В качестве параметра принимаются значения вида: "d.m.y", "d.m.y - G:i", "d.m.y - G:i:s".
-///       Если передана некорректная строка, то будет возвращен ноль.
-///     </details>
-///     <args>
-///       <arg name="source" type="string" />
-///     </args>
-///     <body>
+/**
+ * Переводит дату из строкового представления в timestamp
+ * 
+ * @param string $source
+ * @return int
+ */
 	static function s2date($in) {
 		return Time_DateTime::s2date($in);
 	}
-///     </body>
-///   </method>
 
 
 	static function validate_dmy(&$d,&$m,&$y) {
@@ -1583,123 +1392,90 @@ class CMS implements Core_ModuleInterface {
 		return $s;
 	}
 
-///   <method scope="class" name="s2sqldate" returns="string">
-///     <brief>Переводит дату из строкового представления в формат SQL DATE</brief>
-///     <details>
-///       В качестве параметра принимаются значения вида: "d.m.y" или "d.m.Y - G:i" или "d.m.Y - G:i:s".
-///       Если передана некорректная строка, то будет возвращено "0000-00-00".
-///     </details>
-///     <args>
-///       <arg name="source" type="string" />
-///     </args>
-///     <body>
+/**
+ * Переводит дату из строкового представления в формат SQL DATE
+ * 
+ * @param string $source
+ * @return string
+ */
 	static function s2sqldate($in) {
 		return Time_DateTime::s2sqldate($in);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="datetime2timestamp" returns="int">
-///     <brief>Переводит дату/время в timestamp</brief>
-///     <details>
-///       Функция, более широкого формата, чем s2date. 
-///		  Принимает также дату/время в том виде, в каком они приходят из БД в полях типа DATE, DATETIME.
-///       Если передано целочисленное значение, то считается, что это timestamp - 
-///		  в этом случае он возвращается в том же виде, в котором получен.
-///     </details>
-///     <args>
-///       <arg name="source" type="string|int" />
-///     </args>
-///     <body>
+/**
+ * Переводит дату/время в timestamp
+ * 
+ * @param string|int $source
+ * @return int
+ */
 	static function datetime2timestamp($time) {
 		return Time_DateTime::datetime2timestamp($time);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="datetime_add" returns="string">
-///     <brief>Суммирует дату/время с секундами</brief>
-///     <args>
-///       <arg name="datetime" type="string" />
-///       <arg name="sec" type="int" />
-///     </args>
-///     <body>
+/**
+ * Суммирует дату/время с секундами
+ * 
+ * @param string $datetime
+ * @param int $sec
+ * @return string
+ */
 	static function datetime_add($datetime,$sec) {
 		return Time_DateTime::datetime_add($datetime,$sec);
 	}
-///     </body>
-///   </method>
 
 
 
-///   <method scope="class" name="sqldateformat" returns="string">
-///     <brief>Форматирует SQL DATE/DATETIME в соответствии с переданным форматом</brief>
-///     <details>
-///       В формате допустимы только dmyYHGis
-///     </details>
-///     <args>
-///       <arg name="format" type="string" brief="Формат" />
-///       <arg name="time" type="string|int" brief="Дата/время" />
-///     </args>
-///     <body>
+/**
+ * Форматирует SQL DATE/DATETIME в соответствии с переданным форматом
+ * 
+ * @param string $format
+ * @param string|int $time
+ * @return string
+ */
 	static function sqldateformat($format,$time) {
 		return Time_DateTime::sqldateformat($format,$time);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="date" returns="string">
-///     <brief>Форматирует дату/время в соответствии с переданным форматом</brief>
-///     <details>
-///       В отличие от стандартной функции PHP принимает дату/время не только в виде timestamp, но и в строковом.
-///     </details>
-///     <args>
-///       <arg name="format" type="string" brief="Формат" />
-///       <arg name="time" type="string|int" brief="Дата/время" />
-///     </args>
-///     <body>
+/**
+ * Форматирует дату/время в соответствии с переданным форматом
+ * 
+ * @param string $format
+ * @param string|int $time
+ * @return string
+ */
 	static function date($format,$time) {
 		return self::sqldateformat($format,$time);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="date_in_human_language" returns="string">
-///     <brief>Возвращает дату на "человеческом" языке - строку вида "11 ноября 2011".</brief>
-///     <args>
-///       <arg name="time" type="string|int" />
-///     </args>
-///     <body>
+/**
+ * Возвращает дату на "человеческом" языке - строку вида "11 ноября 2011".
+ * 
+ * @param string|int $time
+ * @return string
+ */
 	static function date_in_human_language($time) {
 		$time = self::datetime2timestamp($time);
 		return self::lang()->_common->date_in_human_language($time);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="today" returns="int">
-///     <brief>Возвращает timestamp, соответствующий началу сегодняшних суток</brief>
-///     <body>
+/**
+ * Возвращает timestamp, соответствующий началу сегодняшних суток
+ * 
+ * @return int
+ */
 	static function today() {
 		return Time::now()->setTime(0,0,0)->ts;
 	}
-///     </body>
-///   </method>
 
 /** --------------------------------------------------------------- */
 
-///   <method scope="class" name="admin_path" returns="string">
-///     <brief>Возвращает URI, приведенный в соответствие с текущим местоположением админа</brief>
-///     <details>
-///       Адреса админских механизмов сайта могут определяться как по REQUEST_URI (например /admin/*), так и по домену (например, admin.mysite.zone/*)
-///	      Данный метод поможет создать маппер, который без модификаций будет работать в любом варианте.
-///       CMS::admin_path('banners/templates') может вернуть как '/admin/banners/templates', так и '/banners/templates' - в зависимости от того, где у нас работает админ.
-///     </details>
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
+/**
+ * Возвращает URI, приведенный в соответствие с текущим местоположением админа
+ * 
+ * @param string $path
+ * @return string
+ */
 	static function admin_path($path='') {
 		$path  = trim(trim($path,'/'));
 		$admin = CMS_Admin::path();
@@ -1709,71 +1485,51 @@ class CMS implements Core_ModuleInterface {
 		}
 		return "/$admin/$path/";
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="is_admin_request" returns="boolean">
-///     <brief>Определяет, является ли данный HTTP-запрос запросом к админу</brief>
-///     <details>
-///       Наряду с функцией CMS::admin_path() позволяет создать маппер, независимый от положения админа.
-///     </details>
-///     <args>
-///       <arg name="request" type="WebKit.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * Определяет, является ли данный HTTP-запрос запросом к админу
+ * 
+ * @param WebKit_HTTP_Request $request
+ * @return boolean
+ */
 	static function is_admin_request($request) {
 		if (CMS_Admin::$host&&CMS_Admin::$host!=$request->host) return false;
 		if (strpos($request->urn,self::admin_path())===0) return true;
 		return false;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="check_password" returns="boolean">
-///     <args>
-///       <arg name="hash" type="string" />
-///       <arg name="password" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $hash
+ * @param string $password
+ * @return boolean
+ */
 	static function check_password($hash,$password) {
 		if (md5($password)==$hash) return true;
 		return false;
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="views_path">
-///     <args>
-///       <arg name="path" type="string|false" default="false" />
-///     </args>
-///     <body>
+/**
+ * @param string|false $path
+ */
 	static function views_path($path=false) {
 		return Templates::get_path($path);
 		// return self::$views_path.($path?"/$path":"");
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="app_path">
-///     <args>
-///       <arg name="path" type="string|false" default="false" />
-///     </args>
-///     <body>
+/**
+ * @param string|false $path
+ */
 	static function app_path($path=false) {
 		return self::$app_path.($path?"/$path":"");
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="view">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ */
 	static function view($name) {
 		return Templates::get_path($name);
 	}
@@ -1785,102 +1541,71 @@ class CMS implements Core_ModuleInterface {
 		}
 		return $path;
 	}
-///     </body>
-///   </method>
 
-///   <method name="app_view">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ */
 	static function app_view($name) {
 		return self::$app_path . "/views/$name";
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="stdfile">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="ext" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $ext
+ */
 	static function stdfile($name) {
 		return self::$assets_dir . "/$name";
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="stdfile_url">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="ext" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $ext
+ */
 	static function stdfile_url($name) {
 		return "/".self::$assets_dir . "/$name";
 	}
-///     </body>
-///   </method>
 
-///   <method name="stdstyle">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ */
 	static function stdstyle($name,$replace=false) {
 		if (isset(self::$i_stdstyles[$name])) return ''; self::$i_stdstyles[$name] = true;
 		$url = self::stdfile_url("styles/$name");
 		return "<link rel=\"stylesheet\" type=\"text/css\" href=\"$url\" />";
 
 	}
-///     </body>
-///   </method>
 
-///   <method name="stdscript">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ */
 	static function stdscript($name,$replace=false) {
 		if (isset(self::$i_stdscripts[$name])) return ''; self::$i_stdscripts[$name] = true;
 		$url = self::stdfile_url("scripts/$name");
 		return "<script type=\"text/javascript\" src=\"$url\"></script>";
 
 	}
-///     </body>
-///   </method>
 
-///   <method name="file_url" returns="string">
-///     <args>
-///       <arg name="filename" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $filename
+ * @return string
+ */
 	static function file_url($file) {
 		if ($m = Core_Regexps::match_with_results('{^\./(.+)$}',$file)) {
 			return '/'.$m[1];
 		}
 		return '#';
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="render_mail" returns="string">
-///     <args>
-///       <arg name="tpl" type="string" />
-///       <arg name="parms" type="array" />
-///       <arg name="layout" type="string" default="mail" />
-///     </args>
-///     <body>
+/**
+ * @param string $tpl
+ * @param array $parms
+ * @param string $layout
+ * @return string
+ */
 	static function render_mail($tpl,$parms,$layout='mail') { return self::render($tpl,$parms,$layout); }
-///     </body>
-///   </method>
-
-
-///  </protocol>
 
 
 
@@ -1889,14 +1614,13 @@ class CMS implements Core_ModuleInterface {
 
 
 
-///  <protocol name="supporting">
 
 
-///   <method scope="class" name="process_navigation">
-///     <args>
-///       <arg name="uri" type="string|false" default="false" />
-///     </args>
-///     <body>
+
+
+/**
+ * @param string|false $uri
+ */
 	static function process_navigation($uri=false) {
 		if (!empty(self::$navigation)) return self::$navigation;
 		if (!$uri) $uri = WS::env()->request->path;
@@ -1908,14 +1632,11 @@ class CMS implements Core_ModuleInterface {
 		}
 
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="check_globals_or" returns="boolean">
-///     <args>
-///       <arg name="vars" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $vars
+ * @return boolean
+ */
 	static function check_globals_or($s) {
 		if (self::$globals['full']) return true;
 		Core::load('Text');
@@ -1927,15 +1648,12 @@ class CMS implements Core_ModuleInterface {
 		}
 		return false;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="abs_refs_cb" returns="string">
-///     <args>
-///       <arg name="matches" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $matches
+ * @return string
+ */
 	static function abs_refs_cb($m) {
 		$s = $m[1];
 		$ref = trim($m[2]);
@@ -1946,15 +1664,12 @@ class CMS implements Core_ModuleInterface {
 		}
 		return "<a$s"."href=\"$ref\"";
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="get_var_value" returns="mixed">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return mixed
+ */
 	static function get_var_value($name) {
 		$site = false;
 		if ($m = Core_Regexps::match_with_results('{^(.+)/([^/]+)$}',$name)) {
@@ -1964,82 +1679,66 @@ class CMS implements Core_ModuleInterface {
 		}
 		return CMS::vars()->get($name,$site);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="gallery_sort_cb" returns="int">
-///     <args>
-///       <arg name="arg1" type="array" />
-///       <arg name="arg2" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $arg1
+ * @param array $arg2
+ * @return int
+ */
 	static function gallery_sort_cb($a,$b) {
 		if ($a['ord']>$b['ord']) return 1;
 		if ($a['ord']<$b['ord']) return -1;
 		return 0;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="layout_view" returns="WebKit.Views.TemplateView|false">
-///     <args>
-///       <arg name="view" type="WebKit.Views.TemplateView|false" default="false" />
-///     </args>
-///     <body>
+/**
+ * @param WebKit_Views_TemplateView|false $view
+ * @return WebKit_Views_TemplateView|false
+ */
 	static function layout_view($view=false) {
 		if ($view) self::$i_view = $view;
 		return self::$i_view;
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="use_styles" varargs="true">
-///     <body>
+/**
+ */
 	static function use_styles() {
 		$args = func_get_args();
 		foreach($args as $arg) self::$i_view->use_styles($arg);
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="use_helper">
-///     <body>
+/**
+ */
 	static function use_helper($name,$helper) {
 		Templates_HTML::use_helper($name,$helper);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="field_type">
-///     <body>
+/**
+ */
 	static function field_type($name,$module) {
 		self::$fields_types[$name] = $module;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="use_scripts" varargs="true">
-///     <body>
+/**
+ */
 	static function use_scripts() {
 		$args = func_get_args();
 		foreach($args as $arg) self::$i_view->use_scripts($arg);
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="host" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function host() {
 		if (self::$host) return self::$host;
 		return $_SERVER['HTTP_HOST'];
 	}
-///     </body>
-///   </method>
 
-///   <method scope="class" name="user_login" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	static function user_login() {
 		$headers = getAllHeaders();
 		$auth = trim($headers['Authorization']);
@@ -2052,11 +1751,6 @@ class CMS implements Core_ModuleInterface {
 		}
 		return false;
 	}
-///     </body>
-///   </method>
-
-
-///  </protocol>
 
 
 
@@ -2065,21 +1759,20 @@ class CMS implements Core_ModuleInterface {
 
 
 
-///   <protocol name="obsolete">
 
-///   <method scope="class" name="cgf" returns="array">
-///     <body>
+
+
+/**
+ * @return array
+ */
 	static function cfg() { return self::$cfg; }
-///     </body>
-///   </method>
 
-///   <method scope="class" name="page2mail" returns="Mail.Message">
-///     <args>
-///       <arg name="page" type="Component.Pages.Entity|string" />
-///       <arg name="parms" type="array" default="array()" />
-///       <arg name="layout" type="string" default="mail" />
-///     </args>
-///     <body>
+/**
+ * @param Component_Pages_Entity|string $page
+ * @param array $parms
+ * @param string $layout
+ * @return Mail_Message
+ */
 	static function page2mail($page,$parms=array(),$layout='mail') {
 		if (!is_object($page)) $page = Component_Pages_Entity::find_by_url($page);
 		if (!$page) return false;
@@ -2095,15 +1788,11 @@ class CMS implements Core_ModuleInterface {
 		$mail->html($body);
 		return $mail;
 	}
-///     </body>
-///   </method>
 
 
-///   </protocol>
 
 
 }
-/// </class>
 
 
 class CMS_PlugObject {
@@ -2148,4 +1837,3 @@ class CMS_ObjectsBuilder {
 class CMS_Exception extends Exception {}
 
 
-/// </module>

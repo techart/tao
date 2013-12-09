@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\CLI
+ */
+
 Core::load('CMS');
 Core::load('CLI','CLI.GetOpt');
 

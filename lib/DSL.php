@@ -1,55 +1,54 @@
 <?php
-/// <module name="DSL" version="0.2.0" maintainer="timokhin@techart.ru">
-/// <brief>Базовые классы, предназначенные для построения DSL</brief>
+/**
+ * DSL
+ * 
+ * Базовые классы, предназначенные для построения DSL
+ * 
+ * @package DSL
+ * @version 0.2.0
+ */
 
-/// <class name="DSL" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package DSL
+ */
 class DSL implements Core_ModuleInterface {
-///   <constants>
   const VERSION = '0.2.0';
-///   </constants>
 }
-/// </class>
 
 
-/// <class name="DSL.Builder">
-///   <brief>Базовый класс фабрик иерахически связанных объектов</brief>
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <details>
-///     <p>Класс предназначен для использования в качестве базового при
-///        построении систем иерархически связанных объектов.</p>
-///   </details>
+/**
+ * Базовый класс фабрик иерахически связанных объектов
+ * 
+ * <p>Класс предназначен для использования в качестве базового при
+ * построении систем иерархически связанных объектов.</p>
+ * 
+ * @package DSL
+ */
 class DSL_Builder implements Core_PropertyAccessInterface {
 
   protected $parent;
   protected $object;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="parent" default="null" brief="родительский объект" />
-///       <arg name="object" type="object" default="null" brief="текущий конфигурируемый объект" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param  $parent
+ * @param object $object
+ */
   public function __construct($parent, $object) {
     $this->parent = $parent;
     $this->object = $object;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Возвращает значение свойства</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Возвращает значение свойства
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'end':
@@ -60,26 +59,22 @@ class DSL_Builder implements Core_PropertyAccessInterface {
         return $this->object->$property;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="DSL.Builder">
-///     <brief>Устанавливает значение свойства</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает значение свойства
+ * 
+ * @param string $property
+ * @param  $value
+ * @return DSL_Builder
+ */
   public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///    <brief>Проверяет установку значения свойства</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установку значения свойства
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'object':
@@ -88,30 +83,23 @@ class DSL_Builder implements Core_PropertyAccessInterface {
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Удаляет свойство</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Удаляет свойство
+ * 
+ * @param string $property
+ */
   public function __unset($property) { throw new Core_ReadOnlyObjectException($this); }
-///   </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling" interface="Core.CallInterface">
 
-///   <method name="__call" returns="mixed">
-///     <brief>Делегирует вызов конфигурируемому объекту</brief>
-///     <args>
-///       <arg name="method" type="string" brief="имя метода" />
-///       <arg name="args"   type="array"  brief="значения аргументов" />
-///     </args>
-///     <body>
+/**
+ * Делегирует вызов конфигурируемому объекту
+ * 
+ * @param string $method
+ * @param array $args
+ * @return mixed
+ */
   public function __call($method, $args) {
     method_exists($this->object, $method) ?
       call_user_func_array(array($this->object, $method), $args) :
@@ -119,11 +107,6 @@ class DSL_Builder implements Core_PropertyAccessInterface {
 
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

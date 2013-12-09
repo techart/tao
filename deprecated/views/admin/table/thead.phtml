@@ -1,0 +1,34 @@
+<tr>
+<?php foreach($list_fields as $name => $field) { 
+	$h = isset($field['caption']) ? CMS::lang($field['caption']) : '';
+	if (isset($field['order_by'])) {
+		$o = $field['order_by'];
+		$co = trim($env->request['order_by']);
+		$cur = '';
+		
+		if (is_array($o)) {
+		}
+		
+		else {
+			$o = trim($o);
+			$p = $o;
+			if ($co==$p) $cur = ' class="current"';
+		}
+		
+		$u = $c->admin_url('list',1,array('order_by'=>$o));
+		$h = "<a href=\"$u\"$cur>$h</a>";
+	}
+?>
+
+	<th><?= $h ?></th>
+<?php } ?>
+<?php if ($can_edit) { ?>
+	<th>&nbsp;</th>
+<?php } ?>
+<?php if ($can_delete) { ?>
+	<th>&nbsp;</th>
+<?php } ?>
+<?php if ($can_copy) { ?>
+	<th>&nbsp;</th>
+<?php } ?>
+</tr>

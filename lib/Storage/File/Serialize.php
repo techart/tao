@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Storage\File\Serialize
+ */
+
 
 Core::load('Storage.File');
 

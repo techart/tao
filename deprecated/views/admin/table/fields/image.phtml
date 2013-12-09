@@ -1,0 +1,75 @@
+<?php 
+	unset($parms['dir']);
+	if (!isset($parms['show'])) $parms['show'] = true;
+	$show = $parms['show']; unset($parms['show']);
+	$_id = $form->name."_$name";
+	$fref = false;
+	$_class = '';
+	if (isset($item_id)&&isset($item[$name])&&trim($item[$name])!='') {
+		if (preg_match('{^/}',$item[$name])||preg_match('{^\.\.}',$item[$name])) {
+			$fref = $c->admin_url('download').'?file='.$item[$name];
+		}
+		else $fref = '/'.preg_replace('/^\.+/','',$item[$name]);
+		?><a href="#" id="sw_<?= $_id ?>"><?= CMS::lang()->_common->ta_reupload ?></a> <a href="<?= $c->admin_url('delfile',"$item_id-$name") ?>" onClick="return confirm('<?= CMS::lang()->_common->ta_diconfirm ?>');"><?= CMS::lang()->_common->ta_delfile ?></a><?php
+		$_class = ' ihidden';
+	}
+	?><div id="iupload_<?= $_id ?>" class="iupload<?= $_class ?>">
+	<?= $this->forms->upload($name) ?>
+	</div><?php
+
+	if ($fref&&$show) {
+		Core::load('CMS.Images');
+		$fimg = $item[$name];
+		list($w,$h) = CMS_Images::size($fimg);
+		list($mw,$mh) = CMS_Images::string2sizes($show);
+
+		$w = (int)$w;
+		$h = (int)$h;
+
+		if ($w>0&&$h>0) {
+			$rw = $w;
+			$rh = $h;
+
+			if ($mw&&$w>$mw) {
+				$d = $w/$mw;
+				$w = $mw;
+				$h = ceil($h/$d);
+			}
+
+			if ($mh&&$h>$mh) {
+				$d = $h/$mh;
+				$h = $mh;
+				$w = ceil($w/$d);
+			}
+
+			?><img id="uimg_<?= $_id ?>" class="iupload" src="<?= $fref ?>" width="<?= $w ?>" height="<?= $h ?>" rwidth="<?= $rw ?>" rheight="<?= $rh ?>"><?php
+		}
+
+		else {
+			?><div class="error"><?= CMS::lang()->_common->ta_image_error ?> - <b><?= $fimg ?></b></div><?php
+		}
+	}
+
+
+?>
+<script type="text/javascript">
+<!--
+$(function(){
+	$('#sw_<?= $_id ?>').click(function(){
+		$('#iupload_<?= $_id ?>').toggle();
+		return false;
+	});
+	$('#uimg_<?= $_id ?>').click(function(){
+		var i = $(this);
+		var w = i.attr('width');
+		var h = i.attr('height');
+
+		i.attr('width',i.attr('rwidth'));
+		i.attr('height',i.attr('rheight'));
+
+		i.attr('rwidth',w);
+		i.attr('rheight',h);
+	});
+});
+//-->
+</script>

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars\Types
+ */
+
 
 class CMS_Vars_Types implements Core_ModuleInterface {
 	const VERSION = '0.1.0';
@@ -114,7 +118,6 @@ abstract class CMS_Vars_Types_FieldsTypeORM extends CMS_Vars_Types_FieldsType {
 
 }
 
-/// <class name="CMS.Var.Type.Abstract">
 abstract class CMS_Vars_Types_AbstractType implements CMS_Vars_Types_TypeInterface {
 	public function create($data) {
 		$item = CMS::vars()->db()->make_entity();
@@ -173,17 +176,13 @@ abstract class CMS_Vars_Types_AbstractType implements CMS_Vars_Types_TypeInterfa
 	}
 
 }
-/// </class>
 
-/// <class name="CMS.Var.Type.Dir" extends="CMS.Var.Type.Abstract">
 class CMS_Vars_Types_Dir extends CMS_Vars_Types_AbstractType {
 	public function type() { return 'dir'; }
 	public function title() { return CMS::lang()->_vars->dir; }
 	public function list_value($item) { return '<DIR>'; }
 }
-/// </class>
 
-/// <class name="CMS.Var.Type.Integer" extends="CMS.Var.Type.Abstract">
 class CMS_Vars_Types_Integer extends CMS_Vars_Types_AbstractType {
 	public function type() { return 'int'; }
 	public function title() { return CMS::lang()->_vars->int; }
@@ -210,9 +209,7 @@ class CMS_Vars_Types_Integer extends CMS_Vars_Types_AbstractType {
 		}
 	}
 }
-/// </class>
 
-/// <class name="CMS.Var.Type.String" extends="CMS.Var.Type.Abstract">
 class CMS_Vars_Types_String extends CMS_Vars_Types_AbstractType {
 	public function type() { return 'string'; }
 	public function title() { return CMS::lang()->_vars->string; }
@@ -220,9 +217,7 @@ class CMS_Vars_Types_String extends CMS_Vars_Types_AbstractType {
 		return $this->set_simple($var,$value);
 	}
 }
-/// </class>
 
-/// <class name="CMS.Var.Type.Text" extends="CMS.Var.Type.Abstract">
 class CMS_Vars_Types_Text extends CMS_Vars_Types_AbstractType {
 	public function type() { return 'text'; }
 	public function title() { return CMS::lang()->_vars->text; }
@@ -237,9 +232,7 @@ class CMS_Vars_Types_Text extends CMS_Vars_Types_AbstractType {
 		return $value;
 	}
 }
-/// </class>
 
-/// <class name="CMS.Var.Type.Html" extends="CMS.Var.Type.Abstract">
 class CMS_Vars_Types_Html extends CMS_Vars_Types_AbstractType {
 	public function type() { return 'html'; }
 	public function title() { return CMS::lang()->_vars->html; }
@@ -251,9 +244,7 @@ class CMS_Vars_Types_Html extends CMS_Vars_Types_AbstractType {
 		return $value;
 	}
 }
-/// </class>
 
-/// <class name="CMS.Var.Type.HtmlP" extends="CMS.Var.Type.Html">
 class CMS_Vars_Types_HtmlP extends CMS_Vars_Types_Html {
 	public function type() { return 'htmlp'; }
 	public function title() { return CMS::lang()->_vars->htmp; }
@@ -295,9 +286,7 @@ class CMS_Vars_Types_HtmlP extends CMS_Vars_Types_Html {
 		return $rc;
 	}
 }
-/// </class>
 
-/// <class name="CMS.Var.Type.Mail" extends="CMS.Var.Type.HtmlP">
 class CMS_Vars_Types_Mail extends CMS_Vars_Types_HtmlP {
 
 	protected $attaches = array();
@@ -351,10 +340,8 @@ class CMS_Vars_Types_Mail extends CMS_Vars_Types_HtmlP {
 		return $mail;
 	}
 }
-/// </class>
 
 
-/// <class name="CMS.Var.Type.Array" extends="CMS.Var.Type.Abstract">
 class CMS_Vars_Types_Array extends CMS_Vars_Types_AbstractType {
 	public function type() { return 'array'; }
 	public function title() { return CMS::lang()->_vars->array; }
@@ -398,9 +385,7 @@ class CMS_Vars_Types_Array extends CMS_Vars_Types_AbstractType {
 
 
 }
-/// </class>
 
-/// <class name="CMS.FILE.PATH.URL">
 class CMS_FILE_PATH_URL {
 	protected $name;
 	public function __construct($name) { $this->name = $name; }
@@ -411,10 +396,7 @@ class CMS_FILE_PATH_URL {
 	}
 	public function url() { return CMS::file_url($this->name); }
 }
-/// </class>
 
-/// <class name="CMS.Var.Type.File" extends="CMS.Var.Type.Abstract">
-///   <depends supplier="CMS.FILE.PATH.URL" stereotype="creates" />
 class CMS_Vars_Types_File extends CMS_Vars_Types_AbstractType {
 	public function type() { return 'file'; }
 	public function title() { return CMS::lang()->_vars->file; }
@@ -451,4 +433,3 @@ class CMS_Vars_Types_File extends CMS_Vars_Types_AbstractType {
 
 
 }
-/// </class>

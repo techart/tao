@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\StaticMultilink
+ */
+
 Core::load('CMS.Fields.Types.Multilink');
 
 class CMS_Fields_Types_StaticMultilink extends CMS_Fields_Types_Multilink implements Core_ModuleInterface {

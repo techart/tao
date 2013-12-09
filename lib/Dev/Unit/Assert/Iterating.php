@@ -1,38 +1,38 @@
 <?php
-/// <module name="Dev.Unit.Assert.Iterating" maintainer="svistunov@techart.ru" version="0.1.1">
+/**
+ * Dev.Unit.Assert.Iterating
+ * 
+ * @package Dev\Unit\Assert\Iterating
+ * @version 0.1.1
+ */
 
-/// <class name="Dev.Unit.Assert.Iterating">
-///   <implements interface="Dev.Unit.AssertBundleModuleInterface" />
+/**
+ * @package Dev\Unit\Assert\Iterating
+ */
 class Dev_Unit_Assert_Iterating implements Dev_Unit_AssertBundleModuleInterface {
 
-///   <constants>
   const VERSION = '0.1.1';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="bundle" scope="class" returns="Dev.Unit.Assert.Iterating.Bundle">
-///     <body>
+/**
+ * @return Dev_Unit_Assert_Iterating_Bundle
+ */
   static public function bundle() { return new Dev_Unit_Assert_Iterating_Bundle(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Dev.Unit.Assert.Iterating.Bundle" extends="Dev.Unit.AssertBundle">
+/**
+ * @package Dev\Unit\Assert\Iterating
+ */
 class Dev_Unit_Assert_Iterating_Bundle extends Dev_Unit_AssertBundle {
 
-///   <protocol name="testing">
 
-///   <method name="assert_read" returns="Dev.Unit.Assert.Iterating.Bundle" access="protected">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs"  type="array" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param array $attrs
+ * @return Dev_Unit_Assert_Iterating_Bundle
+ */
     public function assert_read($object, $attrs) {
       foreach ($object as $k => $v) {
         if (!isset($attrs[$k]))
@@ -43,11 +43,6 @@ class Dev_Unit_Assert_Iterating_Bundle extends Dev_Unit_AssertBundle {
       }
       return $this;
     }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

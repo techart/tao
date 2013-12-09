@@ -1,102 +1,94 @@
 <?php
-/// <module name="Mail.Serialize" version="0.2.3" maintainer="timokhin@techart.ru">
-///     <brief>Модуль для кодирования и декодирования письма</brief>
+/**
+ * Mail.Serialize
+ * 
+ * Модуль для кодирования и декодирования письма
+ * 
+ * @package Mail\Serialize
+ * @version 0.2.3
+ */
 Core::load('MIME', 'MIME.Encode', 'MIME.Decode', 'Mail.Message');
 
-/// <class name="Mail.Serialize" stereotype="module">
-///   <depends supplier="Mail.Serialize.Encoder" stereotype="creates" />
-///   <depends supplier="Mail.Serialize.Decoder" stereotype="creates" />
+/**
+ * @package Mail\Serialize
+ */
 class Mail_Serialize implements Core_ModuleInterface {
 
-///   <constants>
   const MODULE  = 'Mail.Serialize';
   const VERSION = '0.2.3';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Encoder" returns="Mail.Serialize.Encoder" scope="class">
-///     <brief>Фабричный метод, возвращает объект класаа Mail.Serialize.Encoder</brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класаа Mail.Serialize.Encoder
+ * 
+ * @return Mail_Serialize_Encoder
+ */
   static public function Encoder() { return new Mail_Serialize_Encoder(); }
-///     </body>
-///   </method>
 
-///   <method name="Decoder" returns="Mail.Serialize.Decoder" scope="class">
-///     <brief>Фабричный метод, возвращает объект класаа Mail.Serialize.Decoder</brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класаа Mail.Serialize.Decoder
+ * 
+ * @return Mail_Serialize_Decoder
+ */
   static public function Decoder() { return new Mail_Serialize_Decoder(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Mail.Serialize.Encoder">
-///     <brief>Кодирое почтовое сообщение</brief>
-///   <depends supplier="IO.Stream.AbstractStream" stereotype="uses" />
-///   <depends supplier="Mail.Message.Part" stereotype="processes" />
-///   <depends supplier="MIME.Encode" stereotype="uses" />
+/**
+ * Кодирое почтовое сообщение
+ * 
+ * @package Mail\Serialize
+ */
 class Mail_Serialize_Encoder {
 
   protected $output = '';
 
-///   <protocol name="configuring">
 
-///   <method name="to_stream" returns="Mail.Serialize.Encoder">
-///     <brief>Устанавливает запись результата в поток</brief>
-///     <args>
-///       <arg name="output" type="IO.Stream.AbstractStream" brief="поток" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает запись результата в поток
+ * 
+ * @param IO_Stream_AbstractStream $output
+ * @return Mail_Serialize_Encoder
+ */
   public function to_stream(IO_Stream_AbstractStream $output) {
     $this->output = $output;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="to_string" returns="Mail.Serialize.Encoder">
-///     <brief>Устанавливает запись результата в строку</brief>
-///     <args>
-///       <arg name="output" type="stream" default="''" brief="строка" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает запись результата в строку
+ * 
+ * @param stream $output
+ * @return Mail_Serialize_Encoder
+ */
   public function to_string($output = '') {
     $this->output = (string) $output;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="processing">
 
-///   <method name="encode" returns="mixed">
-///     <brief>Кодирует почтовое сообщение Mail.Message.Message</brief>
-///     <args>
-///       <arg name="message" type="Mail.Message.Part" brief="сообщение" />
-///     </args>
-///     <body>
+/**
+ * Кодирует почтовое сообщение Mail.Message.Message
+ * 
+ * @param Mail_Message_Part $message
+ * @return mixed
+ */
   public function encode(Mail_Message_Part $message) {
     $this->encode_head($message);
     $this->write();
     $this->encode_body($message);
     return $this->output;
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_head" returns="mixed">
-///     <brief>Кодирует заголовок письма</brief>
-///     <args>
-///       <arg name="message" type="Mail.Message.Part" brief="сообщение" />
-///       <arg name="fields"  type="array" default="array(true)" brief="поля заголовка" />
-///     </args>
-///     <body>
+/**
+ * Кодирует заголовок письма
+ * 
+ * @param Mail_Message_Part $message
+ * @param array $fields
+ * @return mixed
+ */
   public function encode_head(Mail_Message_Part $message, array $fields = array(true)) {
     Core_Strings::begin_binary();
 
@@ -115,15 +107,13 @@ class Mail_Serialize_Encoder {
     Core_Strings::end_binary();
     return $this->output;
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_body" returns="mixed">
-///     <brief>Кодирует содержимое сообщения</brief>
-///     <args>
-///       <arg name="msg" type="Mail.Message.Part" brief="сообщение" />
-///     </args>
-///     <body>
+/**
+ * Кодирует содержимое сообщения
+ * 
+ * @param Mail_Message_Part $msg
+ * @return mixed
+ */
   public function encode_body(Mail_Message_Part $msg) {
     Core_Strings::begin_binary();
 
@@ -161,29 +151,24 @@ class Mail_Serialize_Encoder {
     Core_Strings::end_binary();
     return $this->output;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="encoder_for">
-///     <brief>Возвращает MIME-кодировщик для сообщения $msg</brief>
-///     <args>
-///       <arg name="msg" type="Mail.Message.Part" brief="сообщение" />
-///     </args>
-///     <body>
+/**
+ * Возвращает MIME-кодировщик для сообщения $msg
+ * 
+ * @param Mail_Message_Part $msg
+ */
   protected function encoder_for(Mail_Message_Part $msg) {
     return MIME_Encode::encoder(isset($msg->head['Content-Transfer-Encoding']) ?
       $msg->head['Content-Transfer-Encoding']->value : null);
   }
-///     </body>
-///   </method>
 
-///   <method name="write" returns="Mail.Serialize.Encoder">
-///     <brief>Пишет результат кодирования</brief>
-///     <body>
+/**
+ * Пишет результат кодирования
+ * 
+ * @return Mail_Serialize_Encoder
+ */
   protected function write($string = '') {
     if (substr($string, -1) != MIME::LINE_END) $string .= MIME::LINE_END;
     ($this->output instanceof IO_Stream_AbstractStream) ?
@@ -191,40 +176,35 @@ class Mail_Serialize_Encoder {
       $this->output .= $string;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Mail.Serialize.Decoder">
-///     <brief>Разкодирует закодированное постовой сообщение</brief>
-///   <depends supplier="IO.Stream.AbstractStream" stereotype="uses" />
-///   <depends supplier="Mail.Message.Message" stereotype="creates" />
-///   <depends supplier="MIME.Decode" stereotype="uses" />
+/**
+ * Разкодирует закодированное постовой сообщение
+ * 
+ * @package Mail\Serialize
+ */
 class Mail_Serialize_Decoder {
 
   protected $input;
 
-///   <protocol name="performing">
 
-///   <method name="from" returns="Mail.Serializer.Decoder">
-///     <brief>Устанвливает поток из которого береться сообщение</brief>
-///     <args>
-///       <arg name="stream" type="IO.Stream.AbstractStream" brief="поток" />
-///     </args>
-///     <body>
+/**
+ * Устанвливает поток из которого береться сообщение
+ * 
+ * @param IO_Stream_AbstractStream $stream
+ * @return Mail_Serializer_Decoder
+ */
   public function from(IO_Stream_AbstractStream $stream) {
     $this->input = $stream;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="decode" returns="Mail.Message.Message">
-///     <brief>Декодирует сообщение</brief>
-///     <body>
+/**
+ * Декодирует сообщение
+ * 
+ * @return Mail_Message_Message
+ */
   public function decode() {
     Core_Strings::begin_binary();
     $result = ($head = $this->decode_head()) ?
@@ -233,19 +213,15 @@ class Mail_Serialize_Decoder {
     Core_Strings::end_binary();
     return $result;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="decode_part" returns="Mail.Message.Part" access="protected">
-///     <brief>Декодирует часть сообщения</brief>
-///     <args>
-///       <arg name="parent" type="Mail.Message.Part"/>
-///     </args>
-///     <body>
+/**
+ * Декодирует часть сообщения
+ * 
+ * @param Mail_Message_Part $parent
+ * @return Mail_Message_Part
+ */
   protected function decode_part(Mail_Message_Part $parent) {
     if ($parent->is_multipart()) {
 
@@ -284,24 +260,22 @@ class Mail_Serialize_Decoder {
     }
     return $parent;
   }
-///     </body>
-///   </method>
 
-///   <method name="is_text_content_type" returns="boolean" access="protected">
-///     <brief>Определяет является ли тип текстовым</brief>
-///     <args>
-///       <arg name="type" type="string" brief="тип" />
-///     </args>
-///     <body>
+/**
+ * Определяет является ли тип текстовым
+ * 
+ * @param string $type
+ * @return boolean
+ */
   protected function is_text_content_type($type) {
     return Core_Regexps::match('{^(text|message)/}', (string) $type);
   }
-///     </body>
-///   </method>
 
-///   <method name="decode_head" returns="Mail.Message.Head" access="protected">
-///     <brief>Декодирует заголовок сообщения</brief>
-///     <body>
+/**
+ * Декодирует заголовок сообщения
+ * 
+ * @return Mail_Message_Head
+ */
   protected function decode_head() {
     $data = '';
 
@@ -310,26 +284,19 @@ class Mail_Serialize_Decoder {
 
     return $this->input->eof() ? null : Mail_Message_Head::from_string($data);
   }
-///     </body>
-///   </method>
 
-///   <method name="skip_to_boundary" returns="string" access="protected">
-///     <brief>Пролистывает сообщение до следующей границы</brief>
-///     <args>
-///       <arg name="boundary" type="string" brief="граница" />
-///     </args>
-///     <body>
+/**
+ * Пролистывает сообщение до следующей границы
+ * 
+ * @param string $boundary
+ * @return string
+ */
   protected function skip_to_boundary(Mail_Message_Part $part) {
     $text = '';
     while (($line = $this->input->read_line()) &&
            !Core_Regexps::match("{^--".$part->head['Content-Type']['boundary']."(?:--)?\n\r?$}", $line)) $text .= $line;
     return $text;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

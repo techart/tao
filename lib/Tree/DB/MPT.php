@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Tree\DB\MPT
+ */
+
 
 // Implementation of Materialized Path by separate table
 

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Filter\PlainText
+ */
+
 
 Core::load('Text.Process');
 

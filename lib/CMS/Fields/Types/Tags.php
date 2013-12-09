@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Tags
+ */
+
 
 class CMS_Fields_Types_Tags extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

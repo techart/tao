@@ -1,41 +1,38 @@
 <?php
-/// <module name="Service.Recaptcha" version="0.3.0" maintainer="svistunov@techart.ru">
+/**
+ * Service.Recaptcha
+ * 
+ * @package Service\Recaptcha
+ * @version 0.3.0
+ */
 Core::load('Net.HTTP');
 
-/// <class name="Service.Recaptcha" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="Service.Recaptcha.Client" stereotype="creates" />
+/**
+ * @package Service\Recaptcha
+ */
 class Service_Recaptcha implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.3.0';
-///   </constants>
 
   const URL = 'http://www.google.com/recaptcha/api';
 
-///   <protocl name="creating">
 
-///   <method name="Client" returns="Service.Recaptch.Client" scope="class">
-///     <args>
-///       <arg name="pubkey"  type="string" />
-///       <arg name="privkey" type="string" />
-///       <arg name="agent"   type="Net.HTTP.AgentInterface" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param string $pubkey
+ * @param string $privkey
+ * @param Net_HTTP_AgentInterface $agent
+ * @return Service_Recaptch_Client
+ */
   static public function Client($pubkey, $privkey, $agent = null) {
     return new Service_Recaptcha_Client($pubkey, $privkey, $agent);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Service.Recaptcha.Client">
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.StringifyInterface" />
+/**
+ * @package Service\Recaptcha
+ */
 class Service_Recaptcha_Client
   implements Core_PropertyAccessInterface,
              Core_StringifyInterface  {
@@ -48,48 +45,35 @@ class Service_Recaptcha_Client
 
   protected $agent;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="pubkey" type="string" />
-///       <arg name="privkey" type="string" />
-///       <arg name="agent" type="Net.HTTP.AgentInterface" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param string $pubkey
+ * @param string $privkey
+ * @param Net_HTTP_AgentInterface $agent
+ */
   public function __construct($pubkey, $privkey, $agent = null) {
     $this->pubkey = $pubkey;
     $this->privkey = $privkey;
     $this->agent($agent ? $agent : Net_HTTP::Agent());
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="messages" returns="Service.Recaptcha.Client">
-///     <args>
-///       <arg name="values" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $values
+ * @return Service_Recaptcha_Client
+ */
   public function messages(array $values) {
     $this->messages = $values;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="is_valid" returns="boolean">
-///     <args>
-///       <arg name="r" type="Net.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @param Net_HTTP_Request $r
+ * @return boolean
+ */
   public function is_valid(Net_HTTP_Request $r) {
     $this->error = false;
 
@@ -118,11 +102,10 @@ class Service_Recaptcha_Client
       return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="html" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function html() {
     $key = urlencode($this->pubkey);
     $rror = $this->error ? '&amp;error='.$this->error : '';
@@ -135,36 +118,27 @@ class Service_Recaptcha_Client
       '<input type="hidden" name="recaptcha_response_field" value="manual_challenge">'.
       '</noscript>';
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="stringifying">
 
-///   <method name="as_string" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function as_string() { return $this->html(); }
-///     </body>
-///   </method>
 
-///   <method name="__toString" returns="string">
-///     <body>
+/**
+ * @return string
+ */
     public function __toString() { return $this->html(); }
-///     </body>
-///   </method>
 
 
-///   </protocol>
 
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'error':
@@ -175,24 +149,17 @@ class Service_Recaptcha_Client
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ */
   public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'error':
@@ -202,42 +169,30 @@ class Service_Recaptcha_Client
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="get_message" returns="string" access="protected">
-///     <body>
+/**
+ * @return string
+ */
   protected function get_message() {
     return ($this->error && isset($this->messages[$this->error])) ?
       $this->messages[$this->error] :
       (is_null($this->error) ? '' : $this->error);
   }
-///     </body>
-///   </method>
 
-///   <method name="agent" returns="Service.Recaptcha.Client" access="protected">
-///     <body>
+/**
+ * @return Service_Recaptcha_Client
+ */
   protected function agent(Net_HTTP_AgentInterface $agent) {
     $this->agent = $agent;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>

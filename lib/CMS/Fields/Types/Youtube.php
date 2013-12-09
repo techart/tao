@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Youtube
+ */
+
 
 Core::load('CMS.Fields.Types.Image');
 

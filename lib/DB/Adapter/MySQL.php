@@ -88,6 +88,10 @@ class DB_Adapter_MySQL_Connection extends DB_Adapter_PDO_Connection
 	public function after_connect()
 	{
 		$this->pdo->exec('SET NAMES '.DB::option('charset'));
+		$time_zone = DB::option('time_zone');
+		if ($time_zone !== false) {
+			$this->pdo->exec("SET time_zone = {$time_zone}");
+		}
 	}
 
 	/**
@@ -160,7 +164,7 @@ class DB_Adapter_MySQL_Cursor extends DB_Adapter_PDO_Cursor
 			case 'timestamp':
 			case 'time':
 			case 'date':
-				return is_null($value) ? null : Time::DateTime($value);
+				return is_null($value) ? null : Time_DateTime::parse($value, Time::FMT_DEFAULT);
 			case 'boolean':
 				return $value ? true : false;
 			case 'longlong':
@@ -482,4 +486,3 @@ class DB_Adapter_MySQL_Schema implements DB_Adapter_SchemaInterface
     return $table;
   }
 }
-/// </module>

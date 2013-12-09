@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package DB\Schema
+ */
+
 
 Core::load('DB', 'DB.ORM.Mappers', 'Events');
 

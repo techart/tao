@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Autocomplete
+ */
+
 
 class CMS_Fields_Types_Autocomplete extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

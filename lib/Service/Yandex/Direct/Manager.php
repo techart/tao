@@ -1,111 +1,97 @@
 <?php
-/// <module name="Service.Yandex.Direct.Manager" maintainer="timokhin@techart.ru" version="0.1.0">
+/**
+ * Service.Yandex.Direct.Manager
+ * 
+ * @package Service\Yandex\Direct\Manager
+ * @version 0.1.0
+ */
 Core::load('CLI.Application', 'IO.FS', 'Service.Yandex.Direct');
 
-/// <class name="Service.Yandex.Direct.Manager" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <implements interface="CLI.RunInterface" />
-///   <depends suppler="CLI.Application" stereotype="uses" />
-///   <depends supplier="IO.FS" stereotype="uses" />
-///   <depends supplier="Service.Yandex.Direct" stereotype="uses" />
+/**
+ * @package Service\Yandex\Direct\Manager
+ */
 class Service_Yandex_Direct_Manager implements Core_ModuleInterface, CLI_RunInterface {
 
-///   <constants>
   const VERSION = '0.2.0';
-///   </constants>
 
-///   <protocol name="performing">
 
-///   <method name="main" scope="class" returns="int">
-///     <body>
+/**
+ * @return int
+ */
   static public function main(array $argv) {
     return Core::with(new Service_Yandex_Direct_Manager_Application())->main($argv);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
 
-/// <class name="Service.Yandex.Direct.Manager.Exception" extends="Core.Exception">
+/**
+ * @package Service\Yandex\Direct\Manager
+ */
 class Service_Yandex_Direct_Manager_Exception extends Core_Exception {}
-/// </class>
 
 
-/// <class name="Service.Yandex.Direct.Manager.MissingCertificateException" extends="Service.Yandex.Direct.Manager.Exception">
+/**
+ * @package Service\Yandex\Direct\Manager
+ */
 class Service_Yandex_Direct_Manager_MissingCertificateException extends Service_Yandex_Direct_Manager_Exception {
   protected $path;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="path" type="string" default="''" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ */
   public function __construct($path = '') {
     $this->path = $path;
     parent::__construct($path === '' ? 'Missing certificate' : "Missing certificate: $path");
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.Yandex.Direct.Manager.MissingTaskFileException" extends="Service.Yandex.Direct.Manager.Exception" stereotype="abstract">
+/**
+ * @abstract
+ * @package Service\Yandex\Direct\Manager
+ */
 class Service_Yandex_Direct_Manager_MissingTaskFileException extends Service_Yandex_Direct_Manager_Exception {
 
   protected $path;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ */
   public function __construct($path) {
     $this->path = $path;
     parent::__construct("Missing task file: $path");
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Service.Yandex.Direct.Manager.BadArgumentException" extends="Service.Yandex.Direct.Manager.Exception" stereotype="Exception">
+/**
+ * @package Service\Yandex\Direct\Manager
+ */
 class Service_Yandex_Direct_Manager_BadArgumentException extends Service_Yandex_Direct_Manager_Exception {
   protected $name;
   protected $value;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///     </args>
-///     <body>
+/**
+ */
   public function __construct($name, $value) {
     $this->name = $name;
     $this->value = (string) $value;
 
     parent::__construct("Bad argument value for $name: $value");
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.Yandex.Direct.Manager.Task" stereotype="abstract">
+/**
+ * @abstract
+ * @package Service\Yandex\Direct\Manager
+ */
 class Service_Yandex_Direct_Manager_Task {
 
   protected $file;
@@ -114,29 +100,22 @@ class Service_Yandex_Direct_Manager_Task {
 
   protected $log;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="file" type="IO.FS.File" />
-///       <arg name="options" type="array" default="array" />
-///     </args>
-///     <body>
+/**
+ * @param IO_FS_File $file
+ * @param array $options
+ */
   public function __construct(IO_FS_File $file, Service_Yandex_Direct_Manager_Application $app) {
     $this->file = $file;
     $this->name = IO_FS::Path($file->path)->filename;
     $this->config = $app->config;
     $this->log = $app->log->context(array('task' => $this->name));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="run">
-///     <body>
+/**
+ */
   public function run() {
     $api = Service_Yandex_Direct::api();
     $this->log->debug('Task %s started', $this->name);
@@ -152,16 +131,13 @@ class Service_Yandex_Direct_Manager_Task {
       $this->log->error("Task error: %s", $e->getMessage());
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="stay_special" returns="Service.Yandex.Direct.Manager.Task" access="protected">
-///     <args>
-///       <arg name="limit" type="float" />
-///       <arg name="phrases" />
-///       <arg name="delta" type="float" default="0" />
-///     </args>
-///     <body>
+/**
+ * @param float $limit
+ * @param  $phrases
+ * @param float $delta
+ * @return Service_Yandex_Direct_Manager_Task
+ */
   protected function stay_special($limit, $phrases, $delta = 0) {
     $this->log->debug('Running stay_special, limit %.2f', $limit);
 
@@ -174,16 +150,13 @@ class Service_Yandex_Direct_Manager_Task {
     }
     return $this->update_prices($prices);
   }
-///     </body>
-///   </method>
 
-///   <method name="stay_visible" returns="Service.Yandex.Direct.Manager.Task" access="protected">
-///     <args>
-///       <arg name="limit" type="float" />
-///       <arg name="phrases" />
-///       <arg name="delta" type="float" default="0" />
-///     </args>
-///     <body>
+/**
+ * @param float $limit
+ * @param  $phrases
+ * @param float $delta
+ * @return Service_Yandex_Direct_Manager_Task
+ */
   protected function stay_visible($limit, $phrases, $delta = 0) {
     $this->log->debug('Running stay_visible, limit %.2f', $limit);
 
@@ -197,16 +170,13 @@ class Service_Yandex_Direct_Manager_Task {
 
    return $this->update_prices($prices);
   }
-///     </body>
-///   </method>
 
-///   <method name="only_special" returns="Service.Yandex.Direct.Manager.Task" access="protected">
-///     <args>
-///       <arg name="limit" type="float" />
-///       <arg name="phrases" />
-///       <arg name="delta" type="float" default="0" />
-///      </args>
-///      <body>
+/**
+ * @param float $limit
+ * @param  $phrases
+ * @param float $delta
+ * @return Service_Yandex_Direct_Manager_Task
+ */
   protected function only_special($limit, $phrases, $delta = 0) {
     $this->log->debug('Running only_special, limit %.2f', $limit);
     $phrases = $this->get_phrases_for($phrases);
@@ -218,17 +188,14 @@ class Service_Yandex_Direct_Manager_Task {
     }
     return $this->update_prices($prices);
   }
-///	</body>
-///   </method>
 
-///   <method name="try_first_stay_visible" returns="Service.Yandex.Direct.Manager.Task" access="protected">
-///     <args>
-///       <arg name="limit" type="float" />
-///       <arg name="gap" type="float" />
-///       <arg name="phrases" />
-///       <arg name="delta" type="float" />
-///     </args>
-///     <body>
+/**
+ * @param float $limit
+ * @param float $gap
+ * @param  $phrases
+ * @param float $delta
+ * @return Service_Yandex_Direct_Manager_Task
+ */
   protected function try_first_stay_visible($limit, $phrases, $delta = 0) {
     $this->log->debug('Running try_first_stay_visible, limit %.2f', $limit);
     $phrases = $this->get_phrases_for($phrases);
@@ -251,17 +218,14 @@ class Service_Yandex_Direct_Manager_Task {
     }
     return $this->update_prices($prices);
   }
-///    </body>
-///  </method>
 
-///   <method name="try_special_stay_visible" returns="Service.Yandex.Direct.Manager.Task" access="protected">
-///     <args>
-///       <arg name="limit" type="float" />
-///       <arg name="gap" type="float" />
-///       <arg name="phrases" />
-///       <arg name="delta" type="float" />
-///     </args>
-///     <body>
+/**
+ * @param float $limit
+ * @param float $gap
+ * @param  $phrases
+ * @param float $delta
+ * @return Service_Yandex_Direct_Manager_Task
+ */
   protected function try_special_stay_visible($limit, $gap, $phrases, $delta = 0) {
     $this->log->debug('Running try_special_stay_visible, limit %.2f', $limit);
     $phrases = $this->get_phrases_for($phrases);
@@ -283,16 +247,13 @@ class Service_Yandex_Direct_Manager_Task {
     }
     return $this->update_prices($prices);
   }
-///     </body>
-///   </method>
 
-///   <method name="try_special" returns="Service.Yandex.Direct.Manager.Task" access="protected">
-///     <args>
-///       <arg name="limit" type="float" />
-///       <arg name="phrases" />
-///       <arg name="delta" type="float" default="0" />
-///     </args>
-///     <body>
+/**
+ * @param float $limit
+ * @param  $phrases
+ * @param float $delta
+ * @return Service_Yandex_Direct_Manager_Task
+ */
   protected function try_special($limit, $phrases, $delta = 0) {
     $this->log->debug('Running try_special, limit %.2f', $limit);
 
@@ -310,18 +271,13 @@ class Service_Yandex_Direct_Manager_Task {
 
     return $this->update_prices($prices);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="updated_prices" returns="Service.Yandex.Direct.Manager.Task" access="protected">
-///     <args>
-///       <arg name="prices" type="Service.Yandex.Direct.PricesCollection" />
-///     </args>
-///     <body>
+/**
+ * @param Service_Yandex_Direct_PricesCollection $prices
+ * @return Service_Yandex_Direct_Manager_Task
+ */
   protected function update_prices(Service_Yandex_Direct_PricesCollection $prices) {
     if ($prices->update())
       $this->log->debug('Prices successfully updated');
@@ -329,14 +285,11 @@ class Service_Yandex_Direct_Manager_Task {
       $this->log->error('Prices not updated');
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="get_phrases_for" returns="Service.Yandex.Direct.PhrasesCollection" access="private">
-///     <args>
-///       <arg name="phrases" />
-///     </args>
-///     <body>
+/**
+ * @param  $phrases
+ * @return Service_Yandex_Direct_PhrasesCollection
+ */
   private function get_phrases_for($phrases) {
     switch (true) {
       case $phrases instanceof Service_Yandex_Direct_Campaign:
@@ -358,32 +311,29 @@ class Service_Yandex_Direct_Manager_Task {
     $this->log->debug('Got phrases: %d', count($phrases));
     return $phrases;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Service.Yandex.Direct.Manager.UserTask" extends="Service.Yandex.Direct.Manager.Task">
+/**
+ * @package Service\Yandex\Direct\Manager
+ */
 class Service_Yandex_Direct_Manager_UserTask extends Service_Yandex_Direct_Manager_Task {}
-/// </class>
 
 
-/// <class name="Service.Yandex.Direct.Manager.Application" extends="CLI.Application.Base">
+/**
+ * @package Service\Yandex\Direct\Manager
+ */
 class Service_Yandex_Direct_Manager_Application extends CLI_Application_Base {
 
   protected $processed = 0;
   protected $log;
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="int">
-///     <args>
-///       <arg name="argv" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $argv
+ * @return int
+ */
   public function run(array $argv) {
     $this->
       check_certificate()->
@@ -391,26 +341,22 @@ class Service_Yandex_Direct_Manager_Application extends CLI_Application_Base {
     
     return $this->config->run_all ? $this->run_all() : $this->run_tasks($argv);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="check_certificate" returns="Service.Yandex.Direct.Manager access="private">
-///     <body>
+/**
+ * @return Service_Yandex_Direct_Manager access=
+ */
   private function check_certificate() {
     if (!isset($this->config->cert)) throw new Service_Yandex_Direct_Manager_MissingCertificateException();
     if (!IO_FS::exists($p = $this->config->cert)) throw new Service_Yandex_Direct_Manager_MissingCertificateException($p);
     $this->log->debug('Using certificate: %s', $this->config->cert);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="configure_proxy" returns="array" access="private">
-///     <body>
+/**
+ * @return array
+ */
   private function configure_proxy() {
     $res = array();
     if (($proxy =  (isset($this->config->proxy) ?
@@ -423,22 +369,20 @@ class Service_Yandex_Direct_Manager_Application extends CLI_Application_Base {
     }
     return $res;
   }
-///     </body>
-///   </method>
 
-///   <method name="setup_api" returns="Service.Yandex.Direct.Manager" access="private">
-///     <body>
+/**
+ * @return Service_Yandex_Direct_Manager
+ */
   private function setup_api() {
     Service_Yandex_Direct::connect(
       array('local_cert' => $this->config->cert) + $this->configure_proxy());
     $this->log->debug('API initialized');
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="run_all" returns="Service.Yandex.Direct.Manager" access="private">
-///     <body>
+/**
+ * @return Service_Yandex_Direct_Manager
+ */
   private function run_all() {
     $this->log->debug("Running all tasks for prefix %s", $this->config->prefix);
     foreach (IO_FS::Dir($this->config->prefix) as $file) {
@@ -447,14 +391,11 @@ class Service_Yandex_Direct_Manager_Application extends CLI_Application_Base {
     }
     $this->log->debug("All tasks complete");
   }
-///     </body>
-///   </method>
 
-///   <method name="run_tasks" returns="Service.Yandex.Direct.Manager" access="private">
-///     <args>
-///       <arg name="tasks" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $tasks
+ * @return Service_Yandex_Direct_Manager
+ */
   private function run_tasks(array $tasks) {
     $this->log->debug("Running task list");
     foreach ($tasks as $name) {
@@ -467,10 +408,9 @@ class Service_Yandex_Direct_Manager_Application extends CLI_Application_Base {
 
     return $this;
   }
-///   </method>
 
-///   <method name="setup" access="protected">
-///     <body>
+/**
+ */
   protected function setup() {
     $this->options->
       brief('Service.Yandex.Direct.Manager '.Service_Yandex_Direct_Manager::VERSION.': Yandex.Direct campaigns manager')->
@@ -489,23 +429,16 @@ class Service_Yandex_Direct_Manager_Application extends CLI_Application_Base {
     $this->config->run_all     = false;
     $this->config->direct      = false;
   }
-///     </body>
-///   </method>
 
-///   <method name="configure" access="protected">
-///     <body>
+/**
+ */
   protected function configure() {
     if ($this->config->config_file) {
       $this->log->debug('Using config: %s', $this->config->config_file);
       $this->load_config($this->config->config_file);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>
 ?>

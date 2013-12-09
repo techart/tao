@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Textarea
+ */
+
 
 class CMS_Fields_Types_Textarea extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

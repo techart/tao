@@ -155,9 +155,13 @@ TAO.editor.plugins.nicedit = function()
 		{
 			var self = this;
 			$(function () {
-				var id = $(selector).attr('id');
-				options = $.extend(true, {}, TAO.settings.editor.nicedit, options);
-				return self.create(id, options);
+				if ($(selector).length) {
+					var id = $(selector).attr('id');
+					options = $.extend(true, {}, TAO.settings.editor.nicedit, options);
+					return self.create(id, options);
+				} else {
+					return null;
+				}
 			});
 
 		},

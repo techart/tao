@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\ORM\Tree
+ */
+
 
 Core::load('CMS.ORM', 'Tree.DB.MP', 'Tree.DB.MPT');
 

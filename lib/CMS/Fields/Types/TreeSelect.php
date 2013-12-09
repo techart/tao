@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\TreeSelect
+ */
+
 
 Core::load('CMS.Fields.Types.Select');
 

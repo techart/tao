@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Upload
+ */
+
 
 class CMS_Fields_Types_Upload extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

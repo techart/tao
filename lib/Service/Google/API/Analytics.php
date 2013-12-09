@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Service\Google\API\Analytics
+ */
+
 
 class Service_Google_API_Analytics extends Service_Google_API_AbstractService implements Core_ModuleInterface {
 

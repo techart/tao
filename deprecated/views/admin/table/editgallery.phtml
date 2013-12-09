@@ -1,0 +1,40 @@
+<html>
+<head>
+	<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+	<?= CMS::stdstyle('admin/layout.css') ?>
+	<?= CMS::stdstyle('admin/controls.css') ?>
+	<?= $this->javascript_include_tag(CMS_Admin::$jquery) ?>
+	<?= CMS::stdscript('jquery/hover-intent.js') ?>
+	<?= CMS::stdscript('jquery/bgiframe.js') ?>
+	<?= CMS::stdscript('jquery/bt.js') ?>
+	<?= CMS::stdscript('deprecated/excanvas.js') ?>
+</head>
+<body style="padding:5px;">
+<?php 
+$this->no_layout(); 
+if (!$dir) echo "Не определен параметр <b>gallery_dir</b>";
+else {
+	$action = $c->admin_url('editgallery',$item_id,"file=$file_id");
+?>
+
+<table border="0" cellspacing="0" cellpadding="0" width="100%"><tr>
+<td valign="top" style="padding-right: 10px; border-right: 1px solid black;">
+	<form method="post" action="<?= $action ?>" enctype="multipart/form-data">
+	<table border="0" cellspacing="0" cellpadding="0" class="form">
+		<?php include('gallform.phtml'); ?>
+		<tr>
+			<th>&nbsp;</th>
+			<td><input type="submit" value="Изменить"></td>
+		</tr>
+	</table>
+	</form>
+</td>
+
+<td width="100%" valign="top" style="padding-left:10px;"><button onClick="location.href='<?= $c->admin_url('gallery',$item_id) ?>'">К списку</button></td>
+
+</tr></table>
+
+
+<?php } ?>
+</body>
+</html>

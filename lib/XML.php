@@ -1,66 +1,61 @@
 <?php
-/// <module name="XML" maintainer="timokhin@techart.ru" version="0.2.0">
-///   <brief>Модуль для работы с XML</brief>
+/**
+ * XML
+ * 
+ * Модуль для работы с XML
+ * 
+ * @package XML
+ * @version 0.2.0
+ */
 
-/// <class name="XML" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="XML.Loader" stereotype="creates" />
-///   <depends supplier="XML.Builder" stereotype="creates" />
+/**
+ * @package XML
+ */
 class XML implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.0';
-///   </constants>
 
   static protected $loader;
 
-///   <protocol name="initialize">
 
-///   <method name="initialize" scope="class">
-///     <brief>Инициализация модуля</brief>
-///     <body>
+/**
+ * Инициализация модуля
+ * 
+ */
   static public function initialize() { self::$loader = new XML_Loader(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="load" returns="DOMDocument" scope="class">
-///     <brief>Вовзращает DOMDocument</brief>
-///     <args>
-///       <arg name="source" brief="IO.FS.File или строка" />
-///     </args>
-///     <body>
+/**
+ * Вовзращает DOMDocument
+ * 
+ * @param  $source
+ * @return DOMDocument
+ */
   static public function load($source) { return self::$loader->load($source); }
-///     </body>
-///   </method>
 
-///   <method name="errors" returns="ArrayObject">
-///     <brief>Возвращает ошибки парсинга XML</brief>
-///     <body>
+/**
+ * Возвращает ошибки парсинга XML
+ * 
+ * @return ArrayObject
+ */
   static public function errors() { return self::$loader->errors; }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="Loader" returns="XML.Loader" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса XML.Loader</brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса XML.Loader
+ * 
+ * @return XML_Loader
+ */
   static public function Loader() { return new XML_Loader(); }
-///     </body>
-///   </method>
 
-///   <method name="Builder" returns="XML.Builder" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса XML.Builder</brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса XML.Builder
+ * 
+ * @return XML_Builder
+ */
   static public function Builder() { return new XML_Builder(); }
-///     </body>
-///   </method>
 
 	static public function ElementIterator() {
 		$args = func_get_args();
@@ -72,36 +67,32 @@ class XML implements Core_ModuleInterface {
 		return Core::amake('XML.Writer', $args);
 	}
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="XML.Loader">
-///   <brief>Служит для перехвата ошибок парсинга XML документа</brief>
-///   <implements interface="Core.PropertyAccessInterface" />
+/**
+ * Служит для перехвата ошибок парсинга XML документа
+ * 
+ * @package XML
+ */
 class XML_Loader implements Core_PropertyAccessInterface {
 
   protected $errors;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <body>
+/**
+ * Конструктор
+ * 
+ */
   public function __construct() { $this->errors = new ArrayObject(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="load" returns="DOMDocument">
-///     <brief>Вовзращает DOMDocument и перехватывает ошибки парсинга</brief>
-///     <args>
-///       <arg name="source" brief="IO.FS.File или строка" />
-///     </args>
-///     <body>
+/**
+ * Вовзращает DOMDocument и перехватывает ошибки парсинга
+ * 
+ * @param  $source
+ * @return DOMDocument
+ */
   public function load($source) {
     $error_handling_mode = libxml_use_internal_errors(true);
 
@@ -118,25 +109,15 @@ class XML_Loader implements Core_PropertyAccessInterface {
 
     return $result;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <details>
-///       <dl>
-///         <dt>has_errors</dt><dd>возвращает истину , если есть ошибки</dd>
-///         <dt>errors</dt><dd>возвращает ошибки парсинга вввиде объекта LibXMLError </dd>
-///       </dl>
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'has_errors':
@@ -147,29 +128,22 @@ class XML_Loader implements Core_PropertyAccessInterface {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на чтение к свойтвам объекта</brief>
-///     <details>
-///       Выбрасывает исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойтвам объекта
+ * 
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установленно ли свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установленно ли свойство объекта
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'has_errors':
@@ -179,30 +153,22 @@ class XML_Loader implements Core_PropertyAccessInterface {
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Очищает свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Очищает свойство объекта
+ * 
+ * @param string $property
+ */
   public function __unset($property) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="XML.Builder">
-///   <brief>Класс служит для удобного построения XML документа (DOMDocument)</brief>
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.IndexedPropertyAccessInterface" />
-///   <implements interface="Core.CallInterface" />
-///   <implements interface="Core.StringifyInterface" />
+/**
+ * Класс служит для удобного построения XML документа (DOMDocument)
+ * 
+ * @package XML
+ */
 class XML_Builder
   implements Core_PropertyAccessInterface,
              Core_CallInterface,
@@ -213,39 +179,27 @@ class XML_Builder
   protected $node;
   protected $children = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="node"   default="null" brief="xml-узел" />
-///       <arg name="parent" type="XML.Builder" default="null" brief="родительский элемент" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param  $node
+ * @param XML_Builder $parent
+ */
   public function __construct($node = null, XML_Builder $parent = null) {
     $this->node =  ($node === null) ? new DOMDocument('1.0', 'UTF-8') : $node;
     $this->parent = $parent;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling" interface="Core.CallInterface">
 
-///   <method name="__call" returns="XML.Builder">
-///     <brief>С помощью вызова методов струиться документ</brief>
-///     <details>
-///       <p>Имя метода задает имя элемента, параметры - ассоциативный массив параметров узла или текст содержимого элемента.
-///         Если нужно задать и параметры и содержимое, то первым элементом ассоциативного массива надо передать текст</p>
-///       <p>Если имя метода имеет вид: begin_name, то создается узел с именем name и дальнейшие элементы будут вложенны в узел name</p>
-///       <p>Свойство end возвращает на уровень выше, т.е. 'выходит' из узла</p>
-///     </details>
-///     <args>
-///       <arg name="method" type="string" brief="имя мтода/узла" />
-///       <arg name="args"   type="array" brief="массив атрубутов" />
-///     </args>
-///     <body>
+/**
+ * С помощью вызова методов струиться документ
+ * 
+ * @param string $method
+ * @param array $args
+ * @return XML_Builder
+ */
   public function __call($method, $args) {
     if ($p = strpos($method, 'begin_') !== false) {
       $name = substr($method, $p + 5);
@@ -258,46 +212,31 @@ class XML_Builder
       return $this;
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="stringifying" interface="Core.StringifyInterface">
 
-///   <method name="as_string" returns="string">
-///     <brief>Возвращает строку сформированного XML</brief>
-///     <body>
+/**
+ * Возвращает строку сформированного XML
+ * 
+ * @return string
+ */
   public function as_string() { return $this->node->saveXML(); }
-///     </body>
-///   </method>
 
-///   <method name="__toString" returns="string">
-///     <brief>Возвращает строку сформированного XML</brief>
-///     <body>
+/**
+ * Возвращает строку сформированного XML
+ * 
+ * @return string
+ */
   public function __toString() { return $this->as_string(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <details>
-///       <dl>
-///         <dt>document</dt><dd>DOMDocument</dd>
-///         <dt>children</dt><dd>массив вложенных узлов (детей)</dd>
-///         <dt>end</dt><dd>возвращает родительский элемент</dd>
-///         <dt>parent</dt><dd>возвращает родительский элемент</dd>
-///         <dt>node</dt><dd>текущий узел</dd>
-///       </dl>
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'document':
@@ -313,29 +252,22 @@ class XML_Builder
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <details>
-///       Выкидывает исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установленно ли свойство</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установленно ли свойство
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'document':
@@ -347,80 +279,59 @@ class XML_Builder
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Очищает свойство</brief>
-///     <details>
-///       Выкидывает исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Очищает свойство
+ * 
+ * @param string $property
+ */
   public function  __unset($property) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="indexing">
 
-///   <method name="offsetGet" returns="array">
-///     <brief>Возвращает влоденный элемент</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя элемента" />
-///     </args>
-///     <body>
+/**
+ * Возвращает влоденный элемент
+ * 
+ * @param string $index
+ * @return array
+ */
   public function offsetGet($index) {
     return isset($this->children[$index]) ? $this->children[$index] : null;
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetSet" returns="mixed">
-///     <brief>Выкидывает исключение</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя элемента" />
-///       <arg name="value" type="mixed" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Выкидывает исключение
+ * 
+ * @param string $index
+ * @param mixed $value
+ * @return mixed
+ */
   public function offsetSet($index, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <brief>Проверяет есть ли такой элемент среди вложенных</brief>
-///     <args>
-///       <arg name="index" type="string" />
-///     </args>
-///     <body>
+/**
+ * Проверяет есть ли такой элемент среди вложенных
+ * 
+ * @param string $index
+ * @return boolean
+ */
   public function offsetExists($index) { return isset($this->children[$index]); }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <brief>Выкидывает исключение</brief>
-///     <args>
-///       <arg name="index" brief="имя элемента" />
-///     </args>
-///     <body>
+/**
+ * Выкидывает исключение
+ * 
+ * @param  $index
+ */
   public function offsetUnset($index) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="make_element" access="protected" returns="DOMElement">
-///     <brief>Строит очередное элемент документа</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя элемента" />
-///       <arg name="args" brief="массив параметров" />
-///     </args>
-///     <body>
+/**
+ * Строит очередное элемент документа
+ * 
+ * @param string $name
+ * @param  $args
+ * @return DOMElement
+ */
   protected function make_element($name, array $args) {
     $content    = '';
     $attributes = array();
@@ -450,12 +361,8 @@ class XML_Builder
 
     return $element;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
 class XML_ElementIterator implements Iterator {
@@ -629,4 +536,3 @@ class XML_Writer implements Core_CallInterface {
 	}
 }
 
-/// </module>

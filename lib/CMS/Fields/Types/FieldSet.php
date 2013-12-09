@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\FieldSet
+ */
+
 
 class CMS_Fields_Types_FieldSet extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 	const VERSION = '0.0.0';
@@ -74,10 +78,12 @@ class CMS_Fields_Types_FieldSet extends CMS_Fields_AbstractField implements Core
 	}
 
 	public function process_inserted($name, $data, $item) {
-		foreach($data['fields'] as $field => $fdata) {
-			$fdata = array_merge($data, $fdata);
-			$type = CMS_Fields::type($fdata);
-			$type->process_inserted($field, $fdata, $item);
+		if (isset($data['fields'])) {
+			foreach($data['fields'] as $field => $fdata) {
+				$fdata = array_merge($data, $fdata);
+				$type = CMS_Fields::type($fdata);
+				$type->process_inserted($field, $fdata, $item);
+			}
 		}
 		return parent::process_inserted($name, $data,$item);
 	}

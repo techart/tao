@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\ORM\Front
+ */
+
 
 Core::load('CMS.ORM');
 

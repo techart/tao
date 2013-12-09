@@ -1,0 +1,10 @@
+<?php
+	if (!Core_Types::is_iterable($right_buttons)) $right_buttons = array();
+	if (!Core_Types::is_iterable($forced_buttons)) $forced_buttons = array();
+	foreach($forced_buttons as $_k => $_v) $right_buttons[$_k] = $_v;
+	if ($right_button_caption) $right_buttons[$right_button_caption] = array('onClick' => "location.href='$right_button_uri'");
+?>
+<table width="100%" class="h1container"><tr>
+	<td><h1><?= CMS::lang($h1) ?></h1></td>
+	<?php if (!$embedded_admin) include('right-buttons.phtml'); ?>
+</tr></table>

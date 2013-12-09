@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\TreeTable
+ */
+
 
 Core::load('CMS.Controller.SlickTable');
 

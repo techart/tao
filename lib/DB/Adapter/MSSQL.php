@@ -208,9 +208,10 @@ class DB_Adapter_MSSQL_Connection implements DB_Adapter_ConnectionInterface {
 		}
 	}
 
-///   <method name="commit">
-///     <brief>Фиксирует транзакцию</brief>
-///     <body>
+/**
+ * Фиксирует транзакцию
+ * 
+ */
 	/**
 	 * Фиксирует транзакцию
 	 * 
@@ -222,23 +223,22 @@ class DB_Adapter_MSSQL_Connection implements DB_Adapter_ConnectionInterface {
 			throw new DB_Adapter_MSSQL_Exception();
 		}
 	}
-///     </body>
-///   </method>
 
-///   <method name="rollback">
-///     <brief>Откатывает транзакцию</brief>
-///     <body>
+/**
+ * Откатывает транзакцию
+ * 
+ */
 	public function rollback()
 	{
 		if (sqlsrv_rollback($this->conn) === false)
 		throw new DB_Adapter_MSSQL_Exception();
 	}
-///     </body>
-///   </method>
 
-///   <method name="last_insert_id" returns="int">
-///     <brief>Возвращает последний вставленный идентификатор</brief>
-///     <body>
+/**
+ * Возвращает последний вставленный идентификатор
+ * 
+ * @return int
+ */
   public function last_insert_id() {
     if (($stmt = sqlsrv_query($this->conn, 'SELECT SCOPE_IDENTITY() as last_id')) !== false) {
       $r = sqlsrv_fetch_array($stmt);
@@ -247,37 +247,31 @@ class DB_Adapter_MSSQL_Connection implements DB_Adapter_ConnectionInterface {
     }
   return null;
   }
-///     </body>
-///   </method>
 
-///   <method name="quote" returns="string">
-///     <brief>Квотит параметр</brief>
-///     <args>
-///       <arg name="value" brief="параметр" />
-///     </args>
-///     <body>
+/**
+ * Квотит параметр
+ * 
+ * @param  $value
+ * @return string
+ */
   public function quote($value) { return $value; }
-///     </body>
-///   </method>
 
-///   <method name="prepare" returns="DB.Adapter.MSSQL.Cursor">
-///     <brief>Подготавливает SQL-запрос к выполнению</brief>
-///     <args>
-///       <arg name="sql" type="string" brief="sql-запрос" />
-///     </args>
-///     <body>
+/**
+ * Подготавливает SQL-запрос к выполнению
+ * 
+ * @param string $sql
+ * @return DB_Adapter_MSSQL_Cursor
+ */
   public function prepare($sql) {
     return new DB_Adapter_MSSQL_Cursor($this->connection, $sql);
   }
-///     </body>
-///   </method>
 
-///   <method name="cast_parameter" returns="mixed">
-///     <brief>Преобразует значение в пригодный вид для вставки в sql запрос</brief>
-///     <args>
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Преобразует значение в пригодный вид для вставки в sql запрос
+ * 
+ * @param  $value
+ * @return mixed
+ */
   public function cast_parameter($value) {
     switch (true) {
       case $value instanceof Time_DateTime:
@@ -290,38 +284,29 @@ class DB_Adapter_MSSQL_Connection implements DB_Adapter_ConnectionInterface {
         return $value;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="is_castable_parameter" returns="boolean">
-///     <brief>Проверяет требуется ли преобразовывать значение</brief>
-///     <args>
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Проверяет требуется ли преобразовывать значение
+ * 
+ * @param  $value
+ * @return boolean
+ */
   public function is_castable_parameter($value) {
    return $value instanceof Time_DateTime ||
           (DB_Adapter_MSSQL::option('convert') && is_string($value));
   }
-///     </body>
-///   </method>
 
-///   <method name="explain" >
-///     <args>
-///       <arg name="sql" type="string" />
-///       <arg name="binds" />
-///     </args>
-///     <body>
+/**
+ * @param string $sql
+ * @param  $binds
+ */
   public function explain($sql, $binds) { throw new Core_NotImplementedException(); }
-///     </body>
-///   </method>
 
-///   <method name="after_connect">
-///     <brief>Вызывается в DB.Connection после соединения</brief>
-///     <body>
+/**
+ * Вызывается в DB.Connection после соединения
+ * 
+ */
   public function after_connect() {}
-///     </body>
-///   </method>
 
   public function get_schema() {
     return false;
@@ -331,95 +316,84 @@ class DB_Adapter_MSSQL_Connection implements DB_Adapter_ConnectionInterface {
     return "$str";
   }
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="DB.Adapter.MSSQL.Cursor">
 class DB_Adapter_MSSQL_Cursor implements DB_Adapter_CursorInterface {
   private $conn;
   private $sql;
   private $stmt;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="connection" type="DB.Adapter.MSSQL.Connection" />
-///       <arg name="sql" type="string" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param DB_Adapter_MSSQL_Connection $connection
+ * @param string $sql
+ */
   public function __construct($connection, $sql) {
     $this->connection = $connection;
     $this->sql = $sql;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="processing">
 
-///   <method name="execute">
-///     <brief>Выполняет запрос</brief>
-///     <args>
-///       <arg name="binds" type="array" brief="массив параметров" />
-///     </args>
-///     <body>
+/**
+ * Выполняет запрос
+ * 
+ * @param array $binds
+ */
   public function execute(array $binds) {
     if (($this->stmt = sqlsrv_query($this->connection, $this->sql, $binds)) === false)
       throw new DB_Adapter_MSSQL_Exception();
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="fetch" returns="mixed">
-///     <brief>Возвращает очередную строку результата</brief>
-///     <body>
+/**
+ * Возвращает очередную строку результата
+ * 
+ * @return mixed
+ */
   public function fetch() {
     return sqlsrv_fetch_array($this->stmt, SQLSRV_FETCH_ASSOC);
   }
-///     </body>
-///   </method>
 
-///   <method name="fetch_all" returns="mixed">
-///     <brief>Возвращает все строки результата</brief>
-///     <body>
+/**
+ * Возвращает все строки результата
+ * 
+ * @return mixed
+ */
   public function fetch_all() {
     $rows = array();
     while ($row = $this->fetch()) $rows[] = $row;
     return $rows;
   }
-///     </body>
-///   </method>
 
-///   <method name="close">
-///     <brief>Закрывает курсор</brief>
-///     <body>
+/**
+ * Закрывает курсор
+ * 
+ */
   public function close() { sqlsrv_free_stmt($this->stmt); }
-///     </body>
-///   </method>
 
-///   <method name="get_num_of_rows" returns="int">
-///     <brief>Возвращает количество строк в результате</brief>
-///     <body>
+/**
+ * Возвращает количество строк в результате
+ * 
+ * @return int
+ */
   public function get_num_of_rows() {return sqlsrv_num_rows($this->stmt);}
-///     </body>
-///   </method>
 
-///   <method name="get_num_of_columns" returns="int">
-///     <brief>Возвращает количетсво колонок</brief>
-///     <body>
+/**
+ * Возвращает количетсво колонок
+ * 
+ * @return int
+ */
   public function get_num_of_columns() { return sqlsrv_num_fields($this->stmt); }
-///     </body>
-///   </method>
 
-///   <method name="get_row_metadata" returns="DB.ColumnMeta">
-///     <brief>Возвращает мета данные строки результата</brief>
-///     <body>
+/**
+ * Возвращает мета данные строки результата
+ * 
+ * @return DB_ColumnMeta
+ */
   public function get_row_metadata() {
     $metadata = new ArrayObject();
     foreach (sqlsrv_field_metadata($this->stmt) as $column_meta)
@@ -427,16 +401,14 @@ class DB_Adapter_MSSQL_Cursor implements DB_Adapter_CursorInterface {
         $column_meta['Name'], $column_meta['Type'], $column_meta['Size'], $column_meta['Precision']);
     return $metadata;
   }
-///     </body>
-///   </method>
 
-///   <method name="cast_column" returns="mixed">
-///     <brief>Преобразует значение полученное из БД в нужный формат, для работы с ним в php</brief>
-///     <args>
-///       <arg name="metadata" type="DB.ColumnMeta" brief="мета-данный колонки" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Преобразует значение полученное из БД в нужный формат, для работы с ним в php
+ * 
+ * @param DB_ColumnMeta $metadata
+ * @param  $value
+ * @return mixed
+ */
   public function cast_column(DB_ColumnMeta $metadata, $value) {
     switch ($metadata->type) {
       case 91:
@@ -465,11 +437,6 @@ class DB_Adapter_MSSQL_Cursor implements DB_Adapter_CursorInterface {
         return $value;
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

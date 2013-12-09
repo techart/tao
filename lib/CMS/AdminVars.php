@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\AdminVars
+ */
+
 
 
 class CMS_AdminVars implements Core_ModuleInterface {

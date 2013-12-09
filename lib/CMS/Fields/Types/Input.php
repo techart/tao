@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Input
+ */
+
 
 class CMS_Fields_Types_Input extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

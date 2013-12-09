@@ -13,12 +13,12 @@ h1 {
 }
 
 h2 {
-	margin: 0 0 10px 0;
+	margin: 20px 0 10px 0;
 	font-size: 18px; 
 }
 
 h3 {
-	margin: 0 0 10px 0;
+	margin: 20px 0 10px 0;
 	font-size: 16px; 
 }
 
@@ -38,7 +38,7 @@ ul {
 	list-style: disc;
 }
 
-ul {
+ol {
 	list-style: decimal;
 }
 

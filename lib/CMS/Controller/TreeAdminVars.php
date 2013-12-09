@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\TreeAdminVars
+ */
+
 
 Core::load('CMS.Controller.TreeTable');
 

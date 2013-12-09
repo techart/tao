@@ -1,88 +1,87 @@
 <?php
-/// <module name="Search.Sphinx.ORM" maintainer="svistunov@techart.ru" version="0.2.1">
-///   <brief>Модуль служит для связи Sphinx и SB.ORM</brief>
+/**
+ * Search.Sphinx.ORM
+ * 
+ * Модуль служит для связи Sphinx и SB.ORM
+ * 
+ * @package Search\Sphinx\ORM
+ * @version 0.2.1
+ */
 Core::load('DB.ORM', 'Search.Sphinx');
 
-/// <class name="Search.Sphinx.ORM" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package Search\Sphinx\ORM
+ */
 class Search_Sphinx_ORM implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.1';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Resolver" returns="Search.Sphinx.ORM.Resolver" scope="class" stereotype="factory">
-///     <brief>Фабричный метод, возвращает объект класса Search.Sphinx.ORM.Resolver</brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Search.Sphinx.ORM.Resolver
+ * 
+ * @return Search_Sphinx_ORM_Resolver
+ */
   static public function Resolver() {  return new Search_Sphinx_ORM_Resolver(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Search.Sphinx.ORM.Exception" extends="Core.Exception">
-///   <brief>Класс исключения</brief>
+/**
+ * Класс исключения
+ * 
+ * @package Search\Sphinx\ORM
+ */
 class Search_Sphinx_ORM_Exception extends Core_Exception {}
-/// </class>
 
 
-/// <class name="Search.Sphinx.ORM.Resolver" extends="Search.Sphinx.Resolver">
-///   <brief>Ресолвер связывающий результат поиска и DB.ORM </brief>
+/**
+ * Ресолвер связывающий результат поиска и DB.ORM
+ * 
+ * @package Search\Sphinx\ORM
+ */
 class Search_Sphinx_ORM_Resolver implements Search_Sphinx_ResolverInterface {
 
   protected $dimension = 0;
   protected $mappers = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <body>
+/**
+ * Конструктор
+ * 
+ */
   public function __construct() { $this->setup(); }
-///     </body>
-///   </method>
 
-///   <method name="setup" access="protected">
-///     <body>
+/**
+ */
   protected function setup() {  }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="mappers" returns="Search.Sphinx.ORM.Resolver">
-///     <brief>Устанавливает набор мапперов</brief>
-///     <body>
+/**
+ * Устанавливает набор мапперов
+ * 
+ * @return Search_Sphinx_ORM_Resolver
+ */
   public function mappers() {
     foreach (Core::normalize_args(func_get_args()) as $k => $mapper)
       if ($mapper instanceof DB_ORM_Mapper) $this->mappers[$k] = $mapper;
     return $this;
   }
-///     </body>
-///   </method>
 
   public function dimension($dimension) {
     $this->dimension = $dimension;
     return $this;
   }
 
-///   </protocol>
 
-///   <protocol name="loading">
 
-///   <method name="load" returns="Data.Hash">
-///     <brief>Возвращает сущности соответствующие установленным мапперам</brief>
-///     <args>
-///       <arg name="result_set" type="Search.Sphinx.ResultSet" />
-///     </args>
-///     <body>
+/**
+ * Возвращает сущности соответствующие установленным мапперам
+ * 
+ * @param Search_Sphinx_ResultSet $result_set
+ * @return Data_Hash
+ */
   public function load(array $matches) {
 
     $parts = array();
@@ -106,11 +105,6 @@ class Search_Sphinx_ORM_Resolver implements Search_Sphinx_ResolverInterface {
 
     return $result;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

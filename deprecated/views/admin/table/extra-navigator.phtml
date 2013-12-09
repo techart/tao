@@ -1,0 +1,63 @@
+<?php if ($extra_navigator||sizeof($filters_form)>0) { ?><td class="left_big_border"><form action="<?= $c->admin_url('list',1,'') ?>" method="get"><table cellspacing="2" cellpadding="0" border="0" class="extra_navigator"><?php 
+	if (is_string($extra_navigator)) echo "<td>$extra_navigator</td>";	
+	else if (Core_Types::is_iterable($extra_navigator)) {
+		foreach($extra_navigator as $key => $_item) {
+			if (is_string($key)&&is_string($_item)&&strlen($key)>0) {
+				$aclass = '';
+				if ($key[0]=='*') {
+					$aclass = ' class="current"';
+					$key = substr($key,1);
+				}
+				echo "<td><a href=\"$_item\"$aclass>$key</a> &nbsp;</td>";
+			}
+			
+			else if (is_string($_item)) {
+				echo "<td>$_item</td>";
+			}
+		}
+	}
+	
+	if (sizeof($filters_form)>0) {
+		foreach($filters_form as $ff => $fa) {
+			if (isset($fa['caption'])) { ?><td nowrap><?= $fa['caption'] ?>:</td><?php }
+			unset($fa['caption']);
+			$type = 'text';
+			if (isset($fa['type'])) {
+				$type = $fa['type'];
+				unset($fa['type']);
+			}
+			if (isset($fa['items'])) {
+				$items = $fa['items'];
+				unset($fa['items']);
+			}
+			
+			$fa['name'] = $ff;
+			if ($type=='select') {
+				$items = $c->items_for_select($items);
+				echo '<td>'.$this->tags->tag('select',(array)$fa,false);
+				foreach($items as $v => $_item) {
+					$p = array('value'=>$v);
+					if (trim($_GET[$ff])==trim($v)) $p['selected'] = true;
+					echo $this->tags->tag('option',$p,false);
+					echo htmlspecialchars($_item);
+					echo '</option>';
+				}
+				echo '</select></td>';
+			}
+			
+			else if ($type=='hidden')  {
+				$fa['type'] = 'hidden';
+				$fa['value'] = trim($_GET[$ff]);
+				echo $this->tags->tag('input',(array)$fa);
+			}
+			
+			else {
+				$fa['type'] = 'text';
+				$fa['value'] = isset($_GET[$ff])?trim($_GET[$ff]):'';
+				echo '<td>'.$this->tags->tag('input',(array)$fa).'</td>';
+			}
+		}
+		?><td><input type="submit" value="<?= htmlspecialchars($button_filter) ?>" /></td><?php
+	}
+	
+?></table></form></td><?php } ?>

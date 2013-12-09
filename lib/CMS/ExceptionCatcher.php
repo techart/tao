@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\ExceptionCatcher
+ */
+
 
 class CMS_ExceptionCatcher implements Core_ModuleInterface {
 

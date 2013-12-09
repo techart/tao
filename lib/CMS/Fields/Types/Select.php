@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Select
+ */
+
 
 class CMS_Fields_Types_Select extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

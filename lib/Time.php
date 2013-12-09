@@ -73,6 +73,44 @@ class Time implements Core_ModuleInterface
 
 
 	/**
+	* Регулярные выражения для автоматического определения формата даты
+	*/
+	protected static $format_patters = array(
+		'{^\d+\.\d+\.\d+$}' => 'd.m.Y',
+		'{^\d+\.\d+\.\d+([\s-]+)\d+:\d+$}' => 'd.m.Y${1}H:i',
+		'{^\d+\.\d+\.\d+([\s-]+)\d+:\d+:\d+$}' => 'd.m.Y${1}H:i:s',
+		'!^\d{1,4}-\d{1,2}-\d{1,2}([\s-]+)\d+:\d+:\d+$!' => 'Y-m-d H:i:s',
+		'!^\d{1,4}-\d{1,2}-\d{1,2}$!' => 'Y-m-d',
+		'!^\d{1,4}-\d{1,2}-\d{1,2}([\s-]+)\d+:\d+$!' => 'Y-m-d H:i',
+		'!^\d{1,2}/\d{1,2}/\d{1,4}$!' => 'm/d/Y',
+		'!^\d{1,2}/\d{1,2}/\d{1,4}([\s-]+)\d+:\d+:\d+$!' => 'm/d/Y H:i:s',
+		'!^\d{1,2}/\d{1,2}/\d{1,4}([\s-]+)\d+:\d+$!' => 'm/d/Y H:i',
+	);
+
+	/**
+	* Добавление автоопределяемого формата
+	*/
+	public static function add_format_pattern($regexp, $format)
+	{
+		self::$format_patters[$regexp] = $format;
+	}
+
+	/**
+	* Автоматическое определение формата даты
+	*/
+	public static function detect_format($string)
+	{
+		foreach (self::$format_patters as $pattern => $replace) {
+			$format = preg_replace($pattern, $replace, $string);
+			if ($format != $string) {
+				return $format;
+			}
+		}
+		return '';
+	}
+
+
+	/**
 	 * Создает объект класса Time_DateTime
 	 * 
 	 * Момент времени может быть задан различными способами:
@@ -291,6 +329,10 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 			return null;
 		}
 
+		if (empty($format)) {
+			$format = Time::detect_format($string);
+		}
+
 		if ($format) {
 			if (is_null($clib) && Core_Strings::contains($format, '%')) {
 				$clib = true;
@@ -342,8 +384,7 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 	{
 		if (method_exists('DateTime', 'createFromFormat')) {
 			if ($rc = parent::createFromFormat($format, $string)) {
-				$format = "%Y-%m-%d %H:%M:%S";
-				return self::parse_clib($rc->format('Y-m-d H:i:s'), $format);
+				return self::compose($rc->format('Y'), $rc->format('m'), $rc->format('d'), $rc->format('H'), $rc->format('i'), $rc->format('s'));
 			}
 		} else {
 			return self::strtotime($string);

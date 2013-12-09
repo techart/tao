@@ -1,11 +1,23 @@
 <?php
+/**
+ * @package CMS\Views\View
+ */
+
 
 Core::load('Templates.HTML');
 
 class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInterface {
 
-	const MODULE = 'CMS.Views.View';
-	const VERSION = '0.0.0';
+	public function parent()
+	{
+		return $this->copy(parent::get_path($this->name));
+	}
+
+	protected function get_path()
+	{
+		$paths = array(CMS::current_component_dir('app/views'), CMS::current_component_dir('views'));
+		return Templates::get_path($this->name, $this->extension, $paths);
+	}
 
 	public function partial_paths($paths = array(), $base_name = '')
 	{
@@ -20,6 +32,7 @@ class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInter
 				$paths = array_merge($component_paths, $paths);
 			}
 		}
+		$paths = array_merge(array(CMS::current_component_dir('app/views'), CMS::current_component_dir('views')), $paths);
 		return $paths;
 	}
 

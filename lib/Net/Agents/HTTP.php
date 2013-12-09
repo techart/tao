@@ -1,15 +1,19 @@
 <?php
-/// <module name="Net.Agents.HTTP" version="0.2.2" maintainer="timokhin@techart.ru">
+/**
+ * Net.Agents.HTTP
+ * 
+ * @package Net\Agents\HTTP
+ * @version 0.2.2
+ */
 
 Core::load('Net.HTTP', 'WS');
 
-/// <class name="Net.Agents.HTTP" stereotype="module">
-///   <implements interface="Core.ConfigurableModuleInterface" />
+/**
+ * @package Net\Agents\HTTP
+ */
 class Net_Agents_HTTP implements Core_ConfigurableModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.2';
-///   </constants>
 
   static protected $options = array(
     'curl_options' => array(
@@ -19,26 +23,18 @@ class Net_Agents_HTTP implements Core_ConfigurableModuleInterface {
       CURLOPT_FOLLOWLOCATION => 0
       ));
 
-///   <protocol name="creating">
 
-///   <method name="initialize" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ */
   static public function initialize(array $options = array()) { self::options($options); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="options" returns="array" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ * @return array
+ */
   static public function options(array $options = array()) {
     foreach ($options as $name => $o) {
      if (isset(self::$options[$name]))
@@ -49,49 +45,36 @@ class Net_Agents_HTTP implements Core_ConfigurableModuleInterface {
     }
     return self::$options;
   }
-///     </body>
-///   </method>
 
-///   <method name="option" returns="mixed" scope="class">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="value" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param  $value
+ * @return mixed
+ */
   static public function option($name, $value = null) {
     $prev = isset(self::$options[$name]) ? self::$options[$name] : null;
     if ($value !== null) self::options(array($name => $value));
     return $prev;
   }
-///     </body>
-///   </method>
 
-///   <method name="default_curl_options" scope="class">
-///     <args>
-///       <arg name="options" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ */
   static public function default_curl_options(array $options) { Core_Arrays::merge(self::$options['curl_options'], $options); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="Agent" returns="Curl.Agent.HTTP" scope="class">
-///     <body>
+/**
+ * @return Curl_Agent_HTTP
+ */
   static public function Agent(array $curl_options = array()) { return new Net_Agents_HTTP_Agent($curl_options); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Net.Agents.HTTP.Agent">
-///   <implements interface="Net.HTTP.AgentInterface" />
+/**
+ * @package Net\Agents\HTTP
+ */
 class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAccessInterface {
 
   protected $options;
@@ -105,22 +88,16 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
   protected $with_body = true;
   protected $to_file = false;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="curl_options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $curl_options
+ */
   public function __construct(array $curl_options = array()) {
       $this->options = $curl_options;
       if (WS::env() && WS::env()->config && WS::env()->config->proxy)
         $this->using_proxy(WS::env()->config->proxy);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
   public function to_file($file)
   {
@@ -133,42 +110,32 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
     return $this;
   }
 
-///   <protocol name="configuring">
 
-///   <method name="option" returns="Net.Agents.HTTP.Agent">
-///     <args>
-///       <arg name="option" type="int" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param int $option
+ * @param  $value
+ * @return Net_Agents_HTTP_Agent
+ */
   public function option($option, $value) {
     $this->options[$option] = $value;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="options" returns="Net.Agents.HTTP.Agent">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ * @return Net_Agents_HTTP_Agent
+ */
   public function options(array $options = array()) {
     foreach ($options as $k => $v) $this->option($k, $v);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case property_exists($this, $property):
@@ -180,15 +147,12 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
           throw new Core_MissingPropertyException($property);
       }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="Net.Agents.HTTP.Agent">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return Net_Agents_HTTP_Agent
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'auto_redirect':
@@ -202,14 +166,11 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
           new Core_MissingPropertyException($property);
       }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case property_exists($this, $property):
@@ -218,32 +179,24 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
         return isset($this->info[$property]);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset" returns="Net.Agents.HTTP.Agent">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return Net_Agents_HTTP_Agent
+ */
   public function __unset($property) {
     throw $this->__isset($property) ?
       new Core_UndestroyablePropertyException($property) :
       new Core_MissingPropertyException($property);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling" interface="Core.CallInterface">
 
-///   <method name="__call" returns="mixed">
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param string $method
+ * @param array $args
+ * @return mixed
+ */
   public function __call($method, $args) {
     switch ($method) {
       case 'auto_redirect': case 'act_as_browser': case 'inspect': case 'with_body':
@@ -271,12 +224,8 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
           throw new Core_MissingMethodException($method);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
 
   protected function additional_headers($request)
@@ -292,11 +241,10 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
     return $this;
   }
 
-///   <method name="send" returns="Net.HTTP.Response">
-///     <args>
-///       <arg name="request" type="Net.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @param Net_HTTP_Request $request
+ * @return Net_HTTP_Response
+ */
   public function send($request) {
     if (is_string($request)) {
       $url = $request;
@@ -435,16 +383,12 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
 
 
 
-///     </body>
-///   </method>
 
-///   <method name="redirect">
-///     <args>
-///       <arg name="response" type="Net.HTTP.Response" />
-///       <arg name="request"  type="Net.HTTP.Request" />
-///       <arg name="id" type="int" />
-///     </args>
-///     <body>
+/**
+ * @param Net_HTTP_Response $response
+ * @param Net_HTTP_Request $request
+ * @param int $id
+ */
   protected function redirect($response, $request, $effective_url) {
     $last_url = parse_url($effective_url);
     $next_url = parse_url(trim($response->headers['Location']));
@@ -460,42 +404,28 @@ class Net_Agents_HTTP_Agent implements Net_HTTP_AgentInterface, Core_PropertyAcc
       query(isset($go_url['query']) ? $go_url['query'] : null);
     return $this->send($request);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="execute">
-///     <args>
-///       <arg name="id" type="int" brief="curl identifer" />
-///       <arg name="options" type="array" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * @param int $id
+ * @param array $options
+ */
   protected function execute($id, $options) {
     curl_setopt_array($id, $options);
     return curl_exec($id);
   }
-///     </body>
-///   </method>
 
-///   <method name="make_curl" returns="int" access="protected">
-///     <args>
-///       <arg name="uri" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $uri
+ * @return int
+ */
   protected function make_curl($uri) {
     $id = curl_init($uri);
     curl_setopt_array($id, Net_Agents_HTTP::option('curl_options'));
     curl_setopt_array($id, $this->options);
     return $id;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

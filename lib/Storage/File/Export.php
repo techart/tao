@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Storage\File\Export
+ */
+
 
 Core::load('Storage.File');
 
@@ -24,7 +28,11 @@ class Storage_File_Export_Type extends Storage_File_Type {
 
 	public function write($file, $data) {
 		$res = var_export($data, true);
-		$res = "<?php return \n $res ;";
+		$res = "<?php
+/**
+ * @package Storage\File\Export
+ */
+ return \n $res ;";
 		return (bool) file_put_contents($file, $res, LOCK_EX);
 	}
 

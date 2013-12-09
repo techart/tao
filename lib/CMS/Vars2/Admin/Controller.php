@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Admin\Controller
+ */
+
 
 Core::load('CMS.Controller.Table');
 

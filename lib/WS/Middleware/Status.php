@@ -1,93 +1,81 @@
 <?php
-/// <module name="WS.Middleware.Status" version="0.2.0" maintainer="timokhin@techart.ru">
+/**
+ * WS.Middleware.Status
+ * 
+ * @package WS\Middleware\Status
+ * @version 0.2.0
+ */
 
 Core::load('Templates', 'WS', 'Events');
 
-/// <class name="WS.Middleware.Status" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package WS\Middleware\Status
+ */
 class WS_Middleware_Status implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.1';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Service" returns="WS.Middleware.Status.Service" scope="class">
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" />
-///       <arg name="map" type="array" />
-///       <arg name="default_template" type="string" default="'http/status'" />
-///     </args>
-///     <body>
+/**
+ * @param WS_ServiceInterface $application
+ * @param array $map
+ * @param string $default_template
+ * @return WS_Middleware_Status_Service
+ */
   public function Service(WS_ServiceInterface  $application, array $map, $default_template = 'status', $disabled = false) {
     return new WS_Middleware_Status_Service($application, $map, $default_template);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
 
-/// <class name="WS.Middleware.Status.Service" extends="WS.MiddlewareService">
+/**
+ * @package WS\Middleware\Status
+ */
 class WS_Middleware_Status_Service extends WS_MiddlewareService {
 
   protected $map;
   protected $disabled = false;
   protected $default_template;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" />
-///       <arg name="map" type="array" />
-///       <arg name="default_template" type="string" default="'http/status'" />
-///     </args>
-///     <body>
+/**
+ * @param WS_ServiceInterface $application
+ * @param array $map
+ * @param string $default_template
+ */
   public function __construct(WS_ServiceInterface $application, array $map, $default_template = 'status', $disabled = false) {
     parent::__construct($application);
     $this->default_template = $default_template;
     $this->map = $map;
     $this->disabled = $disabled;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="disable" returns="WS.Middleware.Status.Service">
-///     <body>
+/**
+ * @return WS_Middleware_Status_Service
+ */
   public function disable() {
     $this->disabled = true;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="enable" returns="WS.Middleware.Status.Service">
-///     <body>
+/**
+ * @return WS_Middleware_Status_Service
+ */
   public function enable() {
     $this->disabled = false;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="processing">
 
-///   <method name="run" returns="Net.HTTP.Response">
-///     <args>
-///       <arg name="env" type="WS.Environment" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Environment $env
+ * @return Net_HTTP_Response
+ */
   public function run(WS_Environment $env) {
     //if ($this->disabled) return $this->application->run($env);
 
@@ -123,29 +111,19 @@ class WS_Middleware_Status_Service extends WS_MiddlewareService {
     Events::call('ws.status', $response);
     return $response;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="find_template_for" returns="Tempalates.HTML.Template">
-///     <args>
-///       <arg name="status" type="int" />
-///     </args>
-///     <body>
+/**
+ * @param int $status
+ * @return Tempalates_HTML_Template
+ */
   protected function find_template_name_for(Net_HTTP_Status $status) {
     foreach ($this->map as $k => $v) {
       if (is_string($v)  && $status->code == $k) return $v;
       if (is_numeric($v) && $status->code == $v) return $this->default_template;
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

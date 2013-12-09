@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Utils
+ */
+
 
 class CMS_Vars2_Utils implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

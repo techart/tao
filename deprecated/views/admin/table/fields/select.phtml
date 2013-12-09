@@ -1,0 +1,34 @@
+<?php
+		$parms['name'] = $form->name."[$name]";
+		$parms['id'] = $form->name."_$name";
+		if (isset($parms['relative_field'])) {
+			$rf = $parms['relative_field'];
+			if (!Core_Types::is_iterable($rf)) $rf = array($rf); 
+			$relative_fields[$name] = $rf;
+			unset($parms['relative_field']);
+		}
+		echo $this->tags->tag('select',$parms,false);
+		foreach($items as $k => $v) {
+			if (Core_Types::is_iterable($v)&&!($v instanceof DB_ORM_Entity)) {
+				echo $this->tags->tag('optgroup',array('label' => $k),false);
+				$options = $v;
+				foreach($options as $k => $v) {
+					$p = array('value' => $k);
+					if ($k==$form[$name]) $p['selected'] = true;
+					echo $this->tags->tag('option',$p,false);
+					echo htmlspecialchars(CMS::lang($v));
+					echo '</option>';
+				}
+				echo '</optgroup>';
+			}
+
+			else {
+				$p = array('value' => $k);
+				if ($k==$form[$name]) $p['selected'] = true;
+				echo $this->tags->tag('option',$p,false);
+				echo htmlspecialchars(CMS::lang($v));
+				echo '</option>';
+			}
+		}
+		echo '</select>';
+?>

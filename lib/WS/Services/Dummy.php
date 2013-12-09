@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package WS\Services\Dummy
+ */
+
 
 class WS_Services_Dummy implements Core_ModuleInterface{
   const VERSION = '0.0.1';

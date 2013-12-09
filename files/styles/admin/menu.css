@@ -13,7 +13,7 @@
 	}
 
 
-		#topmenu ul.level1 li {
+		#topmenu ul.level1 > li {
 			display: block;
 			float: left;
 			margin: 7px 0 0 0;
@@ -22,12 +22,12 @@
 			z-index: 12;
 		}
 
-			#topmenu ul.level1 li.first {
+			#topmenu ul.level1 > li.first {
 				padding: 0;
 			}
 
 
-			#topmenu ul.level1 li a {
+			#topmenu ul.level1 > li > a {
 				display: block;
 				background-color: #8B8C8E;
 				background: linear-gradient(to top, #8B8C8E 80%, #BBB 100%);
@@ -35,18 +35,18 @@
 				text-decoration: none;
 				color: #fff;
 			}
-				#topmenu ul.level1 li.current a {
+				#topmenu ul.level1 > li.current > a {
 					background-color: #FFF;
 					background: linear-gradient(to top, #EEE, #FFF);
 					color: #000;
 				}	
 
-				#topmenu ul.level1 li.hovered a {
+				#topmenu ul.level1 > li.hovered > a {
 					background-color: #8ADCE8;
 					color: #000;
 				}	
 
-				#topmenu ul.level1 li a span {
+				#topmenu ul.level1 > li > a > span {
 					display: block;
 					padding: 8px 12px 7px 12px;
 				}
@@ -79,6 +79,7 @@
 						background-image: none;
 						padding: 4px 15px 4px 15px;
 						margin: 0;
+						text-decoration: none;
 					}
 						#topmenu ul.level2 li a:hover {
 							background-color: #47BCCD;

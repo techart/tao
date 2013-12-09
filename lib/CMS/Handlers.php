@@ -1,50 +1,43 @@
 <?php
-/// <module name="CMS.Handlers" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.Handlers
+ * 
+ * @package CMS\Handlers
+ * @version 0.0.0
+ */
 
 //TODO: refactoring
 
 Core::load('WS.Auth');
 
-/// <class name="CMS.Handlers" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="CMS.StatusHandler" stereotype="creates" />
-///   <depends supplier="CMS.StdControlsHandler" stereotype="creates" />
-///   <depends supplier="CMS.ActionHandler" stereotype="creates" />
-///   <depends supplier="CMS.AuthModule" stereotype="creates" />
-///   <depends supplier="CMS.Auth.Basic.Handler" stereotype="creates" />
+/**
+ * @package CMS\Handlers
+ */
 class CMS_Handlers implements Core_ModuleInterface {
-///   <constants>
 	const MODULE  = 'CMS.Handlers';
 	const VERSION = '0.0.0';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method scope="class" name="StdControlsHandler" returns="CMS.StdControlsHandler">
-///     <body>
+/**
+ * @return CMS_StdControlsHandler
+ */
 	static function StdControlsHandler(WS_ServiceInterface $application) { return new CMS_Handlers_StdControlsHandler($application); }
-///     </body>
-///   </method>
 
-///   <method scope="class" name="ActionHandler" returns="CMS.ActionHandler">
-///     <body>
+/**
+ * @return CMS_ActionHandler
+ */
 	static function ActionHandler() { return new CMS_Handlers_ActionHandler(); }
-///     </body>
-///   </method>
 
-///   <method scope="class" name="AuthModule" returns="CMS.AuthModule">
-///     <body>
+/**
+ * @return CMS_AuthModule
+ */
 	static function AuthModule() {
 		return new CMS_Handlers_AuthModule();
 	}
-///     </body>
-///   </method>
 
-///   </protocol>
 
 
 }
-/// </class>
 
 
 class CMS_Handlers_AuthUser
@@ -86,16 +79,16 @@ class CMS_Handlers_AuthUser
 }
 
 
-/// <class name="CMS.AuthModule" extends="WebKit.Auth.AbstractAuthModule">
+/**
+ * @package CMS\Handlers
+ */
 class CMS_Handlers_AuthModule implements WS_Auth_AuthModuleInterface {
 
-/// <protocol name="performing">
-///   <method name="authenticate" returns="Data.Tree|false">
-///     <args>
-///       <arg name="login" type="string" />
-///       <arg name="password" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $login
+ * @param string $password
+ * @return Data_Tree|false
+ */
 	public function authenticate($login,$password) {
 		$login = trim($login);
 		$password = trim($password);
@@ -109,40 +102,27 @@ class CMS_Handlers_AuthModule implements WS_Auth_AuthModuleInterface {
 
 		return false;
 	}
-///     </body>
-///   </method>
-/// </protocol>
 
 }
-/// </class>
 
 
-/// <class name="CMS.StdControlsHandler" extends="WebKit.Handlers.HTTPStatusHandler">
-///   <depends supplier="CMS.Admin" stereotype="uses" />
-///   <depends supplier="CMS.Protect" stereotype="uses" />
-///   <depends supplier="WebKit.Controller.NoRouteException" stereotype="catches" />
+/**
+ * @package CMS\Handlers
+ */
 class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService {
 
-/// <protocol name="creating">
-///   <method name="__construct">
-///     <args>
-///       <arg name="application" type="WebKit.AbstractHandler" />
-///     </args>
-///     <body>
+/**
+ * @param WebKit_AbstractHandler $application
+ */
 	public function __construct(WS_ServiceInterface $application) {
 		parent::__construct($application);
 	}
-///     </body>
-///   </method>
-/// </protocol>
 
-/// <protocol name="performing">
-///   <method name="process" returns="Iterator">
-///     <args>
-///       <arg name="env" type="WebKit.Environment" />
-///       <arg name="response" type="WebKit.HTTP.Response" />
-///     </args>
-///     <body>
+/**
+ * @param WebKit_Environment $env
+ * @param WebKit_HTTP_Response $response
+ * @return Iterator
+ */
 	public function run(WS_Environment $env) {
 		$response = $env->response;
 		
@@ -220,9 +200,6 @@ class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService {
 			return $this->not_found($e->url, $env, $response);
 		}
 	}
-///     </body>
-///   </method>
-/// </protocol>
 
 	protected function not_found($uri, $env , $r) {
 			if ($m = Core_Regexps::match_with_results('{^([^?]+)\?}',$uri)) $uri = $m[1];
@@ -240,7 +217,6 @@ class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService {
 	}
 
 }
-/// </class>
 
 class CMS_Handlers_Static extends WS_MiddlewareService {
 
@@ -288,41 +264,26 @@ class CMS_Handlers_Configure extends WS_MiddlewareService {
 	}
 }
 
-class CMS_Handlers_RestrictedRealms extends WS_MiddlewareService {
-
-	public function run(WS_Environment $env) {
-		if (!empty($env->config->restricted))
-			$restricted = $env->config->restricted;
-		else {
-			Core::load('Config.DSL');
-			$restricted = (array) Config::get('restricted')->restricted;
-		}
-		$erealms = isset($env->restricted_realms)? $env->restricted_realms : array();
-		foreach($restricted as $realm => $realm_data) {
-			$erealms[$realm] = (array) $realm_data;
-			CMS::$restricted_realms[$realm] = (array) $realm_data;
-		}
-		$env->restricted_realms = $erealms;
-		return $this->application->run($env);
-	}
-
-}
-
 class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 
 	static protected $realms = array();
 
 	public static function access($realm, $extra_auth_callback = null) {
-
+		if (!$realm) {
+			return array();
+		}
 		if (isset(self::$realms[$realm]) && self::$realms[$realm])
 			return self::$realms[$realm];
 
 		$data = false;
-		if (isset(CMS::$restricted_realms[$realm])) {
+		$cfg_name = "{$realm}_realm";
+		$cfg = WS::env()->config;
+		if (isset($cfg->{$cfg_name})) {
+			$data = (array)$cfg->{$cfg_name};
+		} elseif (isset(CMS::$restricted_realms[$realm])) {
 			$data = CMS::$restricted_realms[$realm];
-		}
-		else {
-			return self::$realms[$realm] = array('empty' => true);
+		} else {
+			return self::$realms[$realm] = false;
 		}
 		
 		if (!$data) return self::$realms[$realm] = false;
@@ -330,11 +291,7 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 		if ($realm==CMS::$admin_realm) {
 			CMS::$in_admin = true;
 		}
-
-		/*if (isset($data['layout'])) {
-			$this->use_layout($data['layout']);
-		}*/
-			
+		
 		if (isset($data['page_404'])) {
 			CMS::$page_404 = $data['page_404'];
 		}
@@ -343,17 +300,17 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 			Core::load(CMS::$nav_module);
 			Core_Types::reflection_for(CMS::$nav_module)->setStaticPropertyValue('var',$data['navigation_var']);
 		}
-
+		
 		$user = false;
 		if (isset($data['auth_type'])&&$data['auth_type']=='basic'||!isset($data['auth_type'])) {
 			$user = WS::env()->admin_auth->user;
 		}
-
+		
 		if ($user) {
 			$client = false;
 			$access = false;
 			$mp = false;
-
+			
 			self::passwords($data, $user, $client, $access, $mp);
 
 			Core::load('Net.HTTP.Session');
@@ -461,6 +418,9 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 	}
 
 	static protected function passwords($data, $user, &$client, &$access, &$mp) {
+		if (!isset($data['passwords'])) {
+			return;
+		}
 		foreach($data['passwords'] as $p) {
 			$mp = false;
 			$p = trim($p);
@@ -496,21 +456,19 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 }
 
 
-/// <class name="CMS.ActionHandler" extends="WebKit.AbstractHandler">
-///   <depends supplier="CMS.Controller.Index" stereotype="uses" />
-///   <depends supplier="CMS.Controller.AdminIndex" stereotype="uses" />
+/**
+ * @package CMS\Handlers
+ */
 class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
 
 	protected $env;
 	protected $response;
 
-/// <protocol name="performing">
-///   <method name="process" returns="Iterator">
-///     <args>
-///       <arg name="env" type="WebKit.Environment" />
-///       <arg name="response" type="WebKit.HTTP.Response" />
-///     </args>
-///     <body>
+/**
+ * @param WebKit_Environment $env
+ * @param WebKit_HTTP_Response $response
+ * @return Iterator
+ */
 	public function run(WS_Environment $env) {
 		$response = $env->response;
 		$this->env = $env;
@@ -532,18 +490,14 @@ class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
 		//var_dump($response->status);die;
 		return $rc;
 	}
-///     </body>
-///   </method>
 
 
 
-/// <protocol name="performing">
-///   <method name="process_app" returns="Iterator">
-///     <args>
-///       <arg name="env" type="WebKit.Environment" />
-///       <arg name="response" type="WebKit.HTTP.Response" />
-///     </args>
-///     <body>
+/**
+ * @param WebKit_Environment $env
+ * @param WebKit_HTTP_Response $response
+ * @return Iterator
+ */
 	public function process_app(WS_Environment $env, $response) {
 
 		$uri = $env->request->urn;
@@ -607,11 +561,6 @@ class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
 		$curi = $uri;
 		if ($m = Core_Regexps::match_with_results('/^([^\?]+)\?/',$curi)) $curi = $m[1];
 
-
-		//foreach(CMS::$plugins_before_dispatch as $class => $method) {
-		//	$r = new ReflectionMethod($class,$method);
-		//	$r->invoke(NULL);
-		//}
 
 		$use_layout = false;
 
@@ -684,65 +633,10 @@ class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
 			}
 		}
 
-		// Индексный контролер
-		if ($curi=='/') {
-			$_layout = is_string(CMS::$force_layout)? CMS::$force_layout : 'work';
-			return $this->run_index_controller(CMS::$page_main,$_layout);
-		}
-
-
-		// Индексный контролер админской части
-		if (isset(CMS::$restricted_realms[CMS::$admin_realm])) {
-			$_data = CMS::$restricted_realms[CMS::$admin_realm];
-			$_uri = isset($_data['index'])? $_data['index'] : CMS::admin_path();
-			$_layout = isset($_data['layout'])? $_data['layout'] : 'admin';
-			$_page = isset($_data['page_main'])? $_data['page_main'] : 'admin_main';
-			if (CMS::is_admin_request($env->request)) {
-				if (!isset(WS::env()->not_found)) 
-					WS::env()->not_found = Core::object();
-				WS::env()->not_found->layout = $_layout;
-				WS::env()->not_found->static_file = '404.html';
-			}
-			if ($_uri==$curi) return $this->run_admin_index_controller($_page,$_layout);
-		}
-
-
 		if (md5($uri)=='b0b94791138ef54aeb161e403329f827') die('cms');
 		return Net_HTTP::not_found();
 	}
-///     </body>
-///   </method>
 
-///   <method name="run_index_controller" returns="">
-///     <args>
-///       <arg name="view" type="string" />
-///       <arg name="layout" type="string" default="work" />
-///     </args>
-///     <body>
-	protected function run_index_controller($view,$layout='work') {
-		Core::load(CMS::$index_controller);
-		$controller = Core_Types::reflection_for(CMS::$index_controller)->newInstance($this->env, $this->response);
-		return $controller->dispatch(WebKit_Controller::Route()->merge(array($view,$layout,'action'=>'index')));
-	}
-///     </body>
-///   </method>
-
-///   <method name="run_admin_index_controller" returns="">
-///     <args>
-///       <arg name="view" type="string" />
-///       <arg name="layout" type="string" default="admin" />
-///     </args>
-///     <body>
-	protected function run_admin_index_controller($view,$layout='admin') {
-		Core::load(CMS::$admin_index_controller);
-		$controller = Core_Types::reflection_for(CMS::$admin_index_controller)->newInstance($this->env, $this->response);
-		return $controller->dispatch(WebKit_Controller::Route()->merge(array($view,$layout,'action'=>'index')));
-	}
-///     </body>
-///   </method>
-/// </protocol>
 
 }
-/// </class>
 
-/// </module>

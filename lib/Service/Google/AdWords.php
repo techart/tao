@@ -1,27 +1,30 @@
 <?php
-/// <module name="Service.Google.Adwords" version="0.1.1" maintainer="svistnov@techart.ru">
+/**
+ * Service.Google.Adwords
+ * 
+ * @package Service\Google\AdWords
+ * @version 0.1.1
+ */
 Core::load('Service.Google.Auth', 'SOAP');
-/// <class name="Service.Google.AdWords" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords implements Core_ModuleInterface {
-///   <constants>
   const VERSION = '0.1.2';
   const NS = "https://adwords.google.com/api/adwords/cm/v201306";
   const FMT_DATE = '%Y%m%d';
   static protected $SERVICE_SUFFIXES = array('job' => 'job', 'idea' => 'o', 'info' => 'info', 'account' => 'mcm');
   const DEFAULT_SERVICE_SUFFIX = 'cm';
-///   </constants>
 
-///   <protocol name="quering">
 
-///   <method name="wsdl_for" returns="string">
-///     <brief>Возвращает wsdl адрес для сервиса</brief>
-///     <args>
-///       <arg name="service" type="string" />
-///       <arg name="sandbox" type="boolean" default="false" />
-///       <arg name="suffix" type="string" defaults="cm" />
-///     </args>
-///     <body>
+/**
+ * Возвращает wsdl адрес для сервиса
+ * 
+ * @param string $service
+ * @param boolean $sandbox
+ * @param string $suffix
+ * @return string
+ */
   static public function wsdl_for($name, $sandbox = false) {
     $service = Core_Strings::to_camel_case($name);
     $s = end(explode('_', $name));
@@ -32,272 +35,219 @@ class Service_Google_AdWords implements Core_ModuleInterface {
       '.google.com/api/adwords/'.$suffix.'/v201306/'.
       $service.'Service?wsdl';
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="Service">
-///     <args>
-///       <arg name="client" type="Service.Google.AdWords.Client" />
-///       <arg name="wsdl" type="string" />
-///       <arg name="classmap" type="array" default="array()" />
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param Service_Google_AdWords_Client $client
+ * @param string $wsdl
+ * @param array $classmap
+ * @param array $options
+ */
   static public function Service(Service_Google_AdWords_Client $client, $wsdl, $classmap = array(), $options = array()) {
     return new Service_Google_AdWords_Service($client, $wsdl, $classmap);
   }
-///     </body>
-///   </method>
 
-///   <method name="Client" returns="Service.Google.Adwords.Client" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Client</brief>
-///     <args>
-///       <arg name="credentials" type="array" brief="массив с настройками аутентификации" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Client
+ * 
+ * @param array $credentials
+ * @return Service_Google_Adwords_Client
+ */
   static public function Client(Service_Google_Auth_ClientLogin $auth, array $headers = array()) {
     return new Service_Google_AdWords_Client($auth, $headers);
   }
-///     </body>
-///   </method>
 
-///   <method name="Entity" returns="Service.Google.Adwords.Entity" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Entity</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Entity
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_Entity
+ */
   static public function Entity($type = '', array $attrs = array()) {
     return $type ? new Service_Google_AdWords_Entity($attrs, $type) : new Service_Google_AdWords_Object($attrs);
   }
-///     </body>
-///   </method>
 
-///   <method name="Selector" returns="Service.Google.Adwords.Campaign" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Campaign</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Campaign
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_Campaign
+ */
   static public function Selector(array $attrs = array(), $type = null) { return new Service_Google_AdWords_Selector($attrs, $type); }
-///     </body>
-///   </method>
 
-///   <method name="Operations" returns="Service.Google.Adwords.Operations" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Operations</brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Operations
+ * 
+ * @return Service_Google_Adwords_Operations
+ */
   static public function Operations() { return new Service_Google_AdWords_Operations(); }
-///     </body>
-///   </method>
 
-///   <method name="Campaign" returns="Service.Google.Adwords.Campaign" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Campaign</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Campaign
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_Campaign
+ */
   static public function Campaign(array $attrs = array()) { return new Service_Google_AdWords_Campaign($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="Campaign" returns="Service.Google.Adwords.Budget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Budget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Budget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_Budget
+ */
   static public function Budget(array $attrs = array()) { return new Service_Google_AdWords_Budget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="LanguageTarget" returns="Service.Google.Adwords.LanguageTarget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.LanguageTarget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.LanguageTarget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_LanguageTarget
+ */
   static public function LanguageTarget(array $attrs = array()) { return new Service_Google_AdWords_LanguageTarget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="NetworkTarget" returns="Service.Google.Adwords.NetworkTarget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.NetworkTarget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.NetworkTarget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_NetworkTarget
+ */
   static public function NetworkTarget(array $attrs = array()) { return new Service_Google_AdWords_NetworkTarget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="AdScheduleTarget" returns="Service.Google.Adwords.AdScheduleTarget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.AdScheduleTarget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.AdScheduleTarget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_AdScheduleTarget
+ */
   static public function AdScheduleTarget(array $attrs = array()) { return new Service_Google_AdWords_AdScheduleTarget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="CityTarget" returns="Service.Google.Adwords.CityTarget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.CityTarget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.CityTarget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_CityTarget
+ */
   static public function CityTarget(array $attrs = array()) { return new Service_Google_AdWords_CityTarget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="GeoTarget" returns="Service.Google.Adwords.GeoTarget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.GeoTarget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.GeoTarget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_GeoTarget
+ */
   static public function GeoTarget(array $attrs = array()) { return new Service_Google_AdWords_GeoTarget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="CountryTarget" returns="Service.Google.Adwords.CountryTarget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.CountryTarget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.CountryTarget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_CountryTarget
+ */
   static public function CountryTarget(array $attrs = array()) { return new Service_Google_AdWords_CountryTarget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="MetroTarget" returns="Service.Google.Adwords.MetroTarget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.MetroTarget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.MetroTarget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_MetroTarget
+ */
   static public function MetroTarget(array $attrs = array()) { return new Service_Google_AdWords_MetroTarget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="ProximityTarget" returns="Service.Google.Adwords.ProximityTarget" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.ProximityTarget</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.ProximityTarget
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_ProximityTarget
+ */
   static public function ProximityTarget(array $attrs = array()) { return new Service_Google_AdWords_ProximityTarget($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="AdGroup" returns="Service.Google.Adwords.AdGroup" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.AdGroup</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.AdGroup
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_AdGroup
+ */
   static public function AdGroup(array $attrs = array()) { return new Service_Google_AdWords_AdGroup($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="Ad" returns="Service.Google.Adwords.Ad" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_Ad
+ */
   static public function Ad(array $attrs = array()) { return new Service_Google_AdWords_Ad($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="TextAd" returns="Service.Google.Adwords.Ad" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_Ad
+ */
   static public function TextAd(array $attrs = array()) { return new Service_Google_AdWords_TextAd($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="AdGroupAd" returns="Service.Google.Adwords.AdGroupAd" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_AdGroupAd
+ */
   static public function AdGroupAd(array $attrs = array()) { return new Service_Google_AdWords_AdGroupAd($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="AdGroupCriterion" returns="Service.Google.Adwords.AdGroupAd" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_AdGroupAd
+ */
   static public function AdGroupCriterion(array $attrs = array()) { return new Service_Google_AdWords_AdGroupCriterion($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="Criterion" returns="Service.Google.Adwords.AdGroupAd" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Ad
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_AdGroupAd
+ */
   static public function Criterion(array $attrs = array()) { return new Service_Google_AdWords_Criterion($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="Image" returns="Service.Google.Adwords.Image" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Image</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Image
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_Image
+ */
   static public function Image(array $attrs = array()) { return new Service_Google_AdWords_Image($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="Video" returns="Service.Google.Adwords.Image" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.Video</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.Video
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_Image
+ */
   static public function Video(array $attrs = array()) { return new Service_Google_AdWords_Video($attrs); }
-///     </body>
-///   </method>
 
-///   <method name="ApiError" returns="Service.Google.Adwords.ApiError" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Service.Google.Adwords.ApiError</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Service.Google.Adwords.ApiError
+ * 
+ * @param array $attrs
+ * @return Service_Google_Adwords_ApiError
+ */
   static public function ApiError(array $attrs = array()) { return new Service_Google_AdWords_ApiError($attrs); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Exception" extends="Core.Exception">
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Exception extends Core_Exception {
   protected $reason;
   protected $type;
   protected $attrs;
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <body>
+/**
+ */
   public function __construct($message = '', $code = null) {
     $res = explode('@', trim($message, '[] '));
     if (count($res) > 1) {
@@ -324,15 +274,14 @@ class Service_Google_AdWords_Exception extends Core_Exception {
     }
     parent::__construct($message, $code);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Client">
-///   <brief>Клиент для подключения к сервису</brief>
+/**
+ * Клиент для подключения к сервису
+ * 
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Client implements Core_PropertyAccessInterface {
 
   protected $auth;
@@ -340,15 +289,13 @@ class Service_Google_AdWords_Client implements Core_PropertyAccessInterface {
   protected $is_sandbox  = false;
   protected $services = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="auth" type="Service.Google.Auth.ClientLogin" />
-///       <arg name="headers" type="array" defaults="array()" brief="массив заголовков" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param Service_Google_Auth_ClientLogin $auth
+ * @param array $headers
+ */
   public function __construct(Service_Google_Auth_ClientLogin $auth, array $headers = array()) {
     $this->auth = $auth;
     if ($auth->token)
@@ -357,89 +304,58 @@ class Service_Google_AdWords_Client implements Core_PropertyAccessInterface {
       throw new Service_Google_AdWords_Exception('You must login before use AdWords Service');
     $this->headers($headers);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="use_sandbox" returns="Service.Google.AdWords.Client">
-///     <args>
-///       <arg name="value" type="boolean" defaults="true" />
-///     </args>
-///     <body>
+/**
+ * @param boolean $value
+ * @return Service_Google_AdWords_Client
+ */
   public function use_sandbox($value = true) {
       $this->is_sandbox = $value;
       return $this;
     }
-///     </body>
-///   </method>
 
-///   <method name="headers" returns="Service.Google.AdWords.Client">
-///     <brief>Устанавливет заголовки</brief>
-///     <args>
-///       <args name="name" type="string" brief="имя заголовка" />
-///       <args name="value" brief="занчение заголовка" />
-///     </args>
-///     <body>
+/**
+ * Устанавливет заголовки
+ * 
+ * @return Service_Google_AdWords_Client
+ */
   public function headers(array $headers) {
     foreach ($headers as $k => $v)
       $this->header($k, $v);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="header" returns="Service.Google.AdWords.Client">
-///     <args>
-///       <arg name="key" type="string" />
-///       <arg name="value" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $key
+ * @param string $value
+ * @return Service_Google_AdWords_Client
+ */
   public function header($key, $value) {
     $this->headers[Core_Strings::to_camel_case($key, true)] = (string) $value;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="build_service">
-///     <args>
-///       <arg name="property" type="" />
-///     </args>
-///     <body>
+/**
+ * @param  $property
+ */
   protected function build_service($property) {
     return Service_Google_AdWords::Service(
             $this,
             Service_Google_AdWords::wsdl_for($property, $this->is_sandbox)
     );
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <details>
-///       <dl>
-///         <dt>is_sandbox</dt><dd>булевый флаг</dd>
-///         <dt>headers</dt><dd>массив заголовков</dd>
-///         <dt>units</dt><dd>возвращает количество затраценных units всеми использованными сервисами</dd>
-///         <dt>иначе</dt><dd>возврат соответствующего сервиса</dd>
-///       </dl>
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ */
   public function __get($property) {
     switch (true) {
       case $property == 'is_sandbox':
@@ -461,50 +377,37 @@ class Service_Google_AdWords_Client implements Core_PropertyAccessInterface {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     throw new Core_ReadOnlyObjectException($this);
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     return isset($this->$property) || $property == 'units' ||
       isset($this->services[str_replace('_service', '', $property)]);
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) {
     throw new Core_ReadOnlyObjectException($this);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Service">
-///   <implements interface="Core.PropertyAccessInterface" />
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
 
   protected $wsdl;
@@ -513,16 +416,13 @@ class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
 
   protected $soap;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="client" type="Service.Google.AdWords.Client" />
-///       <arg name="wsdl" type="string" />
-///       <arg name="classmap" type="array" default="array()" />
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param Service_Google_AdWords_Client $client
+ * @param string $wsdl
+ * @param array $classmap
+ * @param array $options
+ */
   public function __construct(Service_Google_AdWords_Client $client, $wsdl, $classmap = array(), $options = array()) {
     $this->classmap(array_merge(
       array(
@@ -544,58 +444,41 @@ class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
       $client->headers
     );
   }
-///     </body>
-///   </method>
 
-///   <method name="setup" returns="Service.Google.AdWords.Service" access="protected">
-///     <args>
-///       <arg name="client" type="Service.Google.AdWords.Client" />
-///     </args>
-///     <body>
+/**
+ * @param Service_Google_AdWords_Client $client
+ * @return Service_Google_AdWords_Service
+ */
   protected function setup(Service_Google_AdWords_Client $client) {}
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="build_soap_client">
-///     <args>
-///       <arg name="wsdl" type="" />
-///       <arg name="options" type="array" defaults="array()" />
-///       <arg name="headers" type="array" defaults="array()" />
-///     </args>
-///     <body>
+/**
+ * @param  $wsdl
+ * @param array $options
+ * @param array $headers
+ */
   protected function build_soap_client($wsdl, $options= array(), $headers = array()) {
     $soap = Soap::Client($wsdl, $options);
     $soap->__setSoapHeaders(new SoapHeader($this->__get('ns'), 'RequestHeader', $headers));
     return $soap;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="wsdl" returns="Service.Google.AdWords.Service" access="protected">
-///     <args>
-///       <arg name="wsdl" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $wsdl
+ * @return Service_Google_AdWords_Service
+ */
   protected function wsdl($wsdl) {
     $this->wsdl = (string) $wsdl;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="classmap" returns="Service.Google.AdWords.Service" access="protected">
-///     <args>
-///       <arg name="classmap" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $classmap
+ * @return Service_Google_AdWords_Service
+ */
   protected function classmap(array $mappings, $prefix = 'Service.Google.AdWords.', $default_class = 'Service.Google.AdWords.Entity') {
     foreach ($mappings as $k => $v) {
       if (is_numeric($k))
@@ -608,18 +491,13 @@ class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
     }
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="get" returns="mixed">
-///     <args>
-///       <arg name="selector" type="Service.Google.AdWords.Selector" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param Service_Google_AdWords_Selector $selector
+ * @return mixed
+ */
   public function get(Service_Google_AdWords_Selector $selector = null, $selector_name = 'serviceSelector') {
     $selector = $selector ? $selector : Service_Google_AdWords::Selector()->fields(array('id', 'name'));
     try {
@@ -636,14 +514,11 @@ class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
     $this->units += $out_headers['ResponseHeader']->units;
     return $result->rval;
   }
-///     </body>
-///   </method>
 
-///   <method name="mutate" returns="mixed">
-///     <args>
-///       <arg name="operations" />
-///     </args>
-///     <body>
+/**
+ * @param  $operations
+ * @return mixed
+ */
   public function mutate(Service_Google_AdWords_Operations $operations) {
     try {
       $result = $this->soap->__soapCall(
@@ -659,18 +534,13 @@ class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
     $this->units += $out_headers['ResponseHeader']->units;
     return $result->rval;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'wsdl': case 'units': case 'soap':
@@ -681,15 +551,12 @@ class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'wsdl':
@@ -701,14 +568,11 @@ class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'wsdl': case 'units': case 'soap':
@@ -717,87 +581,64 @@ class Service_Google_AdWords_Service implements Core_PropertyAccessInterface {
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) {
     return $this->__set($property, null);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Operations">
-///   <implements interface="Core.EqualityInterface" />
-///   <implements interface="Core.IndexedAccessInterface" />
-///   <implements interface="IteratorAggregate" />
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Operations implements Core_EqualityInterface, Core_IndexedAccessInterface, IteratorAggregate {
   protected $attrs = array();
 
-///   <protocol name="performing">
 
-///   <method name="add" returns="Service.Google.AdWords.Operation">
-///     <args>
-///       <arg name="operand" type="Service.Google.AdWords.Object" />
-///     </args>
-///     <body>
+/**
+ * @param Service_Google_AdWords_Object $operand
+ * @return Service_Google_AdWords_Operation
+ */
   public function add($operand) {
     $this->attrs[] = array('operator' => 'ADD', 'operand' => $operand);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="remove" returns="Service.Google.AdWords.Operation">
-///     <args>
-///       <arg name="operand" type="Service.Google.AdWords.Object" />
-///     </args>
-///     <body>
+/**
+ * @param Service_Google_AdWords_Object $operand
+ * @return Service_Google_AdWords_Operation
+ */
   public function remove($operand) {
     $this->attrs[] = array('operator' => 'REMOVE', 'operand' => $operand);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="set" returns="Service.Google.AdWords.Operation">
-///     <args>
-///       <arg name="operand" type="Service.Google.AdWords.Object" />
-///     </args>
-///     <body>
+/**
+ * @param Service_Google_AdWords_Object $operand
+ * @return Service_Google_AdWords_Operation
+ */
   public function set($operand) {
     $this->attrs[] = array('operator' => 'SET', 'operand' => $operand);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating" interface="IteratorAggregate">
 
-///   <method name="getIterator" returns="Iterator">
-///     <body>
+/**
+ * @return Iterator
+ */
   public function getIterator() {
     return new ArrayIterator($this->attrs);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="as_array" returns="array">
-///     <body>
+/**
+ * @return array
+ */
   public function for_soap() {
     $res = array();
     foreach ($this->attrs as $k => $v) {
@@ -806,124 +647,90 @@ class Service_Google_AdWords_Operations implements Core_EqualityInterface, Core_
     }
     return $res;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="indexing" interface="Core.IndexedPropertyAccessInterface">
 
-///   <method name="offsetGet" returns="mixed">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
+/**
+ * @param  $index
+ * @return mixed
+ */
   public function offsetGet($index) {
     return $this->attrs[$index];
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetSet" returns="mixed">
-///     <args>
-///       <arg name="index" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param  $index
+ * @param  $value
+ * @return mixed
+ */
   public function offsetSet($index, $value) {
     throw new Core_ReadOnlyIndexedPropertyException($index);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
+/**
+ * @param  $index
+ * @return boolean
+ */
   public function offsetExists($index) {
     return isset($this->attrs[$index]);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
+/**
+ * @param  $index
+ */
   public function offsetUnset($index) {
     return $this->offsetSet($index, null);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
 
-///   <method name="equals" returns="boolean">
-///     <args>
-///       <arg name="to" />
-///     </args>
-///     <body>
+/**
+ * @param  $to
+ * @return boolean
+ */
   public function equals($to) {
     return ($to instanceof self) &&
       Core::equals($this->as_array(), $to->as_array());
   }
-///     </body>
-///   </method>
 
-///</protocol>
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Object">
-///   <brief>Базовый класс для soap объектов</brief>
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.IndexedAccessInterface" />
-///   <implements interface="Core.EqualityInterface" />
-///   <implements interface="IteratorAggregate" />
+/**
+ * Базовый класс для soap объектов
+ * 
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Object implements
   Core_PropertyAccessInterface, Core_IndexedAccessInterface, Core_CallInterface, IteratorAggregate, Core_EqualityInterface {
 
   protected $attrs = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="attrs" type="array" default="array()" brief="массив значений по умолчанию" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param array $attrs
+ */
   public function __construct(array $attrs = array()) { foreach ($attrs as $k => $v) $this->__set($k, $v); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating" interface="IteratorAggregate">
 
-///   <method name="getIterator" returns="Iterator">
-///     <brief>Возвращает итератор</brief>
-///     <body>
+/**
+ * Возвращает итератор
+ * 
+ * @return Iterator
+ */
   public function getIterator() {
     return new ArrayIterator($this->attrs);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ */
   public function __get($property) {
     switch (true) {
       case method_exists($this, $m = "get_$property"):
@@ -934,16 +741,12 @@ class Service_Google_AdWords_Object implements
         return $this->attrs[$this->attr_name($property)];
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set">
-///     <brief>Доступ на запись к свойствам объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///       <args name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Доступ на запись к свойствам объекта
+ * 
+ * @param string $property
+ */
   public function __set($property, $value) {
     switch (true) {
       case method_exists($this, $m = "set_$property"):
@@ -958,163 +761,121 @@ class Service_Google_AdWords_Object implements
     }
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset">
-///     <brief>Проверяет установленно ли свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установленно ли свойство объекта
+ * 
+ * @param string $property
+ */
   public function __isset($property) {
     return isset($this->attrs[$this->attr_name($property)]);
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Очищает свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Очищает свойство объекта
+ * 
+ * @param string $property
+ */
   public function __unset($property) {
     unset($this->attrs[$property]);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling" >
 
-///   <method name="__call">
-///     <brief>Установка свойства объекта через вызов метода</brief>
-///     <args>
-///       <arg name="method" type="string" brief="имя метода" />
-///       <arg name="parms" type="array" brief="массив параметров" />
-///     </args>
-///     <body>
+/**
+ * Установка свойства объекта через вызов метода
+ * 
+ * @param string $method
+ * @param array $parms
+ */
   public function __call($method, $parms) {
     $this->__set($method, count($parms) > 1 ? $parms : $parms[0]);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="indexing" >
 
-///   <method name="offsetGet">
-///     <brief>Индексный доступ на чтение к свойствам объекта, без CamelCase преобразование и ковертации</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Индексный доступ на чтение к свойствам объекта, без CamelCase преобразование и ковертации
+ * 
+ * @param string $name
+ */
   public function offsetGet($name) { return $this->attrs[$name]; }
-///     </body>
-///   </method>
 
-///   <method name="offsetSet">
-///     <brief>Индексный доступ на запись к свойствам обхекта</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя свойства" />
-///       <arg name="value"  brief="занчение" />
-///     </args>
-///     <body>
+/**
+ * Индексный доступ на запись к свойствам обхекта
+ * 
+ * @param string $name
+ * @param  $value
+ */
   public function offsetSet($name, $value) {$this->attrs[$name] = $value; return $this; }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists">
-///     <brief>Проверяет существование свойства</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет существование свойства
+ * 
+ * @param string $name
+ */
   public function offsetExists($name) {
     return array_key_exists($name, $this->attrs);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <brief>Очищает свойство объекта</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Очищает свойство объекта
+ * 
+ * @param string $name
+ */
   public function offsetUnset($name) {unset($this->attrs[$property]);}
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="attr_name">
-///     <brief>Конвертирует имя свойства</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Конвертирует имя свойства
+ * 
+ * @param string $property
+ */
   protected function attr_name($property) {
     return Core_Strings::to_camel_case($property, true);
   }
-///     </body>
-///   </method>
 
-///   <method name="update_with" returns="Service.Google.AdWords.Object">
-///     <args>
-///       <arg name="values" />
-///     </args>
-///     <body>
+/**
+ * @param  $values
+ * @return Service_Google_AdWords_Object
+ */
   public function update_with($values) {
     foreach ($values as $k => $v) $this->__set($k, $v);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="is_date_property" returns="boolean" accessing="protected">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   protected function is_date_property($property) {
     return Core_Strings::ends_with($property, 'date');
   }
-///     </body>
-///   </method>
 
-///   <method name="to_array">
-///     <brief>Преобразует Service.Google.AdWords.Object в массив для soap</brief>
-///     <body>
+/**
+ * Преобразует Service.Google.AdWords.Object в массив для soap
+ * 
+ */
   public function for_soap() {
     return $this->as_array();
   }
-///     </body>
-///   </method>
 
-///   <method name="to_array">
-///     <brief>Преобразует Service.Google.AdWords.Object в массив с учетом вложенных массивов</brief>
-///     <body>
+/**
+ * Преобразует Service.Google.AdWords.Object в массив с учетом вложенных массивов
+ * 
+ */
   public function as_array() {
     $result = array();
     foreach ($this as $k => $v)
       $result[$k] = $this->convert_element($v);
     return $result;
   }
-///     </body>
-///   </method>
 
-///   <method name="convert_element">
-///     <args>
-///       <arg name="element" />
-///     </args>
-///     <body>
+/**
+ * @param  $element
+ */
   protected function convert_element($element) {
     switch (true) {
       case method_exists($element, 'as_array'):
@@ -1125,28 +886,21 @@ class Service_Google_AdWords_Object implements
         return $element;
       }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
-///   <method name="equals" returns="boolean">
-///     <args>
-///       <arg name="to" />
-///     </args>
-///     <body>
+/**
+ * @param  $to
+ * @return boolean
+ */
   public function equals($to) {
     return( $to instanceof self) &&
       Core::equals($this->as_array(), $to->as_array());
   }
-///     </body>
-///   </method>
-///</protocol>
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Selector" extends="Service.Google.AdWords.Object">
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Selector extends Service_Google_AdWords_Object {
 
 	public function fields(array $data = array()) {
@@ -1155,82 +909,64 @@ class Service_Google_AdWords_Selector extends Service_Google_AdWords_Object {
 	}
 
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Entity" extends="Service.Google.AdWords.Object">
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Entity extends Service_Google_AdWords_Object {
 
   protected $type;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="attrs" type="array" defaults="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $attrs
+ */
   public function __construct(array $attrs = array(), $type = '') {
     if ($type) $this->type = $type;
     parent::__construct($attrs);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="get___value" returns="SoapVar">
-///     <body>
+/**
+ * @return SoapVar
+ */
   protected function get___value() {
     return new SoapVar($this->as_array(), 0, $this->get___type(), Service_Google_AdWords::NS);
   }
-///     </body>
-///   </method>
 
-///   <method name="get___type" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function get___type() {
     return $this->type ? $this->type : $this->wsdl_type();
   }
-///     </body>
-///   </method>
 
-///   <method name="set___type">
-///     <args>
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param  $value
+ */
   public function set___type($value) {
     $this->type = (string) $value;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="wsdl_type">
-///     <body>
+/**
+ */
   protected function wsdl_type() {
     preg_match('{_([^_]+)$}', get_class($this), $m);
     return $m[1];
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="for_soap">
-///     <body>
+/**
+ */
   public function for_soap() {
     return $this->__value;
   }
-///     </body>
-///   </method>
 
-///   <method name="convert_element">
-///     <body>
+/**
+ */
   protected function convert_element($element) {
     switch (true) {
       case $element instanceof self:
@@ -1243,177 +979,179 @@ class Service_Google_AdWords_Entity extends Service_Google_AdWords_Object {
         return $element;
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.DateRange" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_DateRange extends Service_Google_AdWords_Entity {
   protected $attrs = array(
     'min' => null,
     'max' => null
   );
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="min" type="Time_DateTime" />
-///       <arg name="max" type="TimeDateTime" />
-///     </args>
-///     <body>
+/**
+ * @param Time_DateTime $min
+ * @param TimeDateTime $max
+ */
   public function __construct(Time_DateTime $min, Time_DateTime $max) {
     $this->set_min($min)->set_max($max);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="get_max" returns="Time.DateTime">
-///     <body>
+/**
+ * @return Time_DateTime
+ */
   protected function get_max() {
     return Time::DateTime($this->attrs['max']);
   }
-///     </body>
-///   </method>
 
-///   <method name="get_min" returns="Time.DateTime">
-///     <body>
+/**
+ * @return Time_DateTime
+ */
   protected function get_min() {
     return Time::DateTime($this->attrs['min']);
   }
-///     </body>
-///   </method>
 
-///   <method name="set_max" returns="Time.DateTime">
-///     <args>
-///       <arg name="value" type="Time.DateTime" />
-///     </args>
-///     <body>
+/**
+ * @param Time_DateTime $value
+ * @return Time_DateTime
+ */
   protected function set_max(Time_DateTime $value) {
     $this->attrs['max'] = $value->format(Service_Google_Adwords::FMT_DATE);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="set_min" returns="Time.DateTime">
-///     <args>
-///       <arg name="value" type="Time.DateTime" />
-///     </args>
-///     <body>
+/**
+ * @param Time_DateTime $value
+ * @return Time_DateTime
+ */
   protected function set_min(Time_DateTime $value) {
     $this->attrs['min'] = $value->format(Service_Google_Adwords::FMT_DATE);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Campaign" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Campaign extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Budget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Budget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.LanguageTarget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_LanguageTarget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.NetworkTarget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_NetworkTarget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.AdScheduleTarget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_AdScheduleTarget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.CityTarget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_CityTarget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.GeoTarget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_GeoTarget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.CountryTarget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_CountryTarget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.MetroTarget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_MetroTarget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.ProximityTarget" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_ProximityTarget extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.AdGroup" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_AdGroup extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Ad" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Ad extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.TextAd" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_TextAd extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.AdGroupAd" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_AdGroupAd extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.AdGroupCriterion" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_AdGroupCriterion extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Criterion" extends="Service.Google.AdWords.Entity" >
+/**
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Criterion extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Image" extends="Service.Google.AdWords.Entity">
-///   <brief>Класс для маппинга</brief>
+/**
+ * Класс для маппинга
+ * 
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Image extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.Video" extends="Service.Google.AdWords.Entity">
-///   <brief>Класс для маппинга</brief>
+/**
+ * Класс для маппинга
+ * 
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_Video extends Service_Google_AdWords_Entity {
 }
-/// </class>
 
-/// <class name="Service.Google.AdWords.ApiError" extends="Service.Google.AdWords.Entity">
-///   <brief>Класс для маппинга</brief>
+/**
+ * Класс для маппинга
+ * 
+ * @package Service\Google\AdWords
+ */
 class Service_Google_AdWords_ApiError extends Service_Google_AdWords_Entity {
 }
-/// </class>
-/// </module>

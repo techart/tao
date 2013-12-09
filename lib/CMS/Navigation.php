@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Navigation
+ */
+
 
 Core::load('Navigation');
 

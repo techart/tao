@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\DocumentsGrid
+ */
+
 
 Core::load('CMS.Fields.Types.Documents');
 

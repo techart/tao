@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Templates\HTML\Postprocess
+ */
+
 
 
 class Templates_HTML_Postprocess implements Core_ConfigurableModuleInterface {

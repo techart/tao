@@ -1,43 +1,41 @@
 <?php
-/// <module name="Service.OpenSocial.Protocols.RPC">
+/**
+ * Service.OpenSocial.Protocols.RPC
+ * 
+ * @package Service\OpenSocial\Protocols\RPC
+ */
 Core::load('Service.OpenSocial');
 
-/// <class name="Service.OpenSocial.Protocols.RPC" stereotype="module">
-///   <implements interface="Service.OpenSocial.ModuleInterface" />
-///   <depends supplier="Service.OpenSocial.Protocols.RPC.Protocol" stereotype="creates" />
+/**
+ * @package Service\OpenSocial\Protocols\RPC
+ */
 class Service_OpenSocial_Protocols_RPC implements Service_OpenSocial_ModuleInterface {
 
-///   <protocol name="creating">
 
-///   <method name="Protocol" returns="Service.OpenSocial.Protocols.RPC.Protocol" scope="class">
-///     <args>
-///       <arg name="auith" type="Service.OpenSocial.AuthAdapter" />
-///       <arg name="format" type="Service.OpenSocial.Format" />
-///       <arg name="agent"  type="Net.Agents.HTTP.Agent" />
-///     </args>
-///     <body>
+/**
+ * @param Service_OpenSocial_AuthAdapter $auith
+ * @param Service_OpenSocial_Format $format
+ * @param Net_Agents_HTTP_Agent $agent
+ * @return Service_OpenSocial_Protocols_RPC_Protocol
+ */
   static public function Protocol(Service_OpenSocial_AuthAdapter $auth, Service_OpenSocial_Format $format, Net_Agents_HTTP_Agent $agent) {
     return new Service_OpenSocial_Protocols_RPC_Protocol($auth, $format, $agent);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// <class name="Service.OpenSocial.Protocols.RPC.Protocol" extends="Service.OpenSocial.Protocol">
+/**
+ * @package Service\OpenSocial\Protocols\RPC
+ */
 class Service_OpenSocial_Protocols_RPC_Protocol extends Service_OpenSocial_Protocol {
 
-///   <protocol name="performing">
 
-///   <method name="send" returns="Service.OpenSocial.ResultSet">
-///     <args>
-///       <arg name="container" type="Service.OpenSocial.Container" />
-///       <arg name="requests" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param Service_OpenSocial_Container $container
+ * @param array $requests
+ * @return Service_OpenSocial_ResultSet
+ */
   public function send(Service_OpenSocial_Container $container, array $requests) {
     if (!$container->rpc_endpoint)
       throw new Service_OpenSocial_UnsupportedProtocolException('RPC', $container);
@@ -58,20 +56,16 @@ class Service_OpenSocial_Protocols_RPC_Protocol extends Service_OpenSocial_Proto
     }
     return $results;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="result_for" returns="Service.OpenSocial.ResultInterface" access="protected">
-///     <brief>Строит OpenSocial.Result или OpenSocial.Collection</brief>
-///     <args>
-///       <arg name="service"  type="OpenSocial.Serivce" />
-///       <arg name="response" type="Net.HTTP.Response" />
-///     </args>
-///     <body>
+/**
+ * Строит OpenSocial.Result или OpenSocial.Collection
+ * 
+ * @param OpenSocial_Serivce $service
+ * @param Net_HTTP_Response $response
+ * @return Service_OpenSocial_ResultInterface
+ */
   protected function make_result(Service_OpenSocial_Service $service, $data) {
     if (isset($data->list) && is_array($data->list)) {
       $result = new Service_OpenSocial_Collection(
@@ -88,28 +82,22 @@ class Service_OpenSocial_Protocols_RPC_Protocol extends Service_OpenSocial_Proto
 
     return $result;
   }
-///     </body>
-///   </method>
 
-///   <method name="normalize" returns="array">
-///     <args>
-///       <arg name="requests" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $requests
+ * @return array
+ */
   protected function normalize(array $requests) {
     $res = array();
     foreach($requests as $k => $r) $res[$r->id ? $r->id : $k] = $r;
     return $res;
   }
-///     </body>
-///   </method>
 
-///   <method name="make_http_request" returns="Net.HTTP.Request">
-///     <args>
-///       <arg name="requests" type="array"  />
-///       <arg name="container" type="Service.OpenSocial.Container"  />
-///     </args>
-///     <body>
+/**
+ * @param array $requests
+ * @param Service_OpenSocial_Container $container
+ * @return Net_HTTP_Request
+ */
   protected function make_http_request(array $requests, Service_OpenSocial_Container $container) {
     $r = Net_HTTP::Request()->
       uri($container->rpc_endpoint)->
@@ -122,14 +110,11 @@ class Service_OpenSocial_Protocols_RPC_Protocol extends Service_OpenSocial_Proto
 
     return $this->auth->authorize_request($r, $container);
   }
-///     </body>
-///   </method>
 
-///   <method name="make_http_request_body" returns="array">
-///     <args>
-///       <arg name="requests" type="array" brief="массив запросов" />
-///     </args>
-///     <body>
+/**
+ * @param array $requests
+ * @return array
+ */
   protected function make_http_request_body(array $requests) {
     $res = array();
     foreach ($requests as $r)
@@ -143,11 +128,6 @@ class Service_OpenSocial_Protocols_RPC_Protocol extends Service_OpenSocial_Proto
                   ($r->has_resource ? array($r->service->rpc_name => $r->resource->fields) : array()))));
     return $res;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

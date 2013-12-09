@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\Factory
+ */
+
 
 
 class CMS_Controller_Factory extends CMS_Controller implements Core_ModuleInterface

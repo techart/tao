@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars\Schema
+ */
+
 
 Core::load('DB.Schema');
 

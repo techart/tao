@@ -19,11 +19,11 @@ class CMS_Mail implements Core_ModuleInterface {
 	}
 
 
-///   <method name="mail_with_images" returns="Mail.Message">
-///     <args>
-///       <arg name="body" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $body
+ * @return Mail_Message
+ * 
+ */
 	static function with_images($body) {
 		self::$attaches = array();
 		self::$multipart = false;
@@ -44,8 +44,6 @@ class CMS_Mail implements Core_ModuleInterface {
 		return $mail;
 
 	}
-///     </body>
-///   </method>
 
 
 	static function create($tpl,$p1=false,$p2=false) {

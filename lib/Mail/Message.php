@@ -1,83 +1,77 @@
 <?php
-/// <module name="Mail.Message" maintainer="timokhin@techart.ru" version="0.2.5">
-///   <brief>Объектное представление почтового сообщения</brief>
-///   <details>
-///   <p>Модуль определяет классы, соответствующие таким элементам почтового сообщения, как
-///   поле заголовка, заголовок, часть сообщения и само сообщение.</p>
-///   </details>
+/**
+ * Mail.Message
+ * 
+ * Объектное представление почтового сообщения
+ * 
+ * <p>Модуль определяет классы, соответствующие таким элементам почтового сообщения, как
+ * поле заголовка, заголовок, часть сообщения и само сообщение.</p>
+ * 
+ * @package Mail\Message
+ * @version 0.2.5
+ */
 Core::load('Object', 'IO.FS', 'Mail');
 
-/// <class name="Mail.Message">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="Mail.Message.Field" stereotype="creates" />
-///   <depends supplier="Mail.Message.Head"  stereotype="creates" />
-///   <depends supplier="Mail.Message.Part"  stereotype="creates" />
-///   <depends supplier="Mail.Message.Message" stereotype="creates" />
+/**
+ * @package Mail\Message
+ */
 class Mail_Message implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.5';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Field" returns="Mail.Message.Field" scope="class" stereotype="factory">
-///     <brief>фабричный метод, возвращает объект класса Mail.Message.Field</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя поля" />
-///       <arg name="body" type="string" brief="содержимое поля" />
-///     </args>
-///     <body>
+/**
+ * фабричный метод, возвращает объект класса Mail.Message.Field
+ * 
+ * @param string $name
+ * @param string $body
+ * @return Mail_Message_Field
+ */
   static public function Field($name, $body) {
     return new Mail_Message_Field($name, $body);
    }
-///     </body>
-///   </method>
 
-///   <method name="Head" returns="Mail.Message.Head" scope="class" stereotype="factory">
-///     <brief>фабричный метод, возвращает объект класса Mail.Message.Head</brief>
-///     <body>
+/**
+ * фабричный метод, возвращает объект класса Mail.Message.Head
+ * 
+ * @return Mail_Message_Head
+ */
   static public function Head() { return new Mail_Message_Head(); }
-///     </body>
-///   </method>
 
-///   <method name="Part" returns="Mail.Message.Part" scope="class" stereotype="factory">
-///     <brief>фабричный метод, возвращает объект класса Mail.Message.Part</brief>
-///     <body>
+/**
+ * фабричный метод, возвращает объект класса Mail.Message.Part
+ * 
+ * @return Mail_Message_Part
+ */
   static public function Part() { return new Mail_Message_Part(); }
-///     </body>
-///   </method>
 
-///   <method name="Message" returns="Mail.Message.Message" scope="class" stereotype="factory">
-///     <brief>фабричный метод, возвращает объект класса Mail.Message.Message</brief>
-///     <args>
-///       <arg name="nested" type="boolean" default="false" />
-///     </args>
-///     <body>
+/**
+ * фабричный метод, возвращает объект класса Mail.Message.Message
+ * 
+ * @param boolean $nested
+ * @return Mail_Message_Message
+ */
   static public function Message($nested = false) { return new Mail_Message_Message($nested); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Mail.Message.Exception" extends="Mail.Exception">
-///     <brief>Класс исключения</brief>
+/**
+ * Класс исключения
+ * 
+ * @package Mail\Message
+ */
 class Mail_Message_Exception extends Mail_Exception {}
-/// </class>
 
 
-/// <class name="Mail.Message.Field" extends="Object.Struct">
-///   <brief>Поле заголовка почтового сообщения</brief>
-///   <details>
-///     <p>Поле сообщения включает в себя имя поля, значение поля и набор дополнительных
-///     атрибутов.</p>
-///   </details>
-///   <implements interface="Core.IndexedAccessInterface" />
-///   <implements interface="Core.StringifyInterface" />
-///   <implements interface="Core.EqualityInterface" />
+/**
+ * Поле заголовка почтового сообщения
+ * 
+ * <p>Поле сообщения включает в себя имя поля, значение поля и набор дополнительных
+ * атрибутов.</p>
+ * 
+ * @package Mail\Message
+ */
 class Mail_Message_Field
   extends    Object_Struct
   implements Core_IndexedAccessInterface,
@@ -96,119 +90,98 @@ class Mail_Message_Field
   protected $value;
   protected $attrs = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя поля" />
-///       <arg name="body" type="string" brief="содержимое поля" />
-///       <arg name="attrs" type="array" brief="аттрибуты поля" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param string $name
+ * @param string $body
+ * @param array $attrs
+ */
   public function __construct($name, $body, $attrs = array()) {
     $this->name  = $this->canonicalize($name);
     $this->set_body($body);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
 
-///   <method name="matches" returns="boolean">
-///     <brief>Проверяет соответствие имени поля указанному имени</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя" />
-///     </args>
-///     <body>
+/**
+ * Проверяет соответствие имени поля указанному имени
+ * 
+ * @param string $name
+ * @return boolean
+ */
   public function matches($name) {
     return Core_Strings::downcase($this->name) ==
            Core_Strings::downcase(Core_Strings::trim($name));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="indexing">
 
-///   <method name="offsetGet" returns="string">
-///     <brief>Возвращает значение атрибута поля</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя атрибута" />
-///     </args>
-///     <body>
+/**
+ * Возвращает значение атрибута поля
+ * 
+ * @param string $index
+ * @return string
+ */
   public function offsetGet($index) {
     return isset($this->attrs[$index]) ? $this->attrs[$index] : null;
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetSet" returns="string">
-///     <brief>Устанавливает значение атрибута поля</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя атрибута" />
-///       <arg name="value" type="string" brief="значение атрибута" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает значение атрибута поля
+ * 
+ * @param string $index
+ * @param string $value
+ * @return string
+ */
   public function offsetSet($index, $value) {
     $this->attrs[(string) $index] = $value;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <brief>Проверяет, установлен ли атрибут поля</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя атрибута" />
-///     </args>
-///     <body>
+/**
+ * Проверяет, установлен ли атрибут поля
+ * 
+ * @param string $index
+ * @return boolean
+ */
   public function offsetExists($index) {
     return isset($this->attrs[$index]);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <brief>Удаляет атрибут</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя атрибута поля" />
-///     </args>
-///     <body>
+/**
+ * Удаляет атрибут
+ * 
+ * @param string $index
+ */
   public function offsetUnset($index) {
     unset($this->attrs[$index]);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="stringifying" interface="Core.StringifyInterface">
 
-///     <method name="as_string" returns="string">
-///     <brief>Возвращает поле ввиде закодированной строки</brief>
-///       <body>
+/**
+ * Возвращает поле ввиде закодированной строки
+ * 
+ * @return string
+ */
   public function as_string() { return $this->encode(); }
-///       </body>
-///     </method>
 
-///   <method name="__toString" returns="string">
-///     <brief>Возвращает поле ввиде строки</brief>
-///     <body>
+/**
+ * Возвращает поле ввиде строки
+ * 
+ * @return string
+ */
   public function __toString() { return $this->as_string(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="encoding">
 
-///   <method name="encode" returns="string">
-///     <brief>Кодирует поле</brief>
-///     <body>
+/**
+ * Кодирует поле
+ * 
+ * @return string
+ */
 //TODO: iconv_mime_encode не верно кодирует длинные строки
   public function encode() {
     $body = $this->name.': '.$this->encode_value($this->value, false).';';
@@ -220,15 +193,13 @@ class Mail_Message_Field
     }
     return substr($body, 0, strlen($body) - 1);
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_attr" access="protected" returns="string" >
-///     <brief>Кодирует аттрибут поля</brief>
-///     <args>
-///       <arg name="index" type="string" />
-///     </args>
-///     <body>
+/**
+ * Кодирует аттрибут поля
+ * 
+ * @param string $index
+ * @return string
+ */
   protected function encode_attr($index, $value) {
     $value = $this->encode_value($value);
     switch (true) {
@@ -238,36 +209,27 @@ class Mail_Message_Field
         return "$index=$value;";
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_value" access="protected" returns="string" >
-///     <brief>Кодирует значение поля или значение аттрибута</brief>
-///     <args>
-///       <arg name="value" type="string" />
-///       <arg name="quote" type="boolean" default="true" />
-///     </args>
-///     <body>
+/**
+ * Кодирует значение поля или значение аттрибута
+ * 
+ * @param string $value
+ * @param boolean $quote
+ * @return string
+ */
   protected function encode_value($value, $quote = true) {
     if ($this->is_address_line($value))
       return $this->encode_email($value);
     else
       return $this->encode_mime($value, $quote);
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_email" access="protected" returns="string">
-///     <brief>Кодирует строку email адресов</brief>
-///     <description>
-///       Преобразует строку вида "Серж &lt;svistunov@techart.ru&gt;, Max &lt;timokhin@techart.ru&gt;"
-///       в строрку вида "=?UTF-8?B?0KHQtdGA0LY=?= &lt;svistunov@techart.ru&gt;,
-///         Max &lt;timokhin@techart.ru&gt;"
-///     </description>
-///     <args>
-///       <arg name="value" type="string" brief="строка для кодирования" />
-///     </args>
-///     <body>
+/**
+ * Кодирует строку email адресов
+ * 
+ * @param string $value
+ * @return string
+ */
   protected function encode_email($value) {
     $result = array();
     foreach (explode(',', $value) as $k => $v)
@@ -277,16 +239,13 @@ class Mail_Message_Field
         return $this->encode_mime($value, false);
     return implode(','.MIME::LINE_END.' ', $result);
   }
-///     </body>
-///   </method>
 
-///   <method name="encode_mime">
-///     <brief>Обертка над iconv_mime_encode</brief>
-///     <args>
-///       <arg name="value" type="string" />
-///       <arg name="quote" type="boolean" default="false" />
-///     </args>
-///     <body>
+/**
+ * Обертка над iconv_mime_encode
+ * 
+ * @param string $value
+ * @param boolean $quote
+ */
   protected function encode_mime($value, $quote = true) {
     $q = $quote ? '"' : '';
     return !MIME::is_printable($value) ? $q.preg_replace('{^: }', '', iconv_mime_encode(
@@ -300,59 +259,44 @@ class Mail_Message_Field
       )
     )).$q : $value /*MIME::split($value)*/;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="line_length" access="private" returns="int">
-///     <brief>Возвращает последней строки в тексте</brief>
-///     <args>
-///       <arg name="txt" type="string" />
-///     </args>
-///     <body>
+/**
+ * Возвращает последней строки в тексте
+ * 
+ * @param string $txt
+ * @return int
+ */
   private function line_length($txt) {
     return strlen(end(explode("\n", $txt)));
   }
-///     </body>
-///   </method>
 
-///   <method name="is_address_line" access="protected" returns="boolean">
-///     <brief>Проверяет, является ли строка tmail адресом</brief>
-///     <args>
-///       <arg name="line" type="string" />
-///     </args>
-///     <body>
+/**
+ * Проверяет, является ли строка tmail адресом
+ * 
+ * @param string $line
+ * @return boolean
+ */
   protected function is_address_line($line) {
     return preg_match(self::EMAIL_REGEXP, $line);
   }
-///     </body>
-///   </method>
 
-///   <method name="set_name" access="protected">
-///     <brief>Установка свойства name извне запрещена</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя" />
-///     </args>
-///     <body>
+/**
+ * Установка свойства name извне запрещена
+ * 
+ * @param string $name
+ */
   protected function set_name($name) {
     throw new Core_ReadOnlyPropertyException('name');
   }
-///     </body>
-///   </method>
 
-///   <method name="set_body" returns="string" access="protected">
-///     <brief>Устанавливает содержимое поля</brief>
-///     <details>
-///       Если в качестве $body передан массив, то первый элемент массива воспринемается как содержимое поля,
-///       а остальные элементы массива - как атрибуты поля
-///     </details>
-///     <args>
-///       <arg name="body" type="string|array|mixed" brief="содержимое письма" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает содержимое поля
+ * 
+ * @param string|array|mixed $body
+ * @return string
+ */
   protected function set_body($body) {
     $this->attrs = array();
     if (is_array($body)) {
@@ -368,15 +312,13 @@ class Mail_Message_Field
       $this->from_string((string) $body);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="from_string" returns="Mail.Message.Field">
-///     <brief>Производит разбор строки, извлекая аттрибуты</brief>
-///     <args>
-///       <arg name="body" type="string" />
-///     </args>
-///     <body>
+/**
+ * Производит разбор строки, извлекая аттрибуты
+ * 
+ * @param string $body
+ * @return Mail_Message_Field
+ */
   public function from_string($body) {
     if (preg_match_all(self::ATTR_REGEXP, $body, $m, PREG_SET_ORDER)) {
       foreach ($m as $res) {
@@ -389,36 +331,31 @@ class Mail_Message_Field
     $this->value = $body;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="get_body" returns="string" access="protected">
-///     <body>
+/**
+ * @return string
+ */
   protected function get_body() {
     return $this->encode();
   }
-///     </body>
-///   </method>
 
-///   <method name="set_value" returns="string" access="protected">
-///     <brief>Устанавливает значение поля</brief>
-///     <args>
-///       <arg name="value" type="string" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает значение поля
+ * 
+ * @param string $value
+ * @return string
+ */
   protected function set_value($value) {;
     $this->value = (string) $value;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="canonicalize" returns="string">
-///     <brief>Приводит имя к виду соответствующему почтовому стандарту</brief>
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * Приводит имя к виду соответствующему почтовому стандарту
+ * 
+ * @param string $name
+ * @return string
+ */
   protected function canonicalize($name) {
     $parts = Core_Arrays::map(
       'return strtolower($x);',
@@ -431,34 +368,25 @@ class Mail_Message_Field
 
     return Core_Arrays::join_with('-', $parts);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
-///   <method name="equals" returns="boolean">
-///     <args>
-///       <arg name="to" />
-///     </args>
-///     <body>
+/**
+ * @param  $to
+ * @return boolean
+ */
   public function equals($to) {
     return $to instanceof self &&
       $this->value == $to->value &&
       $this->name == $to->name &&
       Core::equals($this->attrs, $to->attrs);
   }
-///     </body>
-///   </method>
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Mail.Message.Head">
-///     <brief>Заголовок сообщения</brief>
-///   <implements interface="Core.IndexedAccessInterface" />
-///   <implements interface="IteratorAggregate" />
-///   <implements interface="Core.EqualityInterface" />
+/**
+ * Заголовок сообщения
+ * 
+ * @package Mail\Message
+ */
 class Mail_Message_Head
   implements Core_IndexedAccessInterface,
              IteratorAggregate,
@@ -466,14 +394,13 @@ class Mail_Message_Head
 
   protected $fields;
 
-///   <protocol name="creating">
 
-///   <method name="from_string" returns="Mail.Message.Head" scope="class">
-///     <brief>Парсит и декодирует поля заголовка из строки</brief>
-///     <args>
-///       <arg name="data" type="string" brief="строка с полями заголовка" />
-///     </args>
-///     <body>
+/**
+ * Парсит и декодирует поля заголовка из строки
+ * 
+ * @param string $data
+ * @return Mail_Message_Head
+ */
   static public function from_string($data) {
     $head = new Mail_Message_Head();
     foreach (MIME::decode_headers($data) as $k => $f)
@@ -481,84 +408,69 @@ class Mail_Message_Head
         $head->field($k, $v);
     return $head;
   }
-///     </body>
-///   </method>
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <body>
+/**
+ * Конструктор
+ * 
+ */
   public function __construct() {
     $this->fields = new ArrayObject();
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating" interface="IteratorAggregate">
 
-///   <method name="getIterator" returns="Iterator">
-///     <brief>Возвращает итератор по полям заголовка</brief>
-///     <body>
+/**
+ * Возвращает итератор по полям заголовка
+ * 
+ * @return Iterator
+ */
   public function getIterator() { return $this->fields->getIterator(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="field" returns="Mail.Message.Head">
-///     <brief>Добавляет к заголовку новое поле</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя поля" />
-///       <arg name="value" type="string" brief="значение поля" />
-///     </args>
-///     <body>
+/**
+ * Добавляет к заголовку новое поле
+ * 
+ * @param string $name
+ * @param string $value
+ * @return Mail_Message_Head
+ */
   public function field($name, $value) {
     $this->fields[] = new Mail_Message_Field($name, $value);
     return $this;
   }
-///     </body>
 
-///   <method name="fields" returns="Mail.Message.Head">
-///     <brief>Добавляет к заголовку поля из массива $values</brief>
-///     <args>
-///       <arg name="values" brief="массив полей" />
-///     </args>
-///     <body>
+/**
+ * Добавляет к заголовку поля из массива $values
+ * 
+ * @param  $values
+ * @return Mail_Message_Head
+ */
   public function fields($values) {
     foreach ($values as $name => $value) $this->field($name, $value);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="indexing">
 
-///   <method name="offsetGet" returns="string">
-///     <brief>Возвращает поле заголовка</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя заголовка" />
-///     </args>
-///     <body>
+/**
+ * Возвращает поле заголовка
+ * 
+ * @param string $index
+ * @return string
+ */
   public function offsetGet($index) {
     return is_int($index) ? $this->fields[$index] : $this->get($index);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetSet" returns="string">
-///     <brief>Устанавливает или добаляет поле к заголовку</brief>
-///     <args>
-///       <arg name="index" type="string" />
-///       <arg name="value" type="string" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает или добаляет поле к заголовку
+ * 
+ * @param string $index
+ * @param string $value
+ * @return string
+ */
   public function offsetSet($index, $value) {
     if (is_int($index))
       throw isset($this[$index]) ?
@@ -571,104 +483,84 @@ class Mail_Message_Head
        $this->field($index, $value);
      return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <brief>Проверяет установелнно ли поле с именем $index</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя поля" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установелнно ли поле с именем $index
+ * 
+ * @param string $index
+ * @return boolean
+ */
   public function offsetExists($index) {
     return is_int($index) ?
       isset($this->fields[$index]) :
       ($this->get($index) ? true : false);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <brief>Выбрасывает исключение Core.NotImplementedException</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя поля" />
-///     </args>
-///     <body>
+/**
+ * Выбрасывает исключение Core.NotImplementedException
+ * 
+ * @param string $index
+ */
   public function offsetUnset($index) { throw new Core_NotImplementedException(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
 
-///   <method name="get" returns="Mail.Message.Field">
-///     <brief>Проверяет установелнно ли поле с именем $name</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя поля" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установелнно ли поле с именем $name
+ * 
+ * @param string $name
+ * @return Mail_Message_Field
+ */
   public function get($name) {
     foreach ($this->fields as $field)
       if ($field->matches((string) $name)) return $field;
     return null;
   }
-///     </body>
-///   </method>
 
-///   <method name="get_all" returns="ArrayObject">
-///     <brief>Возвращает ArrayObject всех полей заголовка с именем $name</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя поля" />
-///     </args>
-///     <body>
+/**
+ * Возвращает ArrayObject всех полей заголовка с именем $name
+ * 
+ * @param string $name
+ * @return ArrayObject
+ */
   public function get_all($name) {
     $result = new ArrayObject();
     foreach ($this->fields as $field)
       if ($field->matches((string) $name)) $result[] = $field;
     return $result;
   }
-///     </body>
-///   </method>
 
-///   <method name="count_for" returns="int">
-///     <brief>Возвращает количество полей с именем $name</brief>
-///     <args>
-///       <arg name="name" type="string" brief="name" />
-///     </args>
-///     <body>
+/**
+ * Возвращает количество полей с именем $name
+ * 
+ * @param string $name
+ * @return int
+ */
   public function count_for($name) {
     $count = 0;
     foreach ($this->fields as $field)
       $count += $field->matches((string) $name) ? 1 : 0;
     return $count;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="encoding">
 
-///   <method name="encode" returns="string">
-///     <brief>Кодирует заголовок</brief>
-///     <body>
+/**
+ * Кодирует заголовок
+ * 
+ * @return string
+ */
   public function encode() {
     $encoded = '';
     foreach ($this->fields as $field) $encoded .= $field->encode().MIME::LINE_END;
     return $encoded;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
-///   <method name="equals" returns="boolean">
-///     <args>
-///       <arg name="to" />
-///     </args>
-///     <body>
+/**
+ * @param  $to
+ * @return boolean
+ */
   public function equals($to) {
     $r =  $to instanceof self;
     $ar1 = $this->getIterator()->getArrayCopy();
@@ -679,23 +571,13 @@ class Mail_Message_Head
     }
     return $r;
   }
-///     </body>
-///   </method>
-///</protocol>
 }
-/// </class>
-/// <composition>
-///   <source class="Mail.Message.Head" role="head" multiplicity="1" />
-///   <target class="Mail.Message.Field" role="field" multiplicity="N" />
-/// </composition>
 
-/// <class name="Mail.Message.Part">
-///     <brief>Часть почтового сообщения</brief>
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.CallInterface" />
-///   <implements interface="Core.EqualityInterface" />
-///   <depends supplier="IO.FS.File" stereotype="uses" />
-///   <depends supplier="IO.Stream.AbstractStream" stereotype="uses" />
+/**
+ * Часть почтового сообщения
+ * 
+ * @package Mail\Message
+ */
 class Mail_Message_Part
   implements Core_PropertyAccessInterface,
              Core_StringifyInterface,
@@ -705,68 +587,58 @@ class Mail_Message_Part
   protected $head;
   protected $body;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <body>
+/**
+ * Конструктор
+ * 
+ */
   public function __construct() {
     $this->head = Mail_Message::Head();
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="head" returns="Mail.Message.Part">
-///     <brief>Устанавливает заголовок сообщения</brief>
-///     <args>
-///       <arg name="head" type="Mail.Message.Head" brief="заголовок" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает заголовок сообщения
+ * 
+ * @param Mail_Message_Head $head
+ * @return Mail_Message_Part
+ */
   public function head(Mail_Message_Head $head) {
     $this->head = $head;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="field" returns="Mail.Message.Part">
-///     <brief>Добавляет новое поля к заголовку письма</brief>
-///     <args>
-///       <arg name="name" type="string" brierf="имя поля" />
-///       <arg name="value" type="string" brief="содержимое поля" />
-///     </args>
-///     <body>
+/**
+ * Добавляет новое поля к заголовку письма
+ * 
+ * @param string $name
+ * @param string $value
+ * @return Mail_Message_Part
+ */
   public function field($name, $value) {
     $this->head[$name] = $value;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="headers" returns="Mail.Message.Part">
-///     <brief>Добавляет несколько полей заголовка из массива $headers</brief>
-///     <args>
-///       <arg name="headers" type="array" brief="массив заголовков письма" />
-///     </args>
-///     <body>
+/**
+ * Добавляет несколько полей заголовка из массива $headers
+ * 
+ * @param array $headers
+ * @return Mail_Message_Part
+ */
   public function headers(array $headers) {
     foreach ($headers as $k => $v) $this->head[$k] = $v;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="file" returns="Mail.Message.Part">
-///     <brief>Заполняет письмо из файла, т.е. получаетя attach к письму</brief>
-///     <args>
-///       <arg name="file" brief="путь к файлу или IO.FS.File" />
-///       <arg name="name" type="string"  brief="имя файла, заменяет оригинальное" />
-///     </args>
-///     <body>
+/**
+ * Заполняет письмо из файла, т.е. получаетя attach к письму
+ * 
+ * @param  $file
+ * @param string $name
+ * @return Mail_Message_Part
+ */
   public function file($file, $name = '') {
     if (!($file instanceof IO_FS_File))
       $file = IO_FS::File((string) $file);
@@ -779,29 +651,25 @@ class Mail_Message_Part
 
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="body" returns="Mail.Message.Part">
-///     <brief>Устанавливает содержимае письма</brief>
-///     <args>
-///       <arg name="body" brief="содержимое письма" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает содержимае письма
+ * 
+ * @param  $body
+ * @return Mail_Message_Part
+ */
   public function body($body) {
     $this->body = $body;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="stream" returns="Mail.Message.Part">
-///     <brief>Заполняет письмо из потока</brief>
-///     <args>
-///       <arg name="stream" type="IO.Stream.AbstractStream" brief="поток" />
-///       <arg name="content_type" default="null" />
-///     </args>
-///     <body>
+/**
+ * Заполняет письмо из потока
+ * 
+ * @param IO_Stream_AbstractStream $stream
+ * @param  $content_type
+ * @return Mail_Message_Part
+ */
   public function stream(IO_Stream_AbstractStream $stream, $content_type = null) {
     if ($content_type) {
       $this->head['Content-Type'] = $content_type;
@@ -810,16 +678,14 @@ class Mail_Message_Part
     $this->body = $stream;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="text" returns="Mail.Message.Part">
-///     <brief>Заполняет письмо ввиде простого текста</brief>
-///     <args>
-///       <arg name="text" type="string" brief="содержимое письма" />
-///       <arg name="content_type" default="null" />
-///     </args>
-///     <body>
+/**
+ * Заполняет письмо ввиде простого текста
+ * 
+ * @param string $text
+ * @param  $content_type
+ * @return Mail_Message_Part
+ */
   public function text($text, $content_type = null) {
     $this->head['Content-Type'] = $content_type ?
       $content_type :
@@ -832,39 +698,27 @@ class Mail_Message_Part
 
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="html" returns="Mail.Message.Part">
-///     <brief>Заполняет письмо ввиде html</brief>
-///     <args>
-///       <arg name="text" type="string" brief="содержимое письма ввиде html" />
-///     </args>
-///     <body>
+/**
+ * Заполняет письмо ввиде html
+ * 
+ * @param string $text
+ * @return Mail_Message_Part
+ */
   public function html($text) {
     return $this->text(
       $text,
       array('text/html', 'charset' => MIME::default_charset()));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к совйствам объекта</brief>
-///     <details>
-///       <dl>
-///         <dt>head</dt><dd>Заголовок письма</dd>
-///         <dt>body</dt><dd>Содержимое письма</dd>
-///       </dl>
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к совйствам объекта
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'head':
@@ -874,19 +728,14 @@ class Mail_Message_Part
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на запись к свойствам объекта</brief>
-///     <details>
-///       Установить можно только содержимое письма body
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Доступ на запись к свойствам объекта
+ * 
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
       switch ($property) {
         case 'body':
@@ -898,15 +747,13 @@ class Mail_Message_Part
           throw new Core_MissingPropertyException($property);
       }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установлено ли свойство</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установлено ли свойство
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'body':
@@ -916,78 +763,59 @@ class Mail_Message_Part
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Выкидывает исключение Core.NotImplementedException</brief>
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * Выкидывает исключение Core.NotImplementedException
+ * 
+ * @param string $property
+ */
   public function __unset($property) { throw new Core_NotImplementedException(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="stringify" interface="Core.StringifyInterface">
 
-///   <method name="as_string" returns="string">
-///     <brief>Возвращает закодированное письмо ввиде строки</brief>
-///     <body>
+/**
+ * Возвращает закодированное письмо ввиде строки
+ * 
+ * @return string
+ */
   public function as_string() { return Mail_Serialize::Encoder()->encode($this); }
-///     </body>
-///   </method>
 
-///   <method name="__toString" returns="string">
-///     <brief>Возвращает закодированное письмо ввиде строки</brief>
-///     <body>
+/**
+ * Возвращает закодированное письмо ввиде строки
+ * 
+ * @return string
+ */
   public function __toString() { return $this->as_string(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling" interface="Core.CallProtocol">
 
-///   <method name="__call" returns="Mail.Message.Part">
-///     <brief>С помощью вызова метода можно установить/добавить поле к заголовку письма</brief>
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args" />
-///     </args>
-///     <body>
+/**
+ * С помощью вызова метода можно установить/добавить поле к заголовку письма
+ * 
+ * @param string $method
+ * @param  $args
+ * @return Mail_Message_Part
+ */
   public function __call($method, $args) {
     $this->head[$this->field_name_for_method($method)] = $args[0];
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="field_name_for_method" returns="string" access="protected">
-///     <args>
-///       <arg name="method" type="string" brief="" />
-///     </args>
-///     <body>
+/**
+ * @param string $method
+ * @return string
+ */
   protected function field_name_for_method($method) {
     return Core_Strings::replace($method, '_', '-');
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
-///   <method name="equals" returns="boolean">
-///     <args>
-///       <arg name="to" />
-///     </args>
-///     <body>
+/**
+ * @param  $to
+ * @return boolean
+ */
   public function equals($to) {
     $r =  $to instanceof self &&
       Core::equals($this->head, $to->head);
@@ -1004,20 +832,14 @@ class Mail_Message_Part
 
     return $r && Core::equals($this_body, $to_body);
   }
-///     </body>
-///   </method>
-///</protocol>
 }
-/// </class>
-/// <aggregation>
-///   <source class="Mail.Message.Part" role="part" multiplicity="1" />
-///   <target class="Mail.Message.Head" role="head" multiplicity="N" />
-/// </aggregation>
 
 
-/// <class name="Mail.Message.Message" extends="Mail.Message.Part">
-///     <brief>Почтовое письмо</brief>
-///   <depends supplier="Mail.Message.Exception" stereotype="throws" />
+/**
+ * Почтовое письмо
+ * 
+ * @package Mail\Message
+ */
 class Mail_Message_Message
   extends Mail_Message_Part
   implements IteratorAggregate {
@@ -1025,14 +847,12 @@ class Mail_Message_Message
   protected $preamble = '';
   protected $epilogue = '';
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>конструктор</brief>
-///     <args>
-///       <arg name="nested" type="boolean" default="false" />
-///     </args>
-///     <body>
+/**
+ * конструктор
+ * 
+ * @param boolean $nested
+ */
   public function __construct($nested = false) {
     parent::__construct();
     if (!$nested) {
@@ -1040,20 +860,16 @@ class Mail_Message_Message
       $this->date(Time::now());
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="multipart" returns="Mail.Message.Message">
-///     <brief>Устанавливает заголовок письма в multipart с указанным типом и границей</brief>
-///     <args>
-///       <arg name="type"     type="string" default="mixed" brief="тип" />
-///       <arg name="boundary" type="string" default="null" brief="граница" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает заголовок письма в multipart с указанным типом и границей
+ * 
+ * @param string $type
+ * @param string $boundary
+ * @return Mail_Message_Message
+ */
   public function multipart($type = 'mixed', $boundary = null) {
     $this->body = new ArrayObject();
 
@@ -1063,58 +879,48 @@ class Mail_Message_Message
 
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="multipart_mixed" returns="Mail.Message.Message">
-///     <brief>Устанавливает заголовок письма в multipart/mixed</brief>
-///     <args>
-///       <arg name="boundary" type="string" default="null" brief="граница" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает заголовок письма в multipart/mixed
+ * 
+ * @param string $boundary
+ * @return Mail_Message_Message
+ */
   public function multipart_mixed($boundary = null) { return $this->multipart('mixed', $boundary); }
-///     </body>
-///   </method>
 
-///   <method name="multipart_alternative" returns="Mail.Message.Message">
-///     <brief>Устанавливает заголовок письма в multipart/alternative</brief>
-///     <args>
-///       <arg name="boundary" type="string" default="null" brief="граница" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает заголовок письма в multipart/alternative
+ * 
+ * @param string $boundary
+ * @return Mail_Message_Message
+ */
   public function multipart_alternative($boundary = null) { return $this->multipart('alternative', $boundary); }
-///     </body>
-///   </method>
 
-///   <method name="multipart_related" returns="Mail.Message.Message">
-///     <brief>Устанавливает заголовок письма в multipart/related</brief>
-///     <args>
-///       <arg name="boundary" type="string" default="null" brief="граница" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает заголовок письма в multipart/related
+ * 
+ * @param string $boundary
+ * @return Mail_Message_Message
+ */
   public function multipart_related($boundary = null) { return $this->multipart('related', $boundary); }
-///     </body>
-///   </method>
 
-///   <method name="date" returns="Mail.Message.Message">
-///     <brief>Устанавливает дату в заголовке</brief>
-///     <args>
-///       <arg name="date" brief="дата" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает дату в заголовке
+ * 
+ * @param  $date
+ * @return Mail_Message_Message
+ */
   public function date($date) {
     $this->head['Date'] = ($date instanceof Time_DateTime) ? $date->as_rfc1123() : (string) $date;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="part" returns="Mail.Message.Message">
-///     <brief>Добавляет к письму часть</brief>
-///     <args>
-///       <arg name="part" type="Mail.Message.Part" brief="часть" />
-///     </args>
-///     <body>
+/**
+ * Добавляет к письму часть
+ * 
+ * @param Mail_Message_Part $part
+ * @return Mail_Message_Message
+ */
   public function part(Mail_Message_Part $part) {
     if (!$this->body instanceof ArrayObject) $this->body = new ArrayObject();
 
@@ -1124,121 +930,95 @@ class Mail_Message_Message
       throw new Mail_Message_Exception('Not multipart message');
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="text_part" returns="Mail.Message.Message">
-///     <brief>Добавляет к письму текстовую часть</brief>
-///     <args>
-///       <arg name="text"         type="string" brief="текст письма" />
-///       <arg name="content_type" default="null" />
-///     </args>
-///     <body>
+/**
+ * Добавляет к письму текстовую часть
+ * 
+ * @param string $text
+ * @param  $content_type
+ * @return Mail_Message_Message
+ */
   public function text_part($text, $content_type = null) {
     return $this->part(Mail_Message::Part()->text($text, $content_type));
   }
-///     </body>
-///   </method>
 
-///   <method name="html_part" returns="Mail.Message.Message">
-///     <brief>Добавляте к письму html-часть</brief>
-///     <args>
-///       <arg name="text" type="string" brief="html письма" />
-///     </args>
-///     <body>
+/**
+ * Добавляте к письму html-часть
+ * 
+ * @param string $text
+ * @return Mail_Message_Message
+ */
   public function html_part($text) {
     return $this->part(Mail_Message::Part()->html($text));
   }
-///     </body>
-///   </method>
 
-///   <method name="file_part" returns="Mail.Message.Message">
-///     <brief>Добавляет к письму attach фаил</brief>
-///     <args>
-///       <arg name="file" brief="путь к файли или IO.FS.File" />
-///       <arg name="name" type="string" default="''" brief="имя файла, заменяет оригинальное" />
-///     </args>
-///     <body>
+/**
+ * Добавляет к письму attach фаил
+ * 
+ * @param  $file
+ * @param string $name
+ * @return Mail_Message_Message
+ */
   public function file_part($file, $name = '') {
     return $this->part(Mail_Message::Part()->file($file, $name));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="changing">
 
-///   <method name="preamble" returns="Mail.Message.Message">
-///     <brief>Добавляет к письму преабулу</brief>
-///     <args>
-///       <arg name="text" type="string" brief="текст преамбулы" />
-///     </args>
-///     <body>
+/**
+ * Добавляет к письму преабулу
+ * 
+ * @param string $text
+ * @return Mail_Message_Message
+ */
   public function preamble($text) {
     $this->preamble = (string) $text;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="epilogue" returns="Mail.Message.Message">
-///     <brief>Добавляет к письму эпилог</brief>
-///     <args>
-///       <arg name="text" type="string" brief="текст эпилога" />
-///     </args>
-///     <body>
+/**
+ * Добавляет к письму эпилог
+ * 
+ * @param string $text
+ * @return Mail_Message_Message
+ */
   public function epilogue($text) {
     $this->epilogue = (string) $text;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating" interface="IteratorAggregate">
 
-///   <method name="getIterator" returns="Iterator">
-///     <brief>Возвращает итератор по вложенным частям письма</brief>
-///     <body>
+/**
+ * Возвращает итератор по вложенным частям письма
+ * 
+ * @return Iterator
+ */
   public function getIterator() {
     return $this->is_multipart() ?
       $this->body->getIterator() :
       new ArrayIterator($this->body);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
 
-///   <method name="is_multipart" returns="boolean">
-///     <brief>Проверяет имеет ли письмо вложения</brief>
-///     <body>
+/**
+ * Проверяет имеет ли письмо вложения
+ * 
+ * @return boolean
+ */
   public function is_multipart() {
     return Core_Strings::starts_with(
       Core_Strings::downcase($this->head['Content-Type']->value), 'multipart'); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <details>
-///       <dl>
-///         <dt>preamble</dt><dd>Преамбула письма</dd>
-///         <dt>epilogue</dt><dd>Эпилог письма</dd>
-///       </dl>
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'preamble':
@@ -1248,22 +1028,14 @@ class Mail_Message_Message
         return parent::__get($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на запись к свойствам объекта</brief>
-///     <details>
-///       <dl>
-///         <dt>preamble</dt><dd>Преамбула письма</dd>
-///         <dt>epilogue</dt><dd>Эпилог письма</dd>
-///       </dl>
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Доступ на запись к свойствам объекта
+ * 
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'preamble':
@@ -1275,15 +1047,13 @@ class Mail_Message_Message
     }
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установленно ли свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойтсва" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установленно ли свойство объекта
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'preamble':
@@ -1293,15 +1063,12 @@ class Mail_Message_Message
         return parent::__isset($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Выбрасывает исключение Core.UndestroyablePropertyException</brief>
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * Выбрасывает исключение Core.UndestroyablePropertyException
+ * 
+ * @param string $property
+ */
   public function __unset($property) {
     switch ($property) {
       case 'preamble':
@@ -1311,15 +1078,6 @@ class Mail_Message_Message
         parent::__unset($property);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
-/// <aggregation>
-///   <source class="Mail.Message.Message" role="message" multiplicity="1" />
-///   <target class="Mail.Message.Part"    role="part"    multiplicity="0..N" />
-/// </aggregation>
 
-/// </module>

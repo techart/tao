@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Multilink
+ */
+
 
 class CMS_Fields_Types_Multilink extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

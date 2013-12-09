@@ -1,0 +1,10 @@
+<?php
+	if (trim($caption)!='') $caption = CMS::lang($caption).':';
+	if (trim($help)!='') {
+		$caption .= '&nbsp;<a href="'.CMS_Admin::help($help).'" class="helpbox"><img src="'.CMS::stdfile_url('images/icon-help.gif').'" width="11" height="11"></a>';
+	}
+?>
+<tr>
+	<th nowrap><?= $caption ?></th>
+	<td class="<?= $c->type_container_class($type,$parms) ?>"><?php include($c->type_template($type)) ?><?php if ($comment!='') { ?><div class="comment"><?= $comment ?></div><?php } ?></td>
+</tr>	

@@ -1,13 +1,17 @@
 <?php
-/// <module name="WS.Middleware.OpenId" maintainer="svistunov@techart.ru" version="0.1.0">
+/**
+ * WS.Middleware.OpenId
+ * 
+ * @package WS\Middleware\OpenId
+ * @version 0.1.0
+ */
 Core::load('OpenId', 'WS');
 
-/// <class name="WS.Middleware.OpenId" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package WS\Middleware\OpenId
+ */
 class WS_Middleware_OpenId implements Core_ConfigurableModuleInterface {
-///   <constants>
   const VERSION = '0.1.0';
-///   </constants>
 
   static protected $options = array(
     'id_name' => 'openid_url',
@@ -21,42 +25,32 @@ class WS_Middleware_OpenId implements Core_ConfigurableModuleInterface {
 		),
   );
 
-///   <protocol name="creating">
 
-///   <method name="initialize" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ */
   static public function initialize(array $options = array()) {
     self::options($options);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="options" returns="mixed" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ * @return mixed
+ */
   static public function options(array $options = array()) {
     if (count($options)) Core_Arrays::update(self::$options, $options);
     return self::$options;
   }
-///     </body>
-///   </method>
 
-///   <method name="option" returns="mixed">
-///     <brief>Устанавливает опцию</brief>
-///     <args>
-///       <arg name="name" type="string" brief="название опции" />
-///       <arg name="value" default="null" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает опцию
+ * 
+ * @param string $name
+ * @param  $value
+ * @return mixed
+ */
   static public function option($name, $value = null) {
     $prev = null;
     if (array_key_exists($name, self::$options)) {
@@ -65,63 +59,51 @@ class WS_Middleware_OpenId implements Core_ConfigurableModuleInterface {
     }
     return $prev;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="Service" returns="Service.OAuth.Middleware" scope="class">
-///     <brief>Создает объект класса Service.OAuth.Middleware</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * Создает объект класса Service.OAuth.Middleware
+ * 
+ * @param WS_ServiceInterface $application
+ * @param OpenId_Client $client
+ * @return Service_OAuth_Middleware
+ */
   static public function Service(WS_ServiceInterface $application, $client) {
     return new WS_Middleware_OpenId_Service($application, $client);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="WS.Middleware.OpenId.Service" extends="WS.MiddlewareService">
+/**
+ * @package WS\Middleware\OpenId
+ */
 class WS_Middleware_OpenId_Service extends WS_MiddlewareService {
   protected $client;
   protected $env;
   protected $provider_name;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param WS_ServiceInterface $application
+ * @param OpenId_Client $client
+ */
   public function __construct(WS_ServiceInterface $application , $client) {
     parent::__construct($application);
     $this->client = $client;
   }
-///     </body>
-///   </method>
-
-///   </protocol>
 
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="mixed">
-///     <brief>Выполняет обработку запроса</brief>
-///     <args>
-///       <arg name="env" type="WS.Environment" brief="объект окружения" />
-///     </args>
-///     <body>
+
+/**
+ * Выполняет обработку запроса
+ * 
+ * @param WS_Environment $env
+ * @return mixed
+ */
   public function run(WS_Environment $env) {
     $this->env = $env;
     if (!isset($env->openid)) $env->openid(new stdClass());
@@ -155,10 +137,7 @@ class WS_Middleware_OpenId_Service extends WS_MiddlewareService {
         return $this->application->run($env);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
   protected function create_redirect_url($ident) {
     $providers = WS_Middleware_OpenId::option('providers');
@@ -177,6 +156,4 @@ class WS_Middleware_OpenId_Service extends WS_MiddlewareService {
   }
 
 }
-/// <class>
 
-/// </module>

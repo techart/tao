@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Component
+ */
+
 
 class CMS_Component implements Core_ModuleInterface {
 
@@ -14,6 +18,7 @@ class CMS_Component implements Core_ModuleInterface {
 
 	public function __construct($name) {
 		$this->name = $name;
+		$this->cache = WS::env()->cache;
 		//TODO: config source (file, cache, vars ...)
 	}
 
@@ -64,10 +69,25 @@ class CMS_Component implements Core_ModuleInterface {
 	public function process_schema() {
 		$schema = $this->config('schema');
 		$fields = $this->config('fields');
+		$cache_key = md5(serialize($schema) . serialize($fields));
+		if ($this->cache->has($cache_key)) {
+			return $this;
+		}
+		$this->cache->set($cache_key, 1);
 		if (empty($schema)) return;
 		if (empty($fields)) $fields = Core::hash();
 
 		$schema = clone $schema;
+
+		// some time we have fields without info in schema
+		// fix it
+		$schema_keys = array_keys((array) $schema);
+		$fields_keys = array_keys((array) $fields);
+		$diff = array_diff($fields_keys, $schema_keys);
+		foreach ($diff as $name) {
+			$schema->$name = array();
+		}
+
 		Core::load('DB.Schema');
 		Core::load('CMS.Fields');
 		foreach ($schema as $name => &$table) {

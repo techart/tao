@@ -1,36 +1,37 @@
 <?php
-/// <module name="Text.CSV" maintainer="svistunov@techart.ru" version="0.1.0">
-///   <brief>Модуль предоставляет классы для работы с CVS</brief>
+/**
+ * Text.CSV
+ * 
+ * Модуль предоставляет классы для работы с CVS
+ * 
+ * @package Text\CSV
+ * @version 0.1.0
+ */
 
-/// <class name="Text.CSV" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package Text\CSV
+ */
 class Text_CSV implements Core_ModuleInterface {
-///   <constants>
   const VERSION = '0.1.0';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Reader" returns="Text.CVS.Reader">
-///     <brief>Фабричный метод, возвращает объект класса Text.CVS.Reader </brief>
-///     <args>
-///       <arg name="path" type="string" default="null" brief="путь к файлу" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Text.CVS.Reader
+ * 
+ * @param string $path
+ * @return Text_CVS_Reader
+ */
   public static function Reader($path = null) {
     return new Text_CSV_Reader($path);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Text.CSV.Reader">
-///   <brief>Итератор для чтения csv файлов</brief>
-///   <implements interface="Iterator" />
-///   <implements interface="Core.PropertyAccessInterface" />
+/**
+ * Итератор для чтения csv файлов
+ * 
+ * @package Text\CSV
+ */
 class Text_CSV_Reader implements Iterator, Core_PropertyAccessInterface {
 
   protected $file = null;
@@ -41,88 +42,76 @@ class Text_CSV_Reader implements Iterator, Core_PropertyAccessInterface {
   protected $delimeter = ',';
   protected $enclosure = '"';
   
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="path" type="string" default="null" brief="путь к файлу" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param string $path
+ */
   public function __construct($path = null) {
     if ($path !== null)
       $this->file = fopen($path, 'r');
   }
-///     </body>
-///   </method>
   
-///   <method name="from_file">
-///     <brief>Устанавливает csv файл</brief>
-///     <args>
-///       <arg name="path" type="string" brief="путь к файлу" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает csv файл
+ * 
+ * @param string $path
+ */
   public function from_file($path) {
     $this->file = fopen($path, 'r');
   }
-///     </body>
-///   </method>
 
-///   <method name="from_stream">
-///     <brief>Считывает csv из потока</brief>
-///     <args>
-///       <arg name="file" brief="дескриптор файла/потока"/>
-///     </args>
-///     <body>
+/**
+ * Считывает csv из потока
+ * 
+ * @param  $file
+ */
   public function from_stream($file) {
     $this->file = $file;
   }
-///     </body>
-///   </method>
 
-///   <method name="__destruct">
-///     <brief>Деструктор</brief>
-///     <body>
+/**
+ * Деструктор
+ * 
+ */
   public function __destruct() {
     if (is_resource($this->file)) fclose($this->file);
   }
-///     </body>
-///   </method>
-///   </protocol>
 
-///   <protocol name="iterating">
 
-///   <method name="rewind" returns="mixed">
-///     <brief>Сбрасывает итератор в начало</brief>
-///     <body>
+/**
+ * Сбрасывает итератор в начало
+ * 
+ * @return mixed
+ */
   public function rewind() {
     rewind($this->file);
     $this->next();
   }
-///     </body>
-///   </method>
 
-///   <method name="current" returns="mixed">
-///     <brief>Возвращает текущий элемент итератора</brief>
-///     <body> 
+/**
+ * Возвращает текущий элемент итератора
+ * 
+ * @return mixed
+ */
   public function current() {
     return $this->current;
   }
-///     </body>
-///   </method>
 
-///   <method name="key" returns="mixed">
-///     <brief>Возвращает ключ текущего элемента</brief>
-///     <body> 
+/**
+ * Возвращает ключ текущего элемента
+ * 
+ * @return mixed
+ */
   public function key() {
     return $this->row_count;
   }
-///     </body>
-///   </method>
 
-///   <method name="next">
-///     <brief>Возвращает следующий элемент</brief>
-///     <body>
+/**
+ * Возвращает следующий элемент
+ * 
+ */
   public function next() {
     $this->current = fgetcsv($this->file, 0, $this->delimeter, $this->enclosure);
     if($this->current !== false)
@@ -130,34 +119,24 @@ class Text_CSV_Reader implements Iterator, Core_PropertyAccessInterface {
     else fclose($this->file);
     return $this->current;
   }
-///     </body>
-///   </method>
 
-///   <method name="valid" returns="boolean">
-///     <brief>Проверяет валидность текущего элемента</brief>
-///     <body> 
+/**
+ * Проверяет валидность текущего элемента
+ * 
+ * @return boolean
+ */
   public function valid() {
     return $this->current !== false;
   }
-///     </body>
-///   </method>
 
-/// </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <details>
-///       <dl>
-///         <dt>delimeter</dt><dd>разделитель, по умолчанию ','</dd>
-///         <dt>enclosure</dt><dd>ограничитель, по умолчанию '"'</dd>
-///       </dl>
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'delimeter': case 'enclosure':
@@ -166,16 +145,14 @@ class Text_CSV_Reader implements Iterator, Core_PropertyAccessInterface {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на запись к свойствам объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Доступ на запись к свойствам объекта
+ * 
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'delimeter': case 'enclosure':
@@ -184,15 +161,13 @@ class Text_CSV_Reader implements Iterator, Core_PropertyAccessInterface {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установлено ли свойство</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установлено ли свойство
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'delimeter': case 'enclosure':
@@ -201,18 +176,12 @@ class Text_CSV_Reader implements Iterator, Core_PropertyAccessInterface {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
   
-///   <method name="__unset">
-///     <brief>Очищает свойство объекта</brief>
-///     <details>
-///      Выбрасывает исключение
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Очищает свойство объекта
+ * 
+ * @param string $property
+ */
   public function __unset($property) {
     switch ($property) {
       case 'delimeter': case 'enclosure':
@@ -221,16 +190,14 @@ class Text_CSV_Reader implements Iterator, Core_PropertyAccessInterface {
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="load" returns="array">
-///     <brief>Возвращает всё содержимое файла ввиде массива</brief>
-///     <body>
+/**
+ * Возвращает всё содержимое файла ввиде массива
+ * 
+ * @return array
+ */
   public function load() {
     rewind($this->file);
     $res = array();
@@ -238,12 +205,7 @@ class Text_CSV_Reader implements Iterator, Core_PropertyAccessInterface {
       $res[$k] = $v;
     return $res;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// </module>

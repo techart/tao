@@ -1,0 +1,11 @@
+<?php 
+	unset($parms['dir']);
+	echo $this->forms->upload($name);
+	if (trim($item[$name])!='') {
+		if (preg_match('{^/}',$item[$name])||preg_match('{^\.\.}',$item[$name])) {
+			$fref = $c->admin_url('download').'?file='.$item[$name];
+		}
+		else $fref = '/'.preg_replace('/^\.+/','',$item[$name]);
+		?>&nbsp;<a target="_blank" href="<?= $fref ?>"><?= CMS::lang()->_common->ta_file ?></a> <a href="<?= $c->admin_url('delfile',"$item_id-$name") ?>" onClick="return confirm('<?= CMS::lang()->_common->ta_dfconfirm ?>');"><?= CMS::lang()->_common->ta_delfile ?></a><?php
+	}
+?>

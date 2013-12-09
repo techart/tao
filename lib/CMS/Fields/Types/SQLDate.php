@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\SQLDate
+ */
+
 
 Core::load('CMS.Fields.Types.SQLDateStr');
 

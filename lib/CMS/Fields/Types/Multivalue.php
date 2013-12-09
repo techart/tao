@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Multivalue
+ */
+
 
 //TODO: рефакторинг, внешний вид, сортировка
 

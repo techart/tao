@@ -1,10 +1,16 @@
 <?php
-/// <module name="CMS.WikiParser" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.WikiParser
+ * 
+ * @package Text\Parser\Wiki
+ * @version 0.0.0
+ */
 
 Core::load('Text.Process');
 
-/// <class name="CMS.WikiParser" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package Text\Parser\Wiki
+ */
 
 class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInterface 
 {
@@ -35,7 +41,8 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 	static $tag_pre_start	= '<pre class="wiki">';
 	static $tag_pre_end	= '</pre>';
 
-	static $show_url_length = 30;
+	static $show_url_length = 100;
+	static $url_callback = false;
 	
 	protected $current = false;
 	protected $html = '';
@@ -56,14 +63,15 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 	
 	public function process($s) { return $this->parse($s);}
 	
-///   <protocol name="processing">
 
-///   <method name="parse" returns="string">
-///     <args>
-///       <arg name="source" type="string" />
-///     </args>
-///     <body>
-	public function parse($source) {
+/**
+ * @param string $source
+ * @return string
+ */
+	public function parse($source,$config=array()) {
+		foreach($config as $k=>$v) {
+			self::$$k = $v;
+		}
 		$this->current = false;
 		$this->html = '';
 		$this->cursor = 0;
@@ -78,61 +86,50 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 		$this->close_block();
 		return $this->html;
 	}
-///     </body>
-///   </method>
 	
 	
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="open_block">
-///     <body>
+/**
+ */
 	protected function open_block($type) {
 		if ($this->current==$type) return;
 		$this->close_block();
 		if ($type=='p') $this->html .= self::$tag_p_start;
 	}
-///     </body>
-///   </method>
 	
-///   <method name="close_block">
-///     <body>
+/**
+ */
 	protected function close_block() {
 		if (!$this->current) return;
 		if ($this->current=='p') $this->html .= self::$tag_p_end;
 		$this->current = false;
 	}
-///     </body>
-///   </method>
 	
-///   <method name="eof" returns="boolean">
-///     <body>
+/**
+ * @return boolean
+ */
 	protected function eof() {
 		return $this->cursor>=sizeof($this->lines);
 	}
-///     </body>
-///   </method>
 	
-///   <method name="get" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	protected function get() {
 		return $this->lines[$this->cursor++];
 	}
-///     </body>
-///   </method>
 	
-///   <method name="unget">
-///     <body>
+/**
+ */
 	protected function unget() {
 		$this->cursor--;
 	}
-///     </body>
-///   </method>
 	
 
-///   <method name="parse_link_callback" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	public function parse_link_callback($m) {
 		$s = trim($m[1]);
 		if ($m = Core_Regexps::match_with_results('{^(.+)\|(.+)$}',$s)) {
@@ -142,19 +139,23 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 		else {
 			$url = $s;
 			$txt = $s;
-			if (strlen($txt)>self::$show_url_length+3) $txt = substr($txt,0,self::$show_url_length).'...';
+			if (mb_strlen($txt)>self::$show_url_length+3) $txt = mb_substr($txt,0,self::$show_url_length).'...';
 		}
 		if (Core_Regexps::match('{^http://}',$url)) return sprintf(self::$template_external_link,$url,$txt);
 		if (Core_Regexps::match('{/}',$url)) return sprintf(self::$template_link,$url,$txt);
-		$wurl = CMS::objects()->wiki->make_url($url);
+		$wurl = false;
+		if (self::$url_callback) {
+			$wurl = call_user_func(self::$url_callback,$url);
+		}
+		if (!$wurl) {
+			$wurl = CMS::objects()->wiki->make_url($url);
+		}
 		if ($wurl) return sprintf(self::$template_link,$wurl,$txt);
 		return sprintf(self::$template_wiki_link,ucfirst($url),$txt);
 	}
-///     </body>
-///   </method>
 
-///   <method name="parse_one">
-///     <body>
+/**
+ */
 	protected function parse_simple_line($line) {
 		$line = Core_Regexps::replace('{\'\'\'(.+?)\'\'\'}','<b>\\1</b>',$line);
 		$line = Core_Regexps::replace('{\'\'(.+?)\'\'}','<i>\\1</i>',$line);
@@ -172,12 +173,10 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 		$line = str_ireplace('[/q]','</blockquote>',$line);
 		return $line;
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="parse_one">
-///     <body>
+/**
+ */
 	protected function parse_one() {
 			$line = $this->get();
 			$tline = rtrim($line);
@@ -274,11 +273,10 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 				$this->html .= "$line";
 			}
 	}
-///     </body>
-///   </method>
 	
-///   <method name="parse_table" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	protected function parse_table() {
 		$line = '';
 		while (!$this->eof()&&!($m = Core_Regexps::match_with_results('{^\{\|(.*)}',$line))) $line = trim($this->get());
@@ -298,11 +296,10 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 		$out .= '</table>';
 		return $out;
 	}
-///     </body>
-///   </method>
 	
-///   <method name="parse_tr" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	protected function parse_tr() {
 		$out = '';
 		while (!$this->eof()) {
@@ -331,8 +328,8 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 				foreach($tds as $td) {
 					$parms = '';
 					if ($m = Core_Regexps::match_with_results('{^(.+?)\|(.+)$}',$td)) {
-						$parms = ' '.trim($m[1]);						
-						$td = trim($m[2]);						
+						$parms = ' '.trim($m[1]);
+						$td = trim($m[2]);
 					}
 					$out .= "<$tdt$parms>$td</$tdt>";
 				}
@@ -340,11 +337,9 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 		}	
 		
 	}
-///     </body>
-///   </method>
 	
-///   <method name="parse_pre">
-///     <body>
+/**
+ */
 	protected function parse_pre() {
 		while (!$this->eof()) {
 			$line = rtrim($this->get());
@@ -357,11 +352,9 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 			}
 		}
 	}		
-///     </body>
-///   </method>
 
-///   <method name="parse_source">
-///     <body>
+/**
+ */
 	protected function parse_source($hl) {
 		$source = '';
 		while (!$this->eof()) {
@@ -374,12 +367,10 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 		$this->html .= $code;
 		$this->html .= self::$tag_pre_end;
 	}		
-///     </body>
-///   </method>
 	
 	
-///   <method name="parse_dl">
-///     <body>
+/**
+ */
 	protected function parse_dl() {
 		while (!$this->eof()) {
 			$line = $this->get();
@@ -397,11 +388,9 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 			}
 		}
 	}		
-///     </body>
-///   </method>
 	
-///   <method name="parse_list">
-///     <body>
+/**
+ */
 	protected function parse_list($prefix) {
 		$lp = strlen($prefix);
 		while (!$this->eof()) {
@@ -425,7 +414,8 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 				else {
 					$this->html .= '<li>';
 					$line = $this->parse_simple_line($line);
-					$this->html .= $line;
+					$this->html .= rtrim($line);
+					$this->html .= "</li>\n";
 				}
 
 			}
@@ -435,15 +425,10 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 			}
 		}
 	}
-///     </body>
-///   </method>
 	
-///   </protocol>
 	
 	
 } 
-/// </class>
 
 
-/// </module>
 

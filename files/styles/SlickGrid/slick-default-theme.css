@@ -6,17 +6,26 @@ classes should alter those!
 */
 
 .slick-header-columns {
-  background: url('/tao/images/SlickGrid/header-columns-bg.gif') repeat-x center bottom;
-  border-bottom: 1px solid silver;
+  background-color: #888888;
+  background: linear-gradient(#bbb, #555);
+  text-align: center;
+  /*background: url('/tao/images/SlickGrid/header-columns-bg.gif') repeat-x center bottom;
+  border-bottom: 1px solid silver;*/
+}
+
+.slick-column-name {
+  color:white;
+  font-size: 13px;
+  font-weight: bold;
 }
 
 .slick-header-column {
-  background: url('/tao/images/SlickGrid/header-columns-bg.gif') repeat-x center bottom;
+  /*background: url('/tao/images/SlickGrid/header-columns-bg.gif') repeat-x center bottom;*/
   border-right: 1px solid silver;
 }
 
 .slick-header-column:hover, .slick-header-column-active {
-  background: white url('/tao/images/SlickGrid/header-columns-over-bg.gif') repeat-x center bottom;
+  /*background: white url('/tao/images/SlickGrid/header-columns-over-bg.gif') repeat-x center bottom;*/
 }
 
 .slick-headerrow {

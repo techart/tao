@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\AjaxUpload
+ */
+
 
 class CMS_Fields_Types_AjaxUpload extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

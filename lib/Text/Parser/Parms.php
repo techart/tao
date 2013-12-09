@@ -1,10 +1,16 @@
 <?php
-/// <module name="CMS.Parser" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.Parser
+ * 
+ * @package Text\Parser\Parms
+ * @version 0.0.0
+ */
 
 Core::load('Text.Process');
 
-/// <class name="CMS.Parser" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package Text\Parser\Parms
+ */
 
 class Text_Parser_Parms implements Core_ModuleInterface, Text_Process_ProcessInterface, Text_Process_UnparseInterface { 
 	const VERSION = '0.0.0'; 
@@ -15,29 +21,24 @@ class Text_Parser_Parms implements Core_ModuleInterface, Text_Process_ProcessInt
 	protected $error_found; 
 	protected $error_message; 
 
-///   <protocol name="processing">
 
 
-///   <method name="unparse" returns="string">
-///     <args>
-///       <arg name="source" type="iterable" />
-///     </args>
-///     <body>
+/**
+ * @param iterable $source
+ * @return string
+ */
 	public function unparse($src) {
 		return $this->unparse_array($src,'');
 	}
-///     </body>
-///   </method>
 
   public function configure($config) {}
 
   public function process($s) {return $this->parse($s);}
 
-///   <method name="parse" returns="array">
-///     <args>
-///       <arg name="source" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $source
+ * @return array
+ */
 	public function parse($src) { 
 		$this->lines = ''; 
 		$m = explode("\n",$src); 
@@ -60,19 +61,16 @@ class Text_Parser_Parms implements Core_ModuleInterface, Text_Process_ProcessInt
 		
 		return $this->out; 
 	} 
-///     </body>
-///   </method>
 
 
 
-///   </protocol>	
 	
-///   <protocol name="supporting">
 
 
 
-///   <method name="unparse_array" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	protected function unparse_array($src,$prefix) {
 		if (Core_Types::is_iterable($src)) {
 			$out = '';
@@ -92,45 +90,35 @@ class Text_Parser_Parms implements Core_ModuleInterface, Text_Process_ProcessInt
 
 		else return (string)$src;
 	}
-///     </body>
-///   </method>
 
 
 
-///   <method name="eof" returns="boolean">
-///     <body>
+/**
+ * @return boolean
+ */
 	protected function eof() { 
 		return !isset($this->lines[$this->cursor]); 
 	} 
-///     </body>
-///   </method>
 	
-///   <method name="get_line" returns="string">
-///     <body>
+/**
+ * @return string
+ */
 	protected function get_line() { 
 		$line = $this->lines[$this->cursor]; 
 		$this->cursor++; return $line; 
 	} 
-///     </body>
-///   </method>
 	
-///   <method name="error">
-///     <args>
-///       <arg name="message" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $message
+ */
 	protected function error($message) { 
 		$this->error_found = true; 
 		$this->error_message = $message; 
 	} 
-///     </body>
-///   </method>
 	
-///   <method name="parse_compound">
-///     <args>
-///       <arg name="dest" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $dest
+ */
 	protected function parse_compound(&$out) { 
 		$end = false; 
 		while (!$end) { 
@@ -143,14 +131,10 @@ class Text_Parser_Parms implements Core_ModuleInterface, Text_Process_ProcessInt
 			} 
 		} 
 	} 
-///     </body>
-///   </method>
 	
-///   <method name="parse_statement">
-///     <args>
-///       <arg name="dest" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $dest
+ */
 	protected function parse_statement(&$out) { 
 		if ($this->error_found) return; 
 		$line = $this->get_line(); 
@@ -176,13 +160,8 @@ class Text_Parser_Parms implements Core_ModuleInterface, Text_Process_ProcessInt
 		} 
 		
 	} 
-///     </body>
-///   </method>
 	
-///   </protocol>	
 	
 } 
-/// </class>
 
-/// </module>
 

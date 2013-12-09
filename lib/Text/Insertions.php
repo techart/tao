@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Insertions
+ */
+
 
 Core::load('WS', 'Templates.HTML');
 

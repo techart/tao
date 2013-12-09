@@ -1,38 +1,38 @@
 <?php
-/// <module name="Dev.Unit.Assert.Accessing" maintainer="timokhin@techart.ru" version="0.2.3">
+/**
+ * Dev.Unit.Assert.Accessing
+ * 
+ * @package Dev\Unit\Assert\Accessing
+ * @version 0.2.3
+ */
 
-/// <class name="Dev.Unit.Assert.Accessing">
-///   <implements interface="Dev.Unit.AssertBundleModuleInterface" />
+/**
+ * @package Dev\Unit\Assert\Accessing
+ */
 class Dev_Unit_Assert_Accessing implements Dev_Unit_AssertBundleModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.3';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="bundle" scope="class" returns="Dev.Unit.AssertBundle">
-///     <body>
+/**
+ * @return Dev_Unit_AssertBundle
+ */
   static public function bundle() { return new Dev_Unit_Assert_Accessing_Bundle(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Dev.Unit.Assert.Accessing.Bundle" extends="Dev.Unit.AssertBundle">
+/**
+ * @package Dev\Unit\Assert\Accessing
+ */
 class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
 
-///   <protocol name="testing">
 
-///   <method name="assert_read" returns="Dev.Unit.Assert.Accessing.Bundle" access="protected">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs"  type="array" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param array $attrs
+ * @return Dev_Unit_Assert_Accessing_Bundle
+ */
     public function assert_read($object, array $attrs) {
       foreach ($attrs as $k => $v) {
         if ($v === null && isset($object->$k))
@@ -51,15 +51,12 @@ class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
       }
       return $this;
     }
-///     </body>
-///   </method>
 
-///   <method name="assert_exists" returns="Dev.Unit.Assert.Accessing.Bundle" access="protected">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs"  type="array" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param array $attrs
+ * @return Dev_Unit_Assert_Accessing_Bundle
+ */
     public function assert_exists($object, array $attrs) {
       foreach ($attrs as $k) {
         if (!isset($object->$k))
@@ -69,15 +66,12 @@ class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
       }
       return $this;
     }
-///     </body>
-///   </method>
 
-///   <method name="assert_exists_only" returns="Dev.Unit.Assert.Accessing.Bundle" access="protected">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs"  type="array" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param array $attrs
+ * @return Dev_Unit_Assert_Accessing_Bundle
+ */
     public function assert_exists_only($object, array $attrs) {
       foreach ($attrs as $k) {
         if (!isset($object->$k))
@@ -98,15 +92,12 @@ class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
       }
       return $this;
     }
-///     </body>
-///   </method>
 
-///   <method name="assert_read_only" returns="Dev.Unit.Assert.Accessing.Bundle" access="protected">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param array $attrs
+ * @return Dev_Unit_Assert_Accessing_Bundle
+ */
     public function assert_read_only($object, array $attrs) {
       foreach ($attrs as $k => $v) {
         if ($v === null && isset($object->$k))
@@ -142,15 +133,12 @@ class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
 
       return $this;
     }
-///     </body>
-///   </method>
 
-///   <method name="assert_write" returns="Dev.Unit.Assert.Accessing.Bundle" access="protected">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param array $attrs
+ * @return Dev_Unit_Assert_Accessing_Bundle
+ */
     public function assert_write($object, array $attrs) {
       foreach ($attrs as $k => $v) {
         $this->set_trap();
@@ -172,15 +160,12 @@ class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
 
       return $this;
     }
-///     </body>
-///   </method>
 
-///   <method name="assert_undestroyable" returns="Dev.Unit.Assert.Accessing.Bundle">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs" type="array|string" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param array|string $attrs
+ * @return Dev_Unit_Assert_Accessing_Bundle
+ */
     public function assert_undestroyable($object, $attrs) {
       foreach ((array) $attrs as $attr) {
         $this->set_trap();
@@ -198,15 +183,12 @@ class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
       }
       return $this;
     }
-///     </body>
-///   </method>
 
-///   <method name="assert_nullable" returns="Dev.Unit.Assert.Accessing.Bundle">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs" type="string|array" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param string|array $attrs
+ * @return Dev_Unit_Assert_Accessing_Bundle
+ */
     public function assert_nullable($object, $attrs) {
       foreach ((array) $attrs as $attr) {
         $this->set_trap();
@@ -227,15 +209,11 @@ class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
       }
       return $this;
     }
-///     </body>
-///   </method>
 
-///   <method name="assert_missing" returs="Dev.Unit.Assert.Accessing.Bundle">
-///     <args>
-///       <arg name="object" type="object" />
-///       <arg name="attrs" type="array|string" default="undefined" />
-///     </args>
-///     <body>
+/**
+ * @param object $object
+ * @param array|string $attrs
+ */
     public function assert_missing($object, $attrs = 'undefined') {
       foreach ((array) $attrs as $attr) {
         if (isset($object->$attr) !== false)
@@ -263,11 +241,6 @@ class Dev_Unit_Assert_Accessing_Bundle extends Dev_Unit_AssertBundle {
       }
       return $this;
     }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

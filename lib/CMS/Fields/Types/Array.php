@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Array
+ */
+
 
 class CMS_Fields_Types_Array extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

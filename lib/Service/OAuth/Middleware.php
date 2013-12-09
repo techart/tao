@@ -1,13 +1,17 @@
 <?php
-/// <module name="Service.OAuth.Middleware" maintainer="svistunov@techart.ru" version="0.1.0">
+/**
+ * Service.OAuth.Middleware
+ * 
+ * @package Service\OAuth\Middleware
+ * @version 0.1.0
+ */
 Core::load('Service.OAuth', 'WS');
 
-/// <class name="Service.OAuth.Middleware" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package Service\OAuth\Middleware
+ */
 class Service_OAuth_Middleware implements Core_ConfigurableModuleInterface {
-///   <constants>
   const VERSION = '0.1.0';
-///   </constants>
 
   static protected $options = array(
     'prefix'    => '/oauth/',
@@ -15,42 +19,32 @@ class Service_OAuth_Middleware implements Core_ConfigurableModuleInterface {
     'return_url_name' => 'url');
 
 
-///   <protocol name="creating">
 
-///   <method name="initialize" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ */
   static public function initialize(array $options = array()) {
     self::options($options);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="options" returns="mixed" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ * @return mixed
+ */
   static public function options(array $options = array()) {
     if (count($options)) Core_Arrays::update(self::$options, $options);
     return self::$options;
   }
-///     </body>
-///   </method>
 
-///   <method name="option" returns="mixed">
-///     <brief>Устанавливает опцию</brief>
-///     <args>
-///       <arg name="name" type="string" brief="название опции" />
-///       <arg name="value" default="null" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает опцию
+ * 
+ * @param string $name
+ * @param  $value
+ * @return mixed
+ */
   static public function option($name, $value = null) {
     $prev = null;
     if (array_key_exists($name, self::$options)) {
@@ -59,51 +53,40 @@ class Service_OAuth_Middleware implements Core_ConfigurableModuleInterface {
     }
     return $prev;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="Service" returns="Service.OAuth.Middleware" scope="class">
-///     <brief>Создает объект класса Service.OAuth.Middleware</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///     </args>
-///     <body>
+/**
+ * Создает объект класса Service.OAuth.Middleware
+ * 
+ * @param WS_ServiceInterface $application
+ * @return Service_OAuth_Middleware
+ */
   static public function Service(WS_ServiceInterface $application) {
     return new Service_OAuth_Middleware_Service($application);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.OAuth.Middleware.Service" extends="WS.MiddlewareService">
+/**
+ * @package Service\OAuth\Middleware
+ */
 class Service_OAuth_Middleware_Service extends WS_MiddlewareService {
   protected $config = array();
   protected $args = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param WS_ServiceInterface $application
+ */
   public function __construct(WS_ServiceInterface $application) {
     $args = func_get_args();
     parent::__construct(array_shift($args));
     $this->args = Core::normalize_args($args);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
   protected function config() {
     if ($this->args[0] instanceof Core_InvokeInterface)
@@ -112,14 +95,13 @@ class Service_OAuth_Middleware_Service extends WS_MiddlewareService {
   }
 
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="mixed">
-///     <brief>Выполняет обработку запроса</brief>
-///     <args>
-///       <arg name="env" type="WS.Environment" brief="объект окружения" />
-///     </args>
-///     <body>
+/**
+ * Выполняет обработку запроса
+ * 
+ * @param WS_Environment $env
+ * @return mixed
+ */
   public function run(WS_Environment $env) {
     $this->config();
     if (!isset($env->oauth)) $env->oauth(new stdClass());
@@ -138,20 +120,14 @@ class Service_OAuth_Middleware_Service extends WS_MiddlewareService {
     }
     return $this->application->run($env);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="redirect">
-///     <args>
-///       <arg name="env" type="WS.Enviroment" />
-///       <arg name="c" type="array" />
-///       <arg name="url" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Enviroment $env
+ * @param array $c
+ * @param string $url
+ */
   protected function login_redirect($env, $c, $url) {
     $host = $env->request->scheme.'://'.$env->request->host;
     $env->request->session()->set('query', $env->request->query);
@@ -165,15 +141,11 @@ class Service_OAuth_Middleware_Service extends WS_MiddlewareService {
         return $this->application->run($env);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="confirm">
-///     <args>
-///       <arg name="env" type="WS.Enviroment" />
-///       <arg name="c" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Enviroment $env
+ * @param array $c
+ */
   protected function login_confirm($env, $c) {
     $env->request->query($env->request->session()->get('query'));
     $env->request->session()->remove('query');
@@ -184,8 +156,6 @@ class Service_OAuth_Middleware_Service extends WS_MiddlewareService {
     }
     return $this->application->run($env);
   }
-///     </body>
-///   </method>
 
   protected function load_user_data($env, $c) {
     $request = $env->request;
@@ -205,23 +175,16 @@ class Service_OAuth_Middleware_Service extends WS_MiddlewareService {
     return $this;
   }
 
-///   <method name="redirect">
-///     <args>
-///       <arg name="env" type="WS.Enviroment" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Enviroment $env
+ */
   protected function redirect($env) {
     return Net_HTTP::redirect_to($env->request[Service_OAuth_Middleware::option('return_url_name')].
       '?'.$env->request->query);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// <class>
 
-/// </module>
 
 

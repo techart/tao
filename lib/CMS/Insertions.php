@@ -1,5 +1,11 @@
 <?php
-/// <module name="CMS.Insertions" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.Insertions
+ * 
+ * @package CMS\Insertions
+ * @version 0.0.0
+ * 
+ */
 
 class CMS_Insertions extends CMS_Insertions_Base implements Core_ModuleInterface {
 	const MODULE  = 'CMS.Insertions';
@@ -172,4 +178,3 @@ class CMS_Insertions_Base {
 	}
 }
 
-/// </module>

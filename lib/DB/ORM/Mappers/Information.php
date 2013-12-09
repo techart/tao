@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package DB\ORM\Mappers\Information
+ */
+
 
 Core::load('DB.ORM');
 

@@ -18,3 +18,7 @@ input.error {
 	color: #FFF;
 	padding: 3px 10px;
 }
+
+fieldset {
+	border: none;
+}

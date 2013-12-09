@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\AdminVars
+ */
+
 
 class CMS_Controller_AdminVars extends CMS_Controller implements Core_ModuleInterface { 
 	const MODULE = 'CMS.Controller.AdminVars'; 

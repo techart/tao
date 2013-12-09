@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\FSPages
+ */
+
 class CMS_Controller_FSPages extends CMS_Controller implements Core_ModuleInterface
 {
 	protected $result = null;

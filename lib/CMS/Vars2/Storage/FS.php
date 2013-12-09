@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Storage\FS
+ */
+
 
 class CMS_Vars2_Storage_FS extends CMS_Vars_Storage implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

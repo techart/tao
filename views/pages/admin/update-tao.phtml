@@ -10,9 +10,11 @@ $this->use_styles('admin/table.css');
 	$resp = Net_HTTP::Agent()->to_file('../tao.zip')->send('http://cms.techart.ru/tao/download/core/');
 	if ($resp->status->code==200) {
 		Core::load('IO.Arc','IO.Arc.ZIP');
+		IO_FS::mv('../tao','../tao.old');
 		IO_Arc::ZIP('../tao.zip')->extract_to('..');
 		IO_FS::rm('../tao.zip');
 		if (is_dir('../tao/lib')) {
+			IO_FS::chmod_recursive('../tao');
 			IO_FS::rm('../tao.old');
 			$controller->redirect('/admin/update-tao/?ok=1');
 		} else {

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\SlickTable
+ */
+
 
 Core::load('Log', 'CMS.Controller.Table', 'Tree');
 
@@ -10,8 +14,8 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		// Log::logger()->to_firephp();
 	}
 
-	protected $style = "max-height:528px;";
-	// protected $style = "";
+	protected $style = "max-height:758px;";
+	//protected $style = "";
 
 	protected $expanded_to_level = -1;
 
@@ -117,6 +121,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		);
 		$t->use_scripts(
 				CMS::stdfile_url('scripts/tao.js'),
+				CMS::stdfile_url('scripts/tao/oop.js'),
 				CMS::stdfile_url('scripts/jquery/ui.js'),
 				CMS::stdfile_url('scripts/jquery/event.drag.js'),
 				CMS::stdfile_url('scripts/jquery/event.drop.js'),
@@ -126,9 +131,9 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 				CMS::stdfile_url('scripts/SlickGrid/slick.grid.js'),
 				CMS::stdfile_url('scripts/SlickGrid/slick.dataview.js'),
 				CMS::stdfile_url('scripts/SlickGrid/controls/slick.remotepager.js'),
-				// CMS::stdfile_url('scripts/SlickGrid/slick.remotestore.js'),
-				// CMS::stdfile_url('scripts/SlickGrid/slick.table.js'),
-				// CMS::stdfile_url('scripts/SlickGrid/slick.tree.class.js'),
+				CMS::stdfile_url('scripts/SlickGrid/slick.remotestore.js'),
+				CMS::stdfile_url('scripts/SlickGrid/slick.table.js'),
+				CMS::stdfile_url('scripts/SlickGrid/slick.tree.class.js'),
 				CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowmovemanager.js'),
 				CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowselectionmodel.js'),
 				$this->app_js_file()

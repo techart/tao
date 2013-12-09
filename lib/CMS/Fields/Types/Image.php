@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Image
+ */
+
 
 class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

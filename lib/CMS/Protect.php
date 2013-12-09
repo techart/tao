@@ -1,20 +1,23 @@
 <?php
-/// <module name="CMS.Protect" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.Protect
+ * 
+ * @package CMS\Protect
+ * @version 0.0.0
+ */
 
 Core::load('Validation.Commons'); 
 Core::load('Net.HTTP.Session');
 
 
-/// <class name="CMS.Protect" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="Webkit.Session" stereotype="uses" />
+/**
+ * @package CMS\Protect
+ */
 class CMS_Protect implements Core_ModuleInterface { 
 	
-///   <constants>
 	const MODULE = 'CMS.Protect'; 
 	const VERSION = '0.0.0'; 
 	const FONT = "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"; 
-///   </constants>
 	
 	static $foreground = false; 
 	static $background = false;
@@ -25,31 +28,22 @@ class CMS_Protect implements Core_ModuleInterface {
 	static $owidth = 100; 
 	static $oheight = 50; 
 	
-///   <protocol name="creating">
 
-///   <method scope="class" name="initialize">
-///     <args>
-///       <arg name="config" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $config
+ */
 	static function initialize($config=array()) { 
 		foreach($config as $key => $value) self::$$key = $value; 
 	} 
-///     </body>
-///   </method>
 	
-///   </protocol>	
 
 	
-///   <protocol name="performing">
 
 
 
-///   <method scope="class" name="key">
-///     <args>
-///       <arg name="page" type="string" default="" />
-///     </args>
-///     <body>
+/**
+ * @param string $page
+ */
 	static function key($page='') {
 		$page = trim($page, '/');
 		$session = Net_HTTP_Session::Store();
@@ -61,35 +55,29 @@ class CMS_Protect implements Core_ModuleInterface {
 		}
 		return $key; 
 	} 
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="generate_key">
-///     <body>
+/**
+ */
 	static function generate_key() {
 		$keylength = self::key_length();
 		$key = '';
 		for ($i=0; $i<$keylength; $i++) $key .= mt_rand(0,9);
 		return $key;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="key_length">
-///     <body>
+/**
+ */
 	static function key_length() {
 		$k = isset($_GET['length'])? (int)$_GET['length'] : 0;
 		if ($k<1) $k = 5;
 		return $k;
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="check">
-///     <body>
+/**
+ */
 	static function check($name,$page) {
 		$key = self::key($page);
 		$name = trim($name);
@@ -102,16 +90,12 @@ class CMS_Protect implements Core_ModuleInterface {
 		}
 		print 'error';
 	}
-///     </body>
-///   </method>
 
 
-///   <method scope="class" name="jsprotect">
-///     <args>
-///       <arg name="field" type="string" />
-///       <arg name="page" type="string" default="" />
-///     </args>
-///     <body>
+/**
+ * @param string $field
+ * @param string $page
+ */
 	public function jsprotect($field,$page='') { 
 		$keystring = self::key($page);
 		ob_start();
@@ -120,14 +104,10 @@ class CMS_Protect implements Core_ModuleInterface {
 		$content = ob_get_clean();
 		return $content;
 	}
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="draw">
-///     <args>
-///       <arg name="page" type="string" default="" />
-///     </args>
-///     <body>
+/**
+ * @param string $page
+ */
 	public function draw($page='') { 
 		$foreground_color = self::$foreground; 
 		$background_color = self::$background;
@@ -291,53 +271,44 @@ class CMS_Protect implements Core_ModuleInterface {
 			imagepng($img2); 
 		} 
 	} 
-///     </body>
-///   </method>
 
-///   </protocol>	
 	
 
-///   <protocol name="supporting">
 
 
 
-///   <method scope="class" name="getWidth" returns="int">
-///     <body>
+/**
+ * @return int
+ */
 	public function getWidth() { 
 		return self::$width; 
 	} 
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="getHeight" returns="int">
-///     <body>
+/**
+ * @return int
+ */
 	public function getHeight() { 
 		return self::$height; 
 	} 
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="originalWidth" returns="int">
-///     <body>
+/**
+ * @return int
+ */
 	static function originalWidth() {
 		return self::$owidth; 
 	}
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="originalHeight" returns="int">
-///     <body>
+/**
+ * @return int
+ */
 	static function originalHeight() {
 		return self::$oheight; 
 	}			
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="hex_color" returns="array">
-///     <args>
-///       <arg name="color" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $color
+ * @return array
+ */
 	static function hex_color($color) {
 		$color = trim($color);
 		if ($color=='') $color = '000000';
@@ -347,14 +318,11 @@ class CMS_Protect implements Core_ModuleInterface {
 		$color = array(hexdec(substr($color,0,2)),hexdec(substr($color,2,2)),hexdec(substr($color,4,2)));
 		return $color;
 	}
-///     </body>
-///   </method>
 	
-///   <method scope="class" name="convert_color" returns="array">
-///     <args>
-///       <arg name="color" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $color
+ * @return array
+ */
 	static function convert_color($color) {
 		if (is_string($color)) {
 			$color = trim($color);
@@ -374,14 +342,10 @@ class CMS_Protect implements Core_ModuleInterface {
 		}
 		return $color;	
 	}
-///     </body>
-///   </method>
 	
-///   </protocol>	
 	
 
 } 
-/// </class>
 
 
 			
@@ -400,4 +364,3 @@ class CMS_Protect_ValidationTest extends Validation_AttributeTest {
 
 } 
 
-/// </module>

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package WS\Middleware\Dummy
+ */
+
 
 class WS_Middleware_Dummy implements Core_ModuleInterface{
   const VERSION = '0.0.1';

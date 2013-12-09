@@ -1,11 +1,16 @@
 <?php
-/// <module name="CLI.GetOpt" version="0.3.0" maintainer="timokhin@techart.ru">
+/**
+ * CLI.GetOpt
+ * 
+ * @package CLI\GetOpt
+ * @version 0.3.0
+ */
 
-/// <class name="CLI.GetOpt" stereotype="module">
-///   <depends supplier="CLI.GetOpt.Parser" stereotype="creates" />
+/**
+ * @package CLI\GetOpt
+ */
 class CLI_GetOpt implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.3.0';
   const USAGE_FORMAT = "%6s%s %-20s  %s\n";
 
@@ -13,53 +18,43 @@ class CLI_GetOpt implements Core_ModuleInterface {
   const BOOL   = 1;
   const INT    = 2;
   const FLOAT  = 3;
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Parser" returns="CLI.GetOpt.Parser" scope="class">
-///     <body>
+/**
+ * @return CLI_GetOpt_Parser
+ */
   static public function Parser() { return new CLI_GetOpt_Parser(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="CLI.GetOpt.Exception" extends="Core.Exception" stereotype="exception">
+/**
+ * @package CLI\GetOpt
+ */
 class CLI_GetOpt_Exception extends Core_Exception {}
-/// </class>
 
 
-/// <class name="CLI.GetOpt.UnknownOptionException" extends="CLI.GetOpt.Exception">
+/**
+ * @package CLI\GetOpt
+ */
 class CLI_GetOpt_UnknownOptionException extends CLI_GetOpt_Exception {
   protected $name;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ */
   public function __construct($name) {
     $this->name = $name;
     parent::__construct("Unknown option: $name");
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="CLI.GetOpt.Parser">
-///   <implements interface="IteratorAggregate" />
-///   <depends supplier="CLI.GetOpt.UnknownOptionException" stereotype="throws" />
-///   <depends supplier="CLI.GetOpt.UnknownTypeException" stereotype="throws" />
+/**
+ * @package CLI\GetOpt
+ */
 class CLI_GetOpt_Parser implements IteratorAggregate {
 
   public $script;
@@ -68,86 +63,67 @@ class CLI_GetOpt_Parser implements IteratorAggregate {
   protected $options;
 
 
-///   <protocol name="configuring">
 
-///   <method name="string_option" returns="CLI.GetOpt.Parser">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="short" type="string" />
-///       <arg name="long" type="string" />
-///       <arg name="comment" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $short
+ * @param string $long
+ * @param string $comment
+ * @return CLI_GetOpt_Parser
+ */
   public function string_option($name, $short, $long, $comment) {
     return $this->option(CLI_GetOpt::STRING, $name, $short, $long, $comment);
   }
-///     </body>
-///   </method>
 
-///   <method name="int_option" returns="CLI.GetOpt.Parser">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="short" type="string" />
-///       <arg name="long" type="string" />
-///       <arg name="comment" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $short
+ * @param string $long
+ * @param string $comment
+ * @return CLI_GetOpt_Parser
+ */
   public function int_option($name, $short, $long, $comment) {
     return $this->option(CLI_GetOpt::INT, $name, $short, $long, $comment);
   }
-///     </body>
-///   </method>
 
-///   <method name="float_option" returns="CLI.GetOpt.Parser">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="short" type="string" />
-///       <arg name="long" type="string" />
-///       <arg name="comment" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $short
+ * @param string $long
+ * @param string $comment
+ * @return CLI_GetOpt_Parser
+ */
   public function float_option($name, $short, $long, $comment) {
     return $this->option(CLI_GetOpt::FLOAT, $name, $short, $long, $comment);
   }
-///     </body>
-///   </method>
 
 
-///   <method name="boolean_option" returns="CLI.GetOpt.Parser">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="short" type="string" />
-///       <arg name="long" type="string" />
-///       <arg name="comment" type="string" />
-///       <arg name="value" type="boolean" default="true" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $short
+ * @param string $long
+ * @param string $comment
+ * @param boolean $value
+ * @return CLI_GetOpt_Parser
+ */
   public function boolean_option($name, $short, $long, $comment, $value = true) {
     return $this->option(CLI_GetOpt::BOOL, $name, $short, $long, $comment, (boolean) $value);
   }
-///     </body>
-///   </method>
 
-///   <method name="brief" returns="CLI.GetOpt.Parser">
-///     <args>
-///       <arg name="text" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $text
+ * @return CLI_GetOpt_Parser
+ */
   public function brief($text) {
     $this->brief = $text;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
   
-///   <protocol name="performing">
 
-///   <method name="parse" returns="object">
-///     <args>
-///     </args>
-///     <body>
+/**
+ * @return object
+ */
   public function parse(array &$argv, $config = null) {
     if ($config === null) $config = Core::object();
 
@@ -166,11 +142,10 @@ class CLI_GetOpt_Parser implements IteratorAggregate {
 
     return $config;
   }
-///     </body>
-///   </method>
 
-///   <method name="usage_text" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function usage_text() {
     $text = "{$this->brief}\n";
     foreach ($this as $o) 
@@ -178,22 +153,17 @@ class CLI_GetOpt_Parser implements IteratorAggregate {
         $o->short, $o->short ? ',' : '', $o->long, $o->comment);
     return $text;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="option" returns="CLI.GetOpt.Parser" access="private">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="short" type="string" />
-///       <arg name="long" type="string" />
-///       <arg name="comment" type="string" />
-///       <arg name="value" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $short
+ * @param string $long
+ * @param string $comment
+ * @param  $value
+ * @return CLI_GetOpt_Parser
+ */
   private function option($type, $name, $short, $long, $comment, $value = null) {
     $o = Core::object();
     $o->name    = $name;
@@ -205,14 +175,11 @@ class CLI_GetOpt_Parser implements IteratorAggregate {
     $this->options[] = $o;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="parse_option" returns="array|false" access="protected">
-///     <args>
-///       <arg name="arg" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $arg
+ * @return array|false
+ */
   protected function parse_option($arg) {
     switch (true) {
       case $m = Core_Regexps::match_with_results('{^(--[a-zA-Z][a-zA-Z0-9-]*)(?:=(.*))?$}', $arg):
@@ -223,25 +190,19 @@ class CLI_GetOpt_Parser implements IteratorAggregate {
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="lookup_option" returns="object" access="protected">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return object
+ */
   protected function lookup_option($name) {
     foreach ($this->options as $o) 
       if ($o->short == $name || $o->long == $name) return $o;
   }
-///     </body>
-///   </method>
 
-///   <method name="set_option" returns="CLI.GetOpt.Parser" access="protected">
-///     <args>
-///     </args>
-///     <body>
+/**
+ * @return CLI_GetOpt_Parser
+ */
   protected function set_option($config, $option, $value) {
     $path = explode('.', $option->name);
     $attr = array_pop($path); 
@@ -264,21 +225,13 @@ class CLI_GetOpt_Parser implements IteratorAggregate {
     }
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating" interface="IteratorAggregate">
 
-///   <method name="getIterator" returns="ArrayIterator">
-///     <body>
+/**
+ * @return ArrayIterator
+ */
   public function getIterator() { return new ArrayIterator($this->options); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

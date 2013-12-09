@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Dumps\Vars
+ */
+
 
 class CMS_Dumps_Vars extends CMS_Dumps_AbstractDumper implements Core_ModuleInterface {
 

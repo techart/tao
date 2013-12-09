@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\Table
+ */
+
 
 Core::load('CMS.Controller.Fields');
 

@@ -1,37 +1,34 @@
 <?php
-/// <module name="Templates.HTML.Maps" version="1.0.0" maintainer="lyubovnikov@techart.ru">
+/**
+ * Templates.HTML.Maps
+ * 
+ * @package Templates\HTML\Maps
+ * @version 1.0.0
+ */
 Core::load('Templates.HTML');
 
-/// <class name="Templates.HTML.Maps" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <implements interface="Templates.HelperInterface" />
+/**
+ * @package Templates\HTML\Maps
+ */
 class Templates_HTML_Maps implements Core_ModuleInterface, Templates_HelperInterface {
 
-///   <constants>
   const VERSION = '1.0.0';
-///   </constants>
 
-///   <protocol name="creating">
 
-///   <method name="initialize" scope="class">
-///     <body>
+/**
+ */
   static public function initialize() {
     Templates_HTML::use_helper('maps', 'Templates.HTML.Maps');
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="generating">
 
-///   <method name="map" returns="string">
-///     <args>
-///       <arg name="service" type="string" />
-///       <arg name="id" type="string" />
-///       <arg name="options" type="array" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * @param string $service
+ * @param string $id
+ * @param array $options
+ * @return string
+ */
   public function map($t, $service, $map_id, $name, $options = array(), $path_to_template = '../tao/views/helpers/maps') {
 
 	if (!is_array($options)) {
@@ -68,12 +65,7 @@ class Templates_HTML_Maps implements Core_ModuleInterface, Templates_HelperInter
 		'map_id' => $map_id	)
  	);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-///   </class>
 
-/// </module>

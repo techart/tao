@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Parser\BB
+ */
+
 
 Core::load('Text.Process');
 

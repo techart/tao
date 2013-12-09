@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Type\Gallery
+ */
+
 
 class CMS_Vars2_Type_Gallery extends CMS_Var implements Core_ModuleInterface
 {

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Highlight\PHP
+ */
+
 
 Core::load('Text.Highlight');
 

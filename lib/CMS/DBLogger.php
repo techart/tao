@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\DBLogger
+ */
+
 
 Core::load('DB');
 

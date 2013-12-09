@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Storage\File\JSON
+ */
+
 
 Core::load('Storage.File');
 

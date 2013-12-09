@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Gallery
+ */
+
 
 Core::load('CMS.Fields.Types.Documents', 'CMS.Fields.Types.Image');
 

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Lang\Common\De
+ */
+
 
 class CMS_Lang_Common_De implements Core_ModuleInterface { 
 	const MODULE = 'CMS.Lang.Common.De'; 

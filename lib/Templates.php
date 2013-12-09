@@ -1,69 +1,59 @@
 <?php
-/// <module name="Templates" version="0.2.1" maintainer="timokhin@techart.ru">
-///   <brief>Модуль поределяет базовае классы для шаблонов</brief>
+/**
+ * Templates
+ * 
+ * Модуль поределяет базовае классы для шаблонов
+ * 
+ * @package Templates
+ * @version 0.2.1
+ */
 Core::load('IO.FS', 'Object');
 
-/// <class name="Templates" stereotype="module">
-///   <implements interface="Core.ConfigurableModuleInterface" />
-///   <depends supplier="Templates.HTML.Template" stereotype="creates" />
-///   <depends supplier="Templates.XML.Template" stereotype="creates" />
-///   <depends supplier="Templates.Text.Template" stereotype="creates" />
-///   <depends supplier="Templates.JSON.Template" stereotype="creates" />
+/**
+ * @package Templates
+ */
 class Templates implements Core_ConfigurableModuleInterface {
-///   <constants>
   const VERSION = '0.2.1';
-///   </constants>
 
   static protected $options = array(
     'templates_root' => array('../app/views'));
 
   static protected $helpers;
 
-///   <protocol name="creating">
 
-///   <method name="initialize" scope="class">
-///     <brief>Инициализация модуля</brief>
-///     <details>
-///       Устанавливает опиции и создает делегатор хелперов.
-///       Хелперы - это классы, методы которых будут доступны внутри шаблона, т.е. вызовы будут делегироваться хелперам.
-///       Зарегестрировать хелперы можно с помощью Templates::use_helpers либо соответствующим методом модуля или класса шаблона.
-///       Примерами хелперов являются классы Templates.HTML.*
-///     </details>
-///     <args>
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * Инициализация модуля
+ * 
+ * @param array $options
+ */
   static public function initialize(array $options = array()) {
     self::options($options);
     self::$helpers = Object::Aggregator();
+    if (Core::option('deprecated')) {
+      self::$options['templates_root'][] = Core::tao_dir() . '/deprecated/views';
+    }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="options" returns="mixed" scope="class">
-///     <brief>Устанваливает опции</brief>
-///     <args>
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * Устанваливает опции
+ * 
+ * @param array $options
+ * @return mixed
+ */
   static public function options(array $options = array()) {
     if (count($options)) Core_Arrays::update(self::$options, $options);
     return self::$options;
   }
-///     </body>
-///   </method>
 
-///   <method name="option" returns="mixed">
-///     <brief>Устанавливает опцию</brief>
-///     <args>
-///       <arg name="name" type="string" brief="название опции" />
-///       <arg name="value" default="null" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает опцию
+ * 
+ * @param string $name
+ * @param  $value
+ * @return mixed
+ */
   static public function option($name, $value = null) {
     $prev = null;
     if (array_key_exists($name, self::$options)) {
@@ -72,46 +62,35 @@ class Templates implements Core_ConfigurableModuleInterface {
     }
     return $prev;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="use_helpers" scope="class">
-///     <brief>Регестрирует хелперы</brief>
-///     <body>
+/**
+ * Регестрирует хелперы
+ * 
+ */
   static public function use_helpers() {
     $args = Core::normalize_args(func_get_args());
     foreach ($args as $k => $v)
       if ($v instanceof Templates_HelperInterface) self::$helpers->append($v, $k);
   }
-///     </body>
-///   </method>
 
-///   <method name="use_helper" scope="class">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="helper" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param  $helper
+ */
   static public function use_helper($name, $helper) {
     self::$helpers->append($helper, $name);
   }
-///     </body>
-///   </method>
 
-///   <method name="helpers" returns="Object.Aggregator">
-///     <brief>Возвращает делегатор хелперов</brief>
-///     <body>
+/**
+ * Возвращает делегатор хелперов
+ * 
+ * @return Object_Aggregator
+ */
   static public function helpers() { return self::$helpers; }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
   static function is_absolute_path($path) {
     return in_array($path[0], array('.', '/'));
@@ -121,35 +100,38 @@ class Templates implements Core_ConfigurableModuleInterface {
     return Core_Strings::ends_with($path, $extension) ? $path : $path.$extension;
   }
 
-///   <method name="absolute_path" returns="string">
-///     <args>
-///       <arg name="path" type="stirng" />
-///     </args>
-  static function get_path($path, $extension = '') {
-    if (!empty($extension))
+/**
+ * @param stirng $path
+ * @return string
+ */
+  static function get_path($path, $extension = '', $paths = array()) {
+    if (!empty($extension)) {
       $path = self::add_extension($path, $extension);
-    if (self::is_absolute_path($path))
+    }
+    if (self::is_absolute_path($path)) {
       return $path;
-    foreach (self::option('templates_root') as $root)
-      if (IO_FS::exists($res = $root . '/' . $path)) break;
+    }
+    $paths = array_merge($paths, self::option('templates_root'));
+    foreach ($paths as $root) {
+      if (IO_FS::exists($res = $root . '/' . $path)) {
+        break;
+      }
+    }
     return $res;
   }
-///   </method>
 
   static public function add_path($path) {
     if (!in_array($path, self::option('templates_root')))
       array_unshift(self::$options['templates_root'], $path);
   }
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="HTML" returns="Templates.HTML.Template" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Templates.HTML.Template</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Templates.HTML.Template
+ * 
+ * @param string $name
+ * @return Templates_HTML_Template
+ */
   static public function HTML($name) {
     static $loaded = false;
     if (!$loaded) {
@@ -158,15 +140,13 @@ class Templates implements Core_ConfigurableModuleInterface {
     }
     return Templates_HTML::Template($name);
   }
-///     </body>
-///   </method>
 
-///   <method name="XML" returns="Templates.XML.Template" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Templates.XML.Template</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Templates.XML.Template
+ * 
+ * @param string $name
+ * @return Templates_XML_Template
+ */
   static public function XML($name) {
     static $loaded;
     if (!$loaded) {
@@ -175,15 +155,13 @@ class Templates implements Core_ConfigurableModuleInterface {
     }
     return new Templates_XML_Template($name);
   }
-///     </body>
-///   </method>
 
-///   <method name="Text" returns="Templates.Text.Template" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Templates.Text.Template</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Templates.Text.Template
+ * 
+ * @param string $name
+ * @return Templates_Text_Template
+ */
   static public function Text($name) {
     static $loaded;
     if (!$loaded) {
@@ -192,74 +170,68 @@ class Templates implements Core_ConfigurableModuleInterface {
     }
     return new Templates_Text_Template($name);
   }
-///     </body>
-///   </method>
 
-///   <method name="JSON" returns="Templates.JSON.Template" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Templates.JSON.Template</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Templates.JSON.Template
+ * 
+ * @param string $name
+ * @return Templates_JSON_Template
+ */
   static public function JSON($name) {
     Core::load('Templates.JSON');
     return new Templates_JSON_Template($name);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <interface name="Templates.HelperInterface">
-///   <brief>Интерфей хелпера</brief>
-///     <details>
-///       Все хелперы должны реализовывать этот интерфейс
-///     </details>
+/**
+ * Интерфей хелпера
+ * 
+ * Все хелперы должны реализовывать этот интерфейс
+ * 
+ * @package Templates
+ */
 interface Templates_HelperInterface {}
-/// </interface>
 
 
-/// <class name="Templates.Exception" extends="Core.Exception" stereotype="exception">
-///   <brief>Класс исключения</brief>
+/**
+ * Класс исключения
+ * 
+ * @package Templates
+ */
 class Templates_Exception extends Core_Exception {}
-/// </class>
 
 
-/// <class name="Templates.MissingTemplateException" extends="Templates.Exception" stereotype="exception">
-///   <brief>Класс исключения для отсутствующего шаблона</brief>
+/**
+ * Класс исключения для отсутствующего шаблона
+ * 
+ * @package Templates
+ */
 class Templates_MissingTemplateException extends Templates_Exception {
 
   protected $path;
 
-///   <protocol name="creating">
 
-///   <method name="__construct" >
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="path" type="string" brief="путь к шаблону" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param string $path
+ */
   public function __construct($path) {
     $this->path = $path;
     parent::__construct("Missing template for path: $path");
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
 
-/// <class name="Templates.Template" stereotype="abstract">
-///   <brief>Абстрактный класс шаблона</brief>
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.StringifyInterface" />
-///   <implements interface="Core.CallInterface" />
-///   <depends supplier="Templates" stereotype="uses" />
+/**
+ * Абстрактный класс шаблона
+ * 
+ * @abstract
+ * @package Templates
+ */
 abstract class Templates_Template
   implements Core_PropertyAccessInterface,
              Core_CallInterface,
@@ -274,29 +246,25 @@ abstract class Templates_Template
   protected $cache;
   protected $options = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param string $name
+ */
   public function __construct($name) {
     $this->name = $name;
     $this->helpers = Object::Aggregator()->fallback_to($this->get_helpers());
     $this->setup();
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="use_helpers" returns="Templates.Templates">
-///     <brief>Регистрирует хелперы для данного шаблона</brief>
-///     <body>
+/**
+ * Регистрирует хелперы для данного шаблона
+ * 
+ * @return Templates_Templates
+ */
   public function use_helpers() {
     $args = Core::normalize_args(func_get_args());
     if (count($args) > 0)
@@ -305,20 +273,14 @@ abstract class Templates_Template
 
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="use_helper" scope="class">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="helper" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param  $helper
+ */
   public function use_helper($name, $helper) {
     $this->helpers->append($helper, $name);
   }
-///     </body>
-///   </method>
 
   public function options($options = array()) {
     foreach ($options as $k => $v)
@@ -331,12 +293,11 @@ abstract class Templates_Template
     return $this;
   }
 
-///   <method name="with" returns="Templates.Template">
-///     <brief>Устанавливает/добавляет переменные шаблона</brief>
-///     <details>
-///       Эти переменные можно будет использовать в шаблоне
-///     </details>
-///     <body>
+/**
+ * Устанавливает/добавляет переменные шаблона
+ * 
+ * @return Templates_Template
+ */
   public function with() {
     $args = func_get_args();
 
@@ -347,8 +308,6 @@ abstract class Templates_Template
 
     return $this;
   }
-///     </body>
-///   </method>
 
   public function update_parm($name, $value) {
     if (isset($this->parms[$name]) && is_array($this->parms[$name]) && is_array($value))
@@ -363,55 +322,40 @@ abstract class Templates_Template
      return $this;
    }
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="render" returns="string" stereotype="abstract">
-///     <brief>Возвращает конечный результат</brief>
-///     <body>
+/**
+ * Возвращает конечный результат
+ * 
+ * @abstract
+ * @return string
+ */
   abstract public function render();
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling">
 
-///   <method name="__call" returns="mixed">
-///     <brief>С помощью вызова метода можно зарегестрировать хелпер</brief>
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args" type="array" />
-///     </args>
-///     <body>
+/**
+ * С помощью вызова метода можно зарегестрировать хелпер
+ * 
+ * @param string $method
+ * @param array $args
+ * @return mixed
+ */
   public function __call($method, $args) {
     if (!empty($this->current_helper) && method_exists($this->current_helper, $method))
       return call_user_func_array(array($this->current_helper, $method), array_merge(array($this), $args));
     else
       return $this->get_helpers()->__call($method, array_merge(array($this), $args));
   }
-///     </body>
-///  </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <details>
-///       <dl>
-///         <dt>name</dt><dd>имя шаблона</dd>
-///         <dt>parms</dt><dd>параметры/переменный шаблона</dd>
-///         <dt>path</dt><dd>путь к шаблону</dd>
-///         <dt>helpers</dt><dd>хелперы шаблона</dd>
-///       </dl>
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'name':
@@ -433,19 +377,14 @@ abstract class Templates_Template
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на запись к свойствам объекта</brief>
-///     <details>
-///       Выбрасывается исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Доступ на запись к свойствам объекта
+ * 
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'name':
@@ -463,15 +402,13 @@ abstract class Templates_Template
         //throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установленно ли свойтсво</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установленно ли свойтсво
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'name':
@@ -484,18 +421,12 @@ abstract class Templates_Template
         return isset($this->helpers[$property]) || isset($this->options[$property]);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Очищает свойство объекта</brief>
-///     <details>
-///       Выбрасывается исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Очищает свойство объекта
+ * 
+ * @param string $property
+ */
   public function __unset($property) {
     switch ($property) {
       case 'name':
@@ -511,66 +442,59 @@ abstract class Templates_Template
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="stringifying">
 
-///   <method name="as_string" returns="string">
-///     <brief>Вовзращает результат ввиде строки</brief>
-///     <body>
+/**
+ * Вовзращает результат ввиде строки
+ * 
+ * @return string
+ */
   public function as_string() { return $this->render(); }
-///     </body>
-///   </method>
 
-///   <method name="__toString" returns="string">
-///     <brief>Вовзращает результат ввиде строки</brief>
-///     <body>
+/**
+ * Вовзращает результат ввиде строки
+ * 
+ * @return string
+ */
   public function __toString() { return $this->as_string(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
   public function exists() { return IO_FS::exists($this->get_path());}
 
-///   <method name="get_helpers" returns="Object.Aggregator" access="protected" stereotype="abstract">
-///     <brief>Возвращает делигатор хелперов для шаблона</brief>
-///     <body>
+/**
+ * Возвращает делигатор хелперов для шаблона
+ * 
+ * @abstract
+ * @return Object_Aggregator
+ */
   abstract protected function get_helpers();
-///     </body>
-///   </method>
 
-///   <method name="get_parms" returns="array" access="protected">
-///     <brief>Возвращает параметры/переменные шаблона</brief>
-///     <body>
+/**
+ * Возвращает параметры/переменные шаблона
+ * 
+ * @return array
+ */
   protected function get_parms() { return $this->parms; }
-///     </body>
-///   </method>
 
-///   <method name="get_path" returns="string">
-///     <brief>Возвращает путь до шаблона</brief>
-///     <body>
+/**
+ * Возвращает путь до шаблона
+ * 
+ * @return string
+ */
   protected function get_path() {
     return Templates::get_path($this->name, $this->extension);
   }
-///     </body>
-///   </method>
 
-///   <method name="setup" returns="Templates.Template" access="protected">
-///     <brief>Метод для предварительных настроек</brief>
-///     <body>
+/**
+ * Метод для предварительных настроек
+ * 
+ * @return Templates_Template
+ */
   protected function setup() {}
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 abstract class Templates_CacheableTemplate extends Templates_Template {
 
@@ -678,28 +602,29 @@ abstract class Templates_CacheableTemplate extends Templates_Template {
 }
 
 
-/// <class name="Templates.NestableTemplate" extends="Templates.Template" stereotype="abstract">
-///     <brief>Вложенный шаблон</brief>
+/**
+ * Вложенный шаблон
+ * 
+ * @abstract
+ * @package Templates
+ */
 abstract class Templates_NestableTemplate extends Templates_CacheableTemplate {
 
   private $container;
 
 
-///   <protocol name="performing">
 
-///   <method name="inside" returns="Templates.NestableTemplate">
-///     <brief>Устанавливает внутри какого шаблона находиться данный шаблон</brief>
-///     <args>
-///       <arg name="container" type="Templates.Text.Template" brief="шаблон-контейнер" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает внутри какого шаблона находиться данный шаблон
+ * 
+ * @param Templates_Text_Template $container
+ * @return Templates_NestableTemplate
+ */
   public function inside(Templates_NestableTemplate $container) {
     $this->container = $container;
     $this->helpers->fallback_to($this->container->helpers);
     return $this;
   }
-///     </body>
-///   </method>
 
   public function pull() {
     $this->container = null;
@@ -707,27 +632,23 @@ abstract class Templates_NestableTemplate extends Templates_CacheableTemplate {
     return $this;
   }
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="render" returns="string">
-///     <brief>Возвращает конечный результат</brief>
-///     <body>
+/**
+ * Возвращает конечный результат
+ * 
+ * @return string
+ */
   public function render() { return $this->render_nested(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'container':
@@ -740,19 +661,14 @@ abstract class Templates_NestableTemplate extends Templates_CacheableTemplate {
         return parent::__get($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на запись к свойствам объекта</brief>
-///     <details>
-///       Выбрасывает исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Доступ на запись к свойствам объекта
+ * 
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'container':
@@ -761,15 +677,13 @@ abstract class Templates_NestableTemplate extends Templates_CacheableTemplate {
         return parent::__set($property, $value);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установленно ли свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установленно ли свойство объекта
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'container':
@@ -778,18 +692,12 @@ abstract class Templates_NestableTemplate extends Templates_CacheableTemplate {
         return parent::__isset($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Очищает свойство объекта</brief>
-///     <details>
-///       Выбрасывает исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства объекта" />
-///     </args>
-///     <body>
+/**
+ * Очищает свойство объекта
+ * 
+ * @param string $property
+ */
   public function __unset($property) {
     switch ($property) {
       case 'container':
@@ -798,35 +706,27 @@ abstract class Templates_NestableTemplate extends Templates_CacheableTemplate {
         parent::__unset($property);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="render_nested" returns="string" stereotype="abstract">
-///     <brief>Возвращает конечный результат</brief>
-///     <args>
-///       <arg name="content" type="ArrayObject" default="null" brief="контент" />
-///     </args>
-///     <body>
+/**
+ * Возвращает конечный результат
+ * 
+ * @abstract
+ * @param ArrayObject $content
+ * @return string
+ */
   abstract protected function render_nested(ArrayObject $content = null);
-///     </body>
-///   </method>
 
-///   <method name="get_parms" returns="array" access="protected">
-///     <brief>Вовзращает параметры/переменные объекта</brief>
-///     <body>
+/**
+ * Вовзращает параметры/переменные объекта
+ * 
+ * @return array
+ */
   protected function get_parms() {
     return $this->container ?
       array_merge($this->container->get_parms(), $this->parms) :
       $this->parms; }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

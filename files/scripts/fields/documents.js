@@ -94,7 +94,7 @@ $(function() {
 			var button = $(this);
 			var el = button.parents('.field-attaches-row');
 			$form.__element = el;
-			uidialog.inline({
+			TAO.popup.type('uidialog', function(win) { win.inline({
 				content: $form,
 				width:'auto',
 				draggable: false,
@@ -153,7 +153,7 @@ $(function() {
 								}
 							}
 							TAO.fields.documents.submit(field);
-							uidialog.close({content: $form});
+							win.close({content: $form});
 							return false;
 						}
 					},
@@ -161,12 +161,12 @@ $(function() {
 						text: "Отмена",
 						click: function(e) {
 							e.preventDefault();
-							uidialog.close({content: $form});
+							win.close({content: $form});
 							return false;
 						}
 					}
 				]
-			});
+			})});
 			return false;
 		});
 	}

@@ -1,17 +1,21 @@
 <?php
-/// <module name="CMS.Controller" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.Controller
+ * 
+ * @package CMS\Controller
+ * @version 0.0.0
+ */
 Core::load('CMS.Controller.Base');
 Core::load('CMS.PageNavigator');
 
 
-/// <class name="CMS.Controller" stereotype="module" extends="CMS.Controller.Base">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package CMS\Controller
+ */
 class CMS_Controller extends CMS_Controller_Base implements Core_ModuleInterface {
 
-///   <constants>
 	const MODULE  = 'CMS.Controller';
 	const VERSION = '0.0.0';
-///   </constants>
 
 	public $name;
 	public $mapper;
@@ -35,10 +39,10 @@ class CMS_Controller extends CMS_Controller_Base implements Core_ModuleInterface
 		parent::__construct($env, $application);
 	}
 
-///   <protocol name="creating">
 
-///   <method name="setup" returns="CMS.Controller">
-///     <body>
+/**
+ * @return CMS_Controller
+ */
 	public function setup() {
 		$name = CMS::$current_component_name;
 		$this->name = $name;
@@ -53,21 +57,16 @@ class CMS_Controller extends CMS_Controller_Base implements Core_ModuleInterface
 		if (CMS::$print_version || (is_object($this->env->pdf) && $this->env->pdf->active)) $this->use_layout(CMS::$print_layout);
 		return $this;
 	}
-///     </body>
-///   </method>
-
-
-///   </protocol>
 
 
 
-///   <protocol name="performing">
 
-///   <method name="run_commands" returns="CMS.Controller">
-///     <args>
-///       <arg name="reciever" type="string" />
-///     </args>
-///     <body>
+
+
+/**
+ * @param string $reciever
+ * @return CMS_Controller
+ */
 	protected function run_commands($chapter) {
 		if (!isset(CMS::$commands[$chapter])) return $this;
 		$r = Core_Types::reflection_for($this);
@@ -78,16 +77,13 @@ class CMS_Controller extends CMS_Controller_Base implements Core_ModuleInterface
 		}
 		return $this;
 	}
-///     </body>
-///   </method>
 
 
-///   </protocol>
 
 
-/// <protocol name="obsolete">
-///   <method name="make_uri" returns="string" varargs="true">
-///     <body>
+/**
+ * @return string
+ */
 	public function make_uri() {
 		$args = func_get_args();
 		if (!$this->make_uri_method) {
@@ -95,16 +91,14 @@ class CMS_Controller extends CMS_Controller_Base implements Core_ModuleInterface
 		}
 		return $this->make_uri_method->invokeArgs(CMS::$current_mapper,$args);
 	}
-///     </body>
-///   </method>
 
-/// </protocol>
 
 }
-/// </class>
 
 
-/// <class name="CMS.Mapper" extends="WebKit.Controller.AbstractMapper">
+/**
+ * @package CMS\Controller
+ */
 class CMS_Mapper extends WebKit_Controller_AbstractMapper {
 
 	protected $active_controller;
@@ -112,13 +106,11 @@ class CMS_Mapper extends WebKit_Controller_AbstractMapper {
 	protected $path_prefix;
 	protected $request;
 
-///   <protocol name="processing">
 
-///   <method name="clean_url" returns="string">
-///     <args>
-///       <arg name="url" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $url
+ * @return string
+ */
 	public function clean_url($uri) {
 		$uri = parent::clean_url($uri);
 		$pp = CMS::$print_prefix;
@@ -130,36 +122,29 @@ class CMS_Mapper extends WebKit_Controller_AbstractMapper {
 		}
 		return $uri;
 	}
-///     </body>
-///   </method>
 
-///   <method name="controllers" returns="iterable">
-///     <body>
+/**
+ * @return iterable
+ */
 	public function controllers() {
 		return $this->controllers;
 	}
-///     </body>
-///   </method>
 
-///   <method name="admin_path_replace" returns="string">
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ * @return string
+ */
 	protected function admin_path_replace($path) {
 		$path = str_replace('{admin}',CMS_admin::path(),$path);
 		$path = preg_replace_callback('/\{admin:([^}]+)\}/',array($this,'admin_path_replace_cb'),$path);
 		return $path;
 	}
-///     </body>
-///   </method>
 
 
-///   <method name="route" returns="WebKit.Controller.Route">
-///     <args>
-///       <arg name="request" type="WebKit.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @param WebKit_HTTP_Request $request
+ * @return WebKit_Controller_Route
+ */
 	public function route($request) {
 		$this->request = $request;
 		$uri = $this->clean_url($request->urn);
@@ -234,20 +219,15 @@ class CMS_Mapper extends WebKit_Controller_AbstractMapper {
 		}
 		return false;
 	}
-///     </body>
-///   </method>
-
-///   </protocol>
 
 
-///   <protocol name="performing">
 
-///   <method name="admin_url" returns="string">
-///     <args>
-///       <arg name="param1" type="string" default="" />
-///       <arg name="param1" type="string" default="" />
-///     </args>
-///     <body>
+
+/**
+ * @param string $param1
+ * @param string $param1
+ * @return string
+ */
 	public function admin_url($p1='',$p2='') {
 		$url = $this->path_prefix;
 		$p1 = trim($p1);
@@ -256,34 +236,24 @@ class CMS_Mapper extends WebKit_Controller_AbstractMapper {
 		if ($p2!='') $url .= $p2;
 		return $url;
 	}
-///     </body>
-///   </method>
 
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="admin_path_replace_cb" returns="string">
-///     <args>
-///       <arg name="matches" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $matches
+ * @return string
+ */
 	protected function admin_path_replace_cb($m) {
 		return CMS::admin_path(trim($m[1]));
 	}
-///     </body>
-///   </method>
 
 
-///   </protocol>
 
 
 
 }
-/// </class>
 
 class CMS_Router extends CMS_Mapper {}
 
 
-/// </module>

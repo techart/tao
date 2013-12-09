@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\ORM\EntityAttrsDiscover
+ */
+
 
 class CMS_ORM_EntityAttrsDiscover implements Core_ModuleInterface
 {

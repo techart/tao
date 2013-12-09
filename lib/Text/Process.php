@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Process
+ */
+
 
 class Text_Process implements Core_ModuleInterface /*Core_ConfigurableModuleInterface*/ {
   const VERSION = '0.1.0';

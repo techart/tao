@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Admin\Mapper
+ */
+
 
 class CMS_Vars2_Admin_Mapper extends CMS_Mapper implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

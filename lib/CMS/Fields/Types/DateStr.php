@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\DateStr
+ */
+
 
 Core::load('Time');
 

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Core\Loader\Extended
+ */
+
 
 class Core_Loader_Extended implements Core_ModuleInterface {
   const VERSION = '0.1.0';

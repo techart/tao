@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Protect
+ */
+
 
 class CMS_Fields_Types_Protect extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Type\WIKI
+ */
+
 Core::load('CMS.Vars2.Type.String');
 
 class CMS_Vars2_Type_WIKI extends CMS_Vars2_Type_String implements Core_ModuleInterface

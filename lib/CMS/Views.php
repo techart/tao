@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Views
+ */
+
 
 Core::load('Templates.HTML');
 

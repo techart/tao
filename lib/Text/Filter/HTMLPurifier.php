@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Filter\HTMLPurifier
+ */
+
 
 Core::load('Text.Process');
 

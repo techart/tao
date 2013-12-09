@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\SQLProfiler
+ */
+
 
 class CMS_SQLProfiler implements Core_ModuleInterface {
 

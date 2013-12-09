@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\FrontTable
+ */
+
 
 Core::load('CMS.Controller.Table');
 
@@ -33,8 +37,10 @@ class CMS_Controller_FrontTable extends CMS_Controller_Table implements Core_Mod
 		return parent::action_edit();
 	}
 
-	protected function action_view() {
-		$item = $this->load($this->id);
+	public function action_view($item=false) {
+		if (!$item) {
+			$item = $this->load($this->id);
+		}
 		if (!$item) {
 			return $this->page_not_found();
 		}

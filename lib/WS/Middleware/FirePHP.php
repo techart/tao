@@ -1,65 +1,60 @@
 <?php
-/// <module name="WS.Middleware.FirePHP" version="0.1.0" maintainer="svistunov@techart.ru">
+/**
+ * WS.Middleware.FirePHP
+ * 
+ * @package WS\Middleware\FirePHP
+ * @version 0.1.0
+ */
 Core::load('WS', 'Log');
 
-/// <class name="WS.Middleware.FirePHP" stereotype="module">
-///   <brief>Класс модуля</brief>
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * Класс модуля
+ * 
+ * @package WS\Middleware\FirePHP
+ */
 class WS_Middleware_FirePHP implements Core_ModuleInterface {
 
-///   <constants>
   const VERSION = '0.1.0';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Service" returns="WS.Middleware.FirePHP.Service" scope="class">
-///     <brief>Создает объект класса WS.Middleware.FirePHP.Service</brief>
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///       <arg name="Log_level" type="Log.Level" defaults="0" brief="уровень выводимых логов " />
-///     </args>
-///     <body>
+/**
+ * Создает объект класса WS.Middleware.FirePHP.Service
+ * 
+ * @param WS_ServiceInterface $application
+ * @param Log_Level $Log_level
+ * @return WS_Middleware_FirePHP_Service
+ */
   static public function Service(WS_ServiceInterface $application, $Log_level = 0) {
     return new WS_Middleware_FirePHP_Service($application, $log_level);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="WS.Middleware.FirePHP.Service" extends="WS.MiddlewareService">
+/**
+ * @package WS\Middleware\FirePHP
+ */
 class WS_Middleware_FirePHP_Service extends WS_MiddlewareService {
 
   protected $log_level;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="application" type="WS.ServiceInterface" brief="объект приложения" />
-///       <arg name="Log_level" type="Log.Level" defaults="0" brief="уровень выводимых логов " />
-///     </args>
-///     <body>
+/**
+ * @param WS_ServiceInterface $application
+ * @param Log_Level $Log_level
+ */
   public function __construct(WS_ServiceInterface $application, $log_level = 0) {
     $this->log_level = $log_level;
     parent::__construct($application);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="mixed">
-///     <brief>Выполняет обработку запроса</brief>
-///     <args>
-///       <arg name="env" type="WS.Environment" brief="объект окружения" />
-///     </args>
-///     <body>
+/**
+ * Выполняет обработку запроса
+ * 
+ * @param WS_Environment $env
+ * @return mixed
+ */
   public function run(WS_Environment $env) {
     $handler = Log_FirePHP::Handler();
     $handler->where('level', '>=', $this->log_level);
@@ -68,11 +63,6 @@ class WS_Middleware_FirePHP_Service extends WS_MiddlewareService {
     $handler->dump($response);
     return $response;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

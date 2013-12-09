@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Type\Dir
+ */
+
 
 class CMS_Vars2_Type_Dir extends CMS_Var implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

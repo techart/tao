@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Email
+ */
+
 
 class CMS_Fields_Types_Email extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 	

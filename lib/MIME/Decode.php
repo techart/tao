@@ -1,31 +1,31 @@
 <?php
-/// <module name="MIME.Decode" version="0.2.0" maintainer="timokhin@techart.ru">
-///   <brief>Модуль для Base64 и Quoted-Printable  декодирования</brief>
+/**
+ * MIME.Decode
+ * 
+ * Модуль для Base64 и Quoted-Printable  декодирования
+ * 
+ * @package MIME\Decode
+ * @version 0.2.0
+ */
 Core::load('MIME');
 
-/// <class name="MIME.Decode" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="MIME" stereotype="uses" />
-///   <depends supplier="MIME.Decode.Base64Decoder" stereotype="creates" />
-///   <depends supplier="MIME.Decode.QuotedPrintableDecoder" stereotype="creates" />
-///   <depends supplier="MIME.Decode.EightBitDecoder" stereotype="creates" />
+/**
+ * @package MIME\Decode
+ */
 class MIME_Decode implements Core_ModuleInterface {
 
-///   <constants>
   const MODULE  = 'MIME.Decode';
   const VERSION = '0.2.0';
   const BASE64_CHUNK_SIZE = 32768;
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="decoder" returns="IO.Stream.AbstractDecoder" scope="class">
-///     <brief>Возвращает декодировщик соответствующий $encoding</brief>
-///     <args>
-///       <arg name="encoding" type="string" brief="тип кодирования" />
-///       <arg name="stream"   type="IO.Stream.AbstractStream" default="null" brief="поток" />
-///     </args>
-///     <body>
+/**
+ * Возвращает декодировщик соответствующий $encoding
+ * 
+ * @param string $encoding
+ * @param IO_Stream_AbstractStream $stream
+ * @return IO_Stream_AbstractDecoder
+ */
   static public function decoder($encoding, IO_Stream_AbstractStream $stream = null) {
     switch ($encoding) {
       case MIME::ENCODING_B64:
@@ -37,41 +37,36 @@ class MIME_Decode implements Core_ModuleInterface {
         return new MIME_Decode_EightBitDecoder($stream);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="Base64Decoder" returns="MIME.Decode.Base64Decoder" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса MIME.Decode.Base64Decoder</brief>
-///     <args>
-///       <arg name="stream"   type="IO.Stream.AbstractStream" default="null" brief="входной поток" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса MIME.Decode.Base64Decoder
+ * 
+ * @param IO_Stream_AbstractStream $stream
+ * @return MIME_Decode_Base64Decoder
+ */
   static public function Base64Decoder(IO_Stream_AbstractStream $stream = null) {
     return new MIME_Decode_Base64Decoder($stream);
   }
-///     </body>
-///   </method>
 
-///   <method name="QuotedPrintableDecoder" returns="MIME.Decode.QuoterPrintableDecoder" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса MIME.Decode.QuoterPrintableDecoder</brief>
-///     <args>
-///       <arg name="stream"   type="IO.Stream.AbstractStream" default="null" brief="входной поток" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса MIME.Decode.QuoterPrintableDecoder
+ * 
+ * @param IO_Stream_AbstractStream $stream
+ * @return MIME_Decode_QuoterPrintableDecoder
+ */
   static public function QuotedPrintableDecoder(IO_Stream_AbstractStream $stream = null) {
     return new MIME_Decode_QuotedPrintableDecoder($stream);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="MIME.Decode.AbstractDecoder" stereotype="abstract">
-///   <brief>Абстрактный класс декодировщика</brief>
-///   <depends supplier="IO.Stream.AbstractStream" stereotype="uses" />
+/**
+ * Абстрактный класс декодировщика
+ * 
+ * @abstract
+ * @package MIME\Decode
+ */
 abstract class MIME_Decode_AbstractDecoder implements Iterator {
 
   protected $stream;
@@ -83,154 +78,135 @@ abstract class MIME_Decode_AbstractDecoder implements Iterator {
 
   protected $is_last_part = false;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="input" type="IO_Stream_AbstractStream" brief="входной поток" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param IO_Stream_AbstractStream $input
+ */
   public function __construct(IO_Stream_AbstractStream $stream = null) {
     if ($stream) $this->from_stream($stream);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="with_boundary" returns="MIME.Decode.AbstractDecoder">
-///     <brief>Устанавливает границу</brief>
-///     <body>
+/**
+ * Устанавливает границу
+ * 
+ * @return MIME_Decode_AbstractDecoder
+ */
   public function with_boundary($boundary) {
     $this->boundary = (string) $boundary;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="from_stream" returns="MIME.Decode.AbstractDecoder">
-///     <brief>Устанавливает входной поток</brief>
-///     <args>
-///       <arg name="stream" type="IO.Stream.AbstractStream" brief="поток" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает входной поток
+ * 
+ * @param IO_Stream_AbstractStream $stream
+ * @return MIME_Decode_AbstractDecoder
+ */
   public function from_stream(IO_Stream_AbstractStream $stream) {
     $this->stream = $stream;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
 
-///   <method name="is_last_part" returns="boolean">
-///     <brief>Проверяет евляется ли текущая часть письма последней</brief>
-///     <body>
+/**
+ * Проверяет евляется ли текущая часть письма последней
+ * 
+ * @return boolean
+ */
   public function is_last_part() { return $this->is_last_part; }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating">
 
-///   <method name="rewind">
-///     <brief>сбрасывает итератор на начало</brief>
-///     <body>
+/**
+ * сбрасывает итератор на начало
+ * 
+ */
   public function rewind() {
     $this->is_last_part = false;
     $this->count = 0;
     $this->next();
   }
-///     </body>
-///   </method>
 
-///   <method name="current" returns="string">
-///     <brief>Возвращает текущий элемент итератора</brief>
-///     <body>
+/**
+ * Возвращает текущий элемент итератора
+ * 
+ * @return string
+ */
   public function current() {
     return $this->current;
   }
-///     </body>
-///   </method>
 
-///   <method name="valid" returns="boolean">
-///     <brief>Проверяет валидность текущего элемента итератора</brief>
-///     <body>
+/**
+ * Проверяет валидность текущего элемента итератора
+ * 
+ * @return boolean
+ */
   public function valid() { return $this->current !== null; }
-///     </body>
-///   </method>
 
-///   <method name="key" returns="int">
-///     <brief>Возвращает ключ текущего элемента итератора</brief>
-///     <body>
+/**
+ * Возвращает ключ текущего элемента итератора
+ * 
+ * @return int
+ */
   public function key() { return $this->count; }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="processing">
 
-///   <method name="to_stream" returns="MIME.Decode.AbstractDecoder">
-///     <brief>Устанавливает выходной поток</brief>
-///     <args>
-///       <arg name="stream" type="IO.Stream.AbstractStream" brief="поток" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает выходной поток
+ * 
+ * @param IO_Stream_AbstractStream $stream
+ * @return MIME_Decode_AbstractDecoder
+ */
   public function to_stream(IO_Stream_AbstractStream $stream) {
     foreach ($this as $chunk) $stream->write($chunk);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="to_temporary_stream" returns="IO.Stream.TemporaryStream">
-///     <brief>Устанавливает выходной поток во временный фаил</brief>
-///     <body>
+/**
+ * Устанавливает выходной поток во временный фаил
+ * 
+ * @return IO_Stream_TemporaryStream
+ */
   public function to_temporary_stream() {
     $this->to_stream($stream = IO_Stream::TemporaryStream());
     return $stream;
   }
-///     </body>
-///   </method>
 
-///   <method name="to_string" returns="string">
-///     <brief>Возвращает весь разкодированный текст</brief>
+/**
+ * Возвращает весь разкодированный текст
+ * 
+ * @return string
+ */
 //TODO: если есть to_string чтобы не добавить Core_StringifyInterface
-///     <body>
   public function to_string() {
     $result = '';
     foreach ($this as $chunk) $result .= $chunk;
     return $result;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="is_boundary" returns="boolean" access="protected">
-///     <brief>Проверяет является ли $lien границей письма</brief>
-///     <args>
-///       <arg name="line" type="string" brief="строка" />
-///     </args>
-///     <body>
+/**
+ * Проверяет является ли $lien границей письма
+ * 
+ * @param string $line
+ * @return boolean
+ */
   protected function is_boundary($line) {
     return ($this->boundary && Core_Regexps::match("{^--{$this->boundary}(?:--)?\n\r?$}", $line));
   }
-///     </body>
-///   </method>
 
-///   <method name="read_line" returns="string" access="protected">
-///     <brief>Считывает строку из входного потока</brief>
-///     <body>
+/**
+ * Считывает строку из входного потока
+ * 
+ * @return string
+ */
   protected function read_line() {
     if ($this->stream->eof()) {
       $this->is_last_part = true;
@@ -245,25 +221,24 @@ abstract class MIME_Decode_AbstractDecoder implements Iterator {
     }
    return $line;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="MIME.Decode.Base64Decoder" extends="MIME.Decode.AbstractDecoder">
-///   <brief>Base64 декодировщик</brief>
+/**
+ * Base64 декодировщик
+ * 
+ * @package MIME\Decode
+ */
 class MIME_Decode_Base64Decoder extends MIME_Decode_AbstractDecoder {
 
   protected $buffer = '';
 
-///   <protocol name="iterating">
 
-///   <method name="next">
-///     <brief>Возвращает следующий элемент итератора</brief>
-///     <body>
+/**
+ * Возвращает следующий элемент итератора
+ * 
+ */
   public function next() {
     while (($line = $this->read_line()) !== null) {
       $this->buffer .= Core_Regexps::replace('{[^a-zA-Z0-9+/]}', '', $line);
@@ -286,53 +261,46 @@ class MIME_Decode_Base64Decoder extends MIME_Decode_AbstractDecoder {
       $this->count++;
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="MIME.Decode.QuotedPrintableDecoder" extends="MIME.Decode.AbstractDecoder">
-///   <brief>QuotedPrintable декодировщик</brief>
+/**
+ * QuotedPrintable декодировщик
+ * 
+ * @package MIME\Decode
+ */
 class MIME_Decode_QuotedPrintableDecoder extends MIME_Decode_AbstractDecoder {
 
-///   <protocol name="iterating">
 
-///   <method name="next">
-///     <brief>Возвращает следующий элемент итератора</brief>
-///     <body>
+/**
+ * Возвращает следующий элемент итератора
+ * 
+ */
   public function next() {
     $this->current = ($line = $this->read_line()) === null ?
       null : MIME::decode_qp($line);
     $this->count++;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="MIME.Decode.EightBitDecoder" extends="MIME.Decode.AbstractDecoder">
-///   <brief>EightBit декодировщик</brief>
+/**
+ * EightBit декодировщик
+ * 
+ * @package MIME\Decode
+ */
 class MIME_Decode_EightBitDecoder extends MIME_Decode_AbstractDecoder {
 
-///   <protocol name="iterating">
 
-///   <method name="next">
-///     <brief>Возвращает следующий элемент итератора</brief>
-///     <body>
+/**
+ * Возвращает следующий элемент итератора
+ * 
+ */
   public function next() {
     if (($this->current = $this->read_line()) !== null) $this->count++;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

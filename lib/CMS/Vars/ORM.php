@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars\ORM
+ */
+
 
 Core::load('CMS.ORM', 'WS', 'CMS.Vars.Fields');
 

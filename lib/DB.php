@@ -31,7 +31,8 @@ class DB implements Core_ConfigurableModuleInterface {
 		'error_handling_mode' => PDO::ERRMODE_EXCEPTION,
 		'collection_class'    => 'ArrayObject',
 		'charset'             => 'UTF8',
-		'row_class_field'     => '__class'
+		'row_class_field'     => '__class',
+		'time_zone' => false,
 	);
 
 	/**

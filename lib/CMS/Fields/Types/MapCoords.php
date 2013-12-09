@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\MapCoords
+ */
+
 
 Core::load('Templates.HTML.Maps');
 

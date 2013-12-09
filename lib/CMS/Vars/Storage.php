@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars\Storage
+ */
+
 
 Core::load('Storage.File.Export', 'CMS.Vars.Fields');
 

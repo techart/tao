@@ -1,81 +1,65 @@
 <?php
-/// <module name="OpenId" maintainer="svistunov@techart.ru" version="0.1.0">
+/**
+ * OpenId
+ * 
+ * @package OpenId
+ * @version 0.1.0
+ */
 Core::load('Net.HTTP', 'XML');
 
-/// <class name="OpenId" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package OpenId
+ */
 class OpenId implements Core_ModuleInterface {
-///   <constants>
   const VERSION = '0.1.0';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Client" scope="static" returns="OpenId.Client">
-///     <args>
-///       <arg name="request" type="Net.HTTP.Request" />
-///       <arg name="agent" type="mixed" default = null />
-///     </args>
-///     <body>
+/**
+ * @param Net_HTTP_Request $request
+ * @param mixed $agent
+ * @return OpenId_Client
+ */
   static function Client($request = null, $agent = null) {
     return new  OpenId_Client($request, $agent);
   }
-///     </body>
-///   </method>
 
-///   <method name="Version1" scope="static" return="OpenId.Version1">
-///     <body>
+/**
+ */
   static function Version1() {
     return new OpenId_Version1();
   }
-///     </body>
-///   </method>
 
-///   <method name="Version2" scope="static" return="OpenId.Version2">
-///     <body>
+/**
+ */
   static function Version2() {
     return new OpenId_Version2();
   }
-///     </body>
-///   </method>
 
-///   <method name="YadisDiscover" scope="static" return="OpenId.YadisDiscover">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="url" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param OpenId_Client $client
+ * @param string $url
+ */
   static function YadisDiscover(OpenId_Client $client, $url) {
     return new OpenId_YadisDiscover($client, $url);
   }
-///     </body>
-///   </method>
 
-///   <method name="YadisDiscover" scope="static" return="OpenId.YadisDiscover">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="url" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param OpenId_Client $client
+ * @param string $url
+ */
   static function HtmlDiscover(OpenId_Client $client, $url) {
     return new OpenId_HtmlDiscover($client, $url);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="parse_html">
-///     <args>
-///       <arg name="content" type="string" />
-///       <arg name="tag" type="string" />
-///       <arg name="attr_name" type="string" />
-///       <arg name="attr_value" type="string" />
-///       <arg name="value_name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $content
+ * @param string $tag
+ * @param string $attr_name
+ * @param string $attr_value
+ * @param string $value_name
+ */
   static function parse_html($content, $tag, $attr_name, $attr_value, $value_name) {
     //TODO: оптимайз
     preg_match_all("#<{$tag}[^>]*$attr_name=['\"].*?$attr_value.*?['\"][^>]*$value_name=['\"](.+?)['\"][^>]*/?>#i", $content, $matches1);
@@ -83,21 +67,18 @@ class OpenId implements Core_ModuleInterface {
     $result = array_merge($matches1[1], $matches2[1]);
     return empty($result) ? false : $result[0];
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// <class name="OpenId_Exception" extends="Core.Exception">
+/**
+ * @package OpenId
+ */
 class OpenId_Exception extends Core_Exception {}
-/// </class>
 
-/// <class name="OpenID.Client" >
-///   <implements interface="Core.PropertyAccessInterface" />
-///   <implements interface="Core.CallInterface" />
+/**
+ * @package OpenId
+ */
 class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface {
   protected $request;
   protected $agent;
@@ -122,14 +103,11 @@ class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface 
   private $server;
   protected $is_valid = false;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="request" type="Net.HTTP.Request|null" default="null"  />
-///       <arg name="agent" type="mixed" default = null />
-///     </args>
-///     <body>
+/**
+ * @param Net_HTTP_Request|null $request
+ * @param mixed $agent
+ */
   public function __construct($request = null, $agent = null) {
     if ($request instanceof Net_HTTP_Request)
       $this->request($request)->
@@ -138,108 +116,76 @@ class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface 
     $this->params['ax'] = new OpenId_AxParams();
     $this->params['sreg'] = new OpenId_SregParams();
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="add_params_entity">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="object" type="OpenId.Params" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param OpenId_Params $object
+ */
   public function add_params_entity($name, OpenId_Params $object) {
     $this->params[$name] = $object;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="required_params">
-///     <args>
-///       <arg name="names" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $names
+ */
   public function required_params(array $names) {
     $this->required = array_merge($this->required, $names);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="optional_params">
-///     <args>
-///       <arg name="names" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $names
+ */
   public function optional_params(array $names) {
     $this->optional = array_merge($this->optional, $names);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="param">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="schema" type="string" default="''" />
-///       <arg name="required" type="boolean" default="true" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $schema
+ * @param boolean $required
+ */
   public function param($name, $schema = '', $required = true, $prefix = null) {
     $type = $required ? 'required' : 'optional';
     $this->{$type}[$name] = $schema ? $schema : $name;
     if (!is_null($prefix)) $this->params_prefix[$name] = $prefix;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="p">
-///     <body>
+/**
+ */
   public function p() {
     $args = func_get_args();
     return call_user_func_array(array($this, 'param'), $args);
   }
-///     </body>
-///   </method>
 
-///   <method name="option">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="value" type="mixed" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param mixed $value
+ */
   public function option($name, $value = null) {
     if (is_null($value))
       return $this->options[$name];
     $this->options[$name] = $value;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="options">
-///     <args>
-///       <arg name="values" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $values
+ */
   public function options($values = array()) {
     foreach ($values as $name => $value)
       $this->options($name, $value);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="request">
-///     <args>
-///       <arg name="request" type="Net.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @param Net_HTTP_Request $request
+ */
   public function request(Net_HTTP_Request $request) {
     $this->request = $request;
     $this->option('trust_root', $p = $request->scheme.'://'.$request->host);
@@ -247,18 +193,13 @@ class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface 
       $this->option('return_url', $p.$url);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch(true) {
       case in_array($property,
@@ -274,15 +215,12 @@ class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface 
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch(true) {
       case in_array($property, array('identity', 'claimed_id')):
@@ -315,41 +253,29 @@ class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface 
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     return in_array($property, array('server', 'version', 'agent', 'identity', 'params_prefix',
                 'claimed_id', 'required', 'optional', 'params', 'identifier_select'));
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) {
     return $this->__set($property, null);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing" access="propected">
 
-///   <method name="discover" returns="string">
-///     <args>
-///       <arg name="url" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $url
+ * @return string
+ */
   protected function discover($url) {
     if (!preg_match('{^https?:}', $url))
       $url = "https://xri.net/$url";
@@ -366,26 +292,21 @@ class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface 
         throw new OpenId_Exception("Server can't be found");
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="redirect">
-///     <args>
-///       <arg name="identity" type="string" />
-///       <arg name="identifier_select" type="boolean" default="false" />
-///     </args>
-///     <body>
+/**
+ * @param string $identity
+ * @param boolean $identifier_select
+ */
   public function redirect($identity, $identifier_select = false) {
     $this->identity = $this->claimed_id = $this->normalize_identity($identity);
     if (!$this->server || !$this->version)
       $this->discover($this->identity);
     return $this->version->redirect($this, $identifier_select ? $identifier_select : $this->identifier_select);
   }
-///     </body>
-///   </method>
 
-///   <method name="validate" returns="boolean">
-///     <body>
+/**
+ * @return boolean
+ */
   public function validate() {
     $this->claimed_id = isset($this->request['openid_claimed_id']) ?
       $this->request['openid_claimed_id']: $this->request['openid_identity'];
@@ -408,27 +329,21 @@ class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface 
     );
     return $this->is_valid = preg_match('/is_valid\s*:\s*true/i', $response->body);
   }
-///     </body>
-///   </method>
 
-///   <method name="retrieve_params" returns="array">
-///     <body>
+/**
+ * @return array
+ */
   public function retrieve_params() {
     if ($this->version && $this->is_valid)
       return $this->version->retrieve_params($this, $this->request);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="normalize_identity" returns="string" >
-///     <args>
-///       <arg name="value" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $value
+ * @return string
+ */
   private function normalize_identity($value) {
     if (strlen($value = trim($value))) {
       if (preg_match('{^xri:/*}i', $value, $m)) {
@@ -442,77 +357,58 @@ class OpenID_Client implements Core_PropertyAccessInterface, Core_CallInterface 
     }
     return $value;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling">
 
-///   <method name="__call">
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param string $method
+ * @param array $args
+ */
   public function __call($method, $args) {
     $this->__set($method, count($args) > 1 ? $args : $args[0]);
     return $this;
   }
-///     </body>
-////  </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="OpenId.Version" stereotype="abstract" >
+/**
+ * @abstract
+ * @package OpenId
+ */
 abstract class OpenId_Version {
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <body>
+/**
+ */
   public function __construct() {}
-///     </body>
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="redirect" stereotype="abstract">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="identifier_select" type="boolean" default="false" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param OpenId_Client $client
+ * @param boolean $identifier_select
+ */
   abstract public function redirect(OpenId_Client $client, $identifier_select = false);
-///     </body>
-///   </method>
 
-///   <method name="retrieve_params" stereotype="abstract">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="request" type="Net.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param OpenId_Client $client
+ * @param Net_HTTP_Request $request
+ */
   abstract public function retrieve_params(OpenId_Client $client, Net_HTTP_Request $request);
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="OpenId.Version1" extends="OpenId.Version" >
+/**
+ * @package OpenId
+ */
 class OpenId_Version1 extends OpenId_Version {
-///   <protocol name="performing">
 
-///   <method name="redirect" stereotype="abstract">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="identifier_select" type="boolean" default="false" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param OpenId_Client $client
+ * @param boolean $identifier_select
+ */
   public function redirect(OpenId_Client $client, $identifier_select = false) {
     $return_url = $client->option('return_url').($client->identity != $client->claimed_id ?
       ((strpos($client->option('return_url'), '?') ? '&' : '?').'openid.claimed_id='.$client->claimed_id) : '');
@@ -526,35 +422,28 @@ class OpenId_Version1 extends OpenId_Version {
       $params = array_merge($params, $client->sreg_params->build($client->required, $client->optional, $client));
     return Net_HTTP::redirect_to(Net_HTTP::Request($client->server)->parameters($params)->url);
   }
-///     </body>
-///   </method>
 
-///   <method name="retrieve_params" stereotype="abstract">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="request" type="Net.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param OpenId_Client $client
+ * @param Net_HTTP_Request $request
+ */
   public function retrieve_params(OpenId_Client $client, Net_HTTP_Request $request) {
     return $client->sreg_params->retrieve($request, $client);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="OpenId.Version2" extends="OpenId.Version" >
+/**
+ * @package OpenId
+ */
 class OpenId_Version2 extends OpenId_Version {
-///   <protocol name="performing">
 
-///   <method name="redirect" stereotype="abstract">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="identifier_select" type="boolean" default="false" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param OpenId_Client $client
+ * @param boolean $identifier_select
+ */
   public function redirect(OpenId_Client $client, $identifier_select = false) {
     //TODO: в константы
     $id_select = 'http://specs.openid.net/auth/2.0/identifier_select';
@@ -576,69 +465,57 @@ class OpenId_Version2 extends OpenId_Version {
         $params = array_merge($params, $p->build($client->required, $client->optional, $client));
     return Net_HTTP::redirect_to(Net_HTTP::Request($client->server)->parameters($params)->url);
   }
-///     </body>
-///   </method>
 
-///   <method name="retrieve_params" stereotype="abstract">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="request" type="Net.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param OpenId_Client $client
+ * @param Net_HTTP_Request $request
+ */
   public function retrieve_params(OpenId_Client $client, Net_HTTP_Request $request) {
     $res = array();
     foreach ($client->params as $name => $p)
       $res += $p->retrieve($request, $client);
     return $res;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="OpenId.Discover" stereotype="abstract" >
+/**
+ * @abstract
+ * @package OpenId
+ */
 abstract class OpenId_Discover {
   protected $client;
   protected $url;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="client" type="OpenId.Client" />
-///       <arg name="url" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param OpenId_Client $client
+ * @param string $url
+ */
   public function __construct(OpenId_Client $client, $url) {
     $this->client = $client;
     $this->url = $url;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="search" stereotype="abstract">
-///     <body>
+/**
+ * @abstract
+ */
   abstract public function search();
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="OpenId.YadisDiscover" extends="OpenId.Discover" >
+/**
+ * @package OpenId
+ */
 class OpenId_YadisDiscover extends OpenId_Discover {
 
-///   <protocol name="performing">
 
-///   <method name="search" stereotype="abstract">
-///     <body>
+/**
+ * @abstract
+ */
   public function search() {
     $res = $this->client->agent->send(Net_HTTP::Request($this->url));
     if (Core_Strings::starts_with($res->headers['Content-Type'], 'application/xrds+xml'))
@@ -649,18 +526,12 @@ class OpenId_YadisDiscover extends OpenId_Discover {
       return $this->parse($this->client->agent->send(Net_HTTP::Request($url))->body);
     return false;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="suppoerting" >
 
-///   <method name="parse" access="protected" >
-///     <args>
-///       <arg name="xrds" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $xrds
+ */
   protected function parse($xrds) {
     $xml = XML::load($xrds);
     if (count(XML::errors()) > 0)
@@ -679,28 +550,20 @@ class OpenId_YadisDiscover extends OpenId_Discover {
     $el = $l->item($index);
     return $this->parse_service($el);
   }
-///     </body>
-///   </method>
 
-///   <method name="parse_service" access="protected" retunrns="boolean">
-///     <args>
-///       <arg name="el" type="DOM_Element" />
-///     </args>
-///     <body>
+/**
+ * @param DOM_Element $el
+ */
   protected function parse_service($el) {
     if (!$this->parse_uri($el)) return false;
     $this->parse_type($el);
     $this->parse_delegate($el);
     return true;
   }
-///     </body>
-///   </method>
 
-///   <method name="parse_delegate" >
-///     <args>
-///       <arg name="el" type="DOM_Element" />
-///     </args>
-///     <body>
+/**
+ * @param DOM_Element $el
+ */
   protected function parse_delegate($el) {
     switch (true) {
       case $this->client->version instanceof OpenId_Version1:
@@ -714,14 +577,10 @@ class OpenId_YadisDiscover extends OpenId_Discover {
     if ($ids->length > 0)
       $this->client->identity = $ids->item(0)->textContent;
   }
-///     </body>
-///   </method>
 
-///   <method name="parse_type" access="protected">
-///     <args>
-///       <arg name="el" type="DOM_Element" />
-///     </args>
-///     <body>
+/**
+ * @param DOM_Element $el
+ */
   protected function parse_type($el) {
     foreach ($el->getElementsByTagName('Type') as $t) {
       $value = $t->textContent;
@@ -750,14 +609,10 @@ class OpenId_YadisDiscover extends OpenId_Discover {
       }
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="parse_uri" access="protected">
-///     <args>
-///       <arg name="el" type="DOM_Element" />
-///     </args>
-///     <body>
+/**
+ * @param DOM_Element $el
+ */
   protected function parse_uri($el) {
     $uri_elements = $el->getElementsByTagName('URI');
     if ($uri_elements->length == 0) return false;
@@ -766,20 +621,18 @@ class OpenId_YadisDiscover extends OpenId_Discover {
     $this->client->server = $server;
     return true;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// <class name="OpenId.HtmlDiscover" extends="OpenId.Discover" >
+/**
+ * @package OpenId
+ */
 class OpenId_HtmlDiscover extends OpenId_Discover {
-///   <protocol name="performing">
 
-///   <method name="search" stereotype="abstract">
-///     <body>
+/**
+ * @abstract
+ */
   public function search() {
     $content = $this->client->agent->send(Net_HTTP::Request($this->url))->body;
     foreach (array(
@@ -797,71 +650,53 @@ class OpenId_HtmlDiscover extends OpenId_Discover {
     }
     return false;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 // http://www.axschema.org/types/
 
-/// <class name="OpenId.Params" stereotype="abstract" >
+/**
+ * @abstract
+ * @package OpenId
+ */
 abstract class OpenId_Params {
-///   <protocol name="performing">
 
-///   <method name="build" stereotype="absract" >
-///     <args>
-///       <arg name="required" type="array" />
-///       <arg name="optional" type="array" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * @param array $required
+ * @param array $optional
+ * @param OpenId_Client $client
+ */
   abstract public function build($required, $optional, $client);
-///     <body>
-///   </method>
 
-///   <method name="retrieve" stereotype="abstract" >
-///     <args>
-///       <arg name="request" type="Net.HTTP.Request" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param Net_HTTP_Request $request
+ * @param OpenId_Client $client
+ */
   abstract public function retrieve(Net_HTTP_Request $request, OpenId_Client $client);
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="is_date" access="protected" >
-///     <args>
-///       <arg name="ax_name" type="string" />
-///       <arg name="value" type="mixed" />
-///     </args>
-///     <body>
+/**
+ * @param string $ax_name
+ * @param mixed $value
+ */
   protected function is_date($ax_name, $value) {
     return Core_Strings::ends_with($ax_name, 'Date') || Core_Strings::ends_with($ax_name, 'date');
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="OpenId.AxParams" extends="OpenId.Params" >
+/**
+ * @package OpenId
+ */
 class OpenId_AxParams extends OpenId_Params {
-///   <protocol name="performing">
 
-///   <method name="build" stereotype="absract" >
-///     <args>
-///       <arg name="required" type="array" />
-///       <arg name="optional" type="array" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * @param array $required
+ * @param array $optional
+ * @param OpenId_Client $client
+ */
   public function build($required, $optional, $client) {
     $params = array();
     if ($required || $optional) {
@@ -889,15 +724,12 @@ class OpenId_AxParams extends OpenId_Params {
     }
     return $params;
   }
-///     <body>
-///   </method>
 
-///   <method name="retrieve" stereotype="abstract" >
-///     <args>
-///       <arg name="request" type="Net.HTTP.Request" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param Net_HTTP_Request $request
+ * @param OpenId_Client $client
+ */
   public function retrieve(Net_HTTP_Request $request, OpenId_Client $client) {
     $alias = '';
     if (isset($request['openid.ns.ax']) &&
@@ -923,14 +755,12 @@ class OpenId_AxParams extends OpenId_Params {
           Time::DateTime($v) : $v);
     return $res;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="OpenId.SregParams" extends="OpenId.Params" >
+/**
+ * @package OpenId
+ */
 class OpenId_SregParams extends OpenId_Params {
 
    static protected $ax_to_sreg = array(
@@ -945,15 +775,12 @@ class OpenId_SregParams extends OpenId_Params {
         'pref/timezone'           => 'timezone'
         );
 
-///   <protocol name="performing">
 
-///   <method name="build" stereotype="absract" >
-///     <args>
-///       <arg name="required" type="array" />
-///       <arg name="optional" type="array" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * @param array $required
+ * @param array $optional
+ * @param OpenId_Client $client
+ */
   public function build($required = array(), $optional = array(), $client) {
     $params = array();
     if ($required || $optional) $params['openid.ns.sreg'] =
@@ -963,15 +790,12 @@ class OpenId_SregParams extends OpenId_Params {
         $params['openid.sreg.'.$type] = implode(',', $this->build_part($$type));
     return $params;
   }
-///     <body>
-///   </method>
 
-///   <method name="retrieve" stereotype="abstract" >
-///     <args>
-///       <arg name="request" type="Net.HTTP.Request" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param Net_HTTP_Request $request
+ * @param OpenId_Client $client
+ */
   protected function build_part($names) {
     $vals = array();
     foreach ($names as $n) {
@@ -980,15 +804,12 @@ class OpenId_SregParams extends OpenId_Params {
     }
     return $vals;
   }
-///     <body>
-///   </method>
 
-///   <method name="retrieve" stereotype="abstract" >
-///     <args>
-///       <arg name="request" type="Net.HTTP.Request" />
-///       <arg name="client" type="OpenId.Client" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param Net_HTTP_Request $request
+ * @param OpenId_Client $client
+ */
   public function retrieve(Net_HTTP_Request $request, OpenId_Client $client) {
     $values = array();
     $sreg_to_ax = array_flip(self::$ax_to_sreg);
@@ -1004,11 +825,6 @@ class OpenId_SregParams extends OpenId_Params {
       }
     return $values;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

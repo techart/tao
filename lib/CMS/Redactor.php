@@ -10,6 +10,8 @@
  * 
  */
 
+Core::load('CMS.Redactor.Helper');
+
 
 /**
  * Класс модуля CMS.Redactor

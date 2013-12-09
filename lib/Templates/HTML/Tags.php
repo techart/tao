@@ -1,25 +1,26 @@
 <?php
-/// <module name="WebKit.Helpers.Tags" version="1.0.0" maintainer="timokhin@techart.ru">
+/**
+ * WebKit.Helpers.Tags
+ * 
+ * @package Templates\HTML\Tags
+ * @version 1.0.0
+ */
 Core::load('Templates.HTML');
 
-/// <class name="WebKit.Helpers.Tags" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <implements interface="WebKit.Views.HelperInterface" />
+/**
+ * @package Templates\HTML\Tags
+ */
 class Templates_HTML_Tags implements Core_ModuleInterface, Templates_HelperInterface {
 
-///   <constants>
   const VERSION = '1.0.0';
-///   </constants>
 
-///   <protocol name="generating">
 
-///   <method name="tag" returns="string">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="attributes" type="array" default="array()" />
-///       <arg name="close" type="boolean" default="true" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param array $attributes
+ * @param boolean $close
+ * @return string
+ */
   public function tag($t, $name, array $attributes = array(), $close = true) {
     $tag = '<'.((string) $name);
 
@@ -27,16 +28,13 @@ class Templates_HTML_Tags implements Core_ModuleInterface, Templates_HelperInter
       if (!is_array($v)) $tag .= ($v === true ? " $k " : ( $v === false ? '' :  " $k=\"".htmlspecialchars($v).'"'));
     return $tag .= (boolean) $close ? ' />' : '>';
   }
-///     </body>
-///   </method>
 
-///   <method name="content_tag" returns="string">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="content" type="string" />
-///       <arg name="close" type="boolean" default="true" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $content
+ * @param boolean $close
+ * @return string
+ */
   public function content_tag($t, $name, $content, array $attributes = array()) {
     $tag = '<'.((string) $name);
     foreach ($attributes as $k => $v)
@@ -45,22 +43,14 @@ class Templates_HTML_Tags implements Core_ModuleInterface, Templates_HelperInter
 
     return $tag .= '>'.((string) $content).'</'.((string) $name.'>');
   }
-///     </body>
-///   </method>
 
-///   <method name="cdata_section" returns="string">
-///     <args>
-///       <arg name="content" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $content
+ * @return string
+ */
   public function cdata_section($t, $content) {
     return '<![CDATA['.((string) $content).']'.']>';
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

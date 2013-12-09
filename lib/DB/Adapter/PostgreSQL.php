@@ -1,30 +1,37 @@
 <?php
-/// <module name="DB.Adapter.PostgreSQL" version="0.2.0" maintainer="svistunov@techart.ru">
-///   <brief>PostgreSQL адаптер</brief>
+/**
+ * DB.Adapter.PostgreSQL
+ * 
+ * PostgreSQL адаптер
+ * 
+ * @package DB\Adapter\PostgreSQL
+ * @version 0.2.0
+ */
 
 Core::load('DB.Adapter.PDO', 'Time');
 
-/// <class name="DB.Adapter.PostgreSQL" stereotype="module">
+/**
+ * @package DB\Adapter\PostgreSQL
+ */
 class DB_Adapter_PostgreSQL implements Core_ModuleInterface {
-///   <constants>
   const VERSION = '0.2.0';
-///   </constants>
 
 }
-/// </class>
 
-/// <class name="DB.Adapter.PostgreSQL.Connection" extends="DB.Adapter.PDO.Connection">
-///   <brief>Класс подключения к БД</brief>
+/**
+ * Класс подключения к БД
+ * 
+ * @package DB\Adapter\PostgreSQL
+ */
 class DB_Adapter_PostgreSQL_Connection extends DB_Adapter_PDO_Connection {
 
-///   <protocol name="processing">
 
-///   <method name="prepare" returns="DB.Adapter.PostgreSQL.Cursor">
-///     <brief>Подготавливает SQL-запрос к выполнению</brief>
-///     <args>
-///       <arg name="sql" type="string" brief="sql-запрос" />
-///     </args>
-///     <body>
+/**
+ * Подготавливает SQL-запрос к выполнению
+ * 
+ * @param string $sql
+ * @return DB_Adapter_PostgreSQL_Cursor
+ */
   public function prepare($sql) {
     try {
       return new DB_Adapter_PostgreSQL_Cursor($this->pdo->prepare($sql));
@@ -32,15 +39,13 @@ class DB_Adapter_PostgreSQL_Connection extends DB_Adapter_PDO_Connection {
       throw new DB_ConnectionException($e->getMessage());
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="cast_parameter" returns="mixed">
-///     <brief>Преобразует значение в пригодный вид для вставки в sql запрос</brief>
-///     <args>
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Преобразует значение в пригодный вид для вставки в sql запрос
+ * 
+ * @param  $value
+ * @return mixed
+ */
   public function cast_parameter($value) {
     switch (true) {
       case ($value instanceof Time_DateTime) :
@@ -55,20 +60,16 @@ class DB_Adapter_PostgreSQL_Connection extends DB_Adapter_PDO_Connection {
         return $value;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="is_castable_parameter" returns="boolean">
-///     <brief>Проверяет требуется ли преобразовывать значение</brief>
-///     <args>
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Проверяет требуется ли преобразовывать значение
+ * 
+ * @param  $value
+ * @return boolean
+ */
   public function is_castable_parameter($value) {
    return ($value instanceof Time_DateTime);
   }
-///     </body>
-///   </method>
 
   public function explain($sql, $binds) {
     return new Core_NotImplementedException();
@@ -83,22 +84,21 @@ class DB_Adapter_PostgreSQL_Connection extends DB_Adapter_PDO_Connection {
     return function_exists('pg_escape_identifier') ? pg_escape_identifier($str) : "\"$str\"";
   }
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="DB.Adapter.PostgreSQL.Cursor">
+/**
+ * @package DB\Adapter\PostgreSQL
+ */
 class DB_Adapter_PostgreSQL_Cursor extends DB_Adapter_PDO_Cursor {
-///   <protocol name="processing">
 
-///   <method name="cast_column" returns="mixed">
-///     <brief>Преобразует значение полученное из БД в нужный формат, для работы с ним в php</brief>
-///     <args>
-///       <arg name="metadata" type="DB.ColumnMeta" brief="мета-данный колонки" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Преобразует значение полученное из БД в нужный формат, для работы с ним в php
+ * 
+ * @param DB_ColumnMeta $metadata
+ * @param  $value
+ * @return mixed
+ */
   public function cast_column(DB_ColumnMeta $metadata, $value) {
     switch (true) {
       case $metadata->type == 'date':
@@ -118,11 +118,6 @@ class DB_Adapter_PostgreSQL_Cursor extends DB_Adapter_PDO_Cursor {
         return $value;
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

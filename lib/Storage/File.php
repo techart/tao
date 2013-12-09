@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Storage\File
+ */
+
 
 Core::load('Storage', 'IO.FS', 'Storage.Query.Array');
 

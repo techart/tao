@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Type\String
+ */
+
 
 class CMS_Vars2_Type_String extends CMS_Var implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

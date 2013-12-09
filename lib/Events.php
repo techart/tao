@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Events
+ */
+
 
 class Events implements Core_ModuleInterface {
 	const VERSION = '0.1.0';

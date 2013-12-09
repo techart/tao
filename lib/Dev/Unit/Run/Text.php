@@ -1,15 +1,18 @@
 <?php
-/// <module name="Dev.Unit.Run.Text" version="0.3.0" maintainer="timokhin@techart.ru">
+/**
+ * Dev.Unit.Run.Text
+ * 
+ * @package Dev\Unit\Run\Text
+ * @version 0.3.0
+ */
 
 Core::load('Dev.Unit', 'IO.Stream', 'Time', 'CLI.Application');
 
-/// <class name="Dev.Unit.Run.Text">
-///   <implements interface="Core.ModuleInterface" />
-///   <implements interface="CLI.RunInterface" />
-///   <depends supplier="Dev.Unit.Run.Text.TestRunner" stereotype="creates" />
+/**
+ * @package Dev\Unit\Run\Text
+ */
 class Dev_Unit_Run_Text implements Core_ModuleInterface, CLI_RunInterface {
 
-///   <constants>
   const MODULE  = 'Dev.Unit.Text';
   const VERSION = '0.3.0';
 
@@ -18,62 +21,46 @@ class Dev_Unit_Run_Text implements Core_ModuleInterface, CLI_RunInterface {
 
   const DELIMITER1 = "----------------------------------------------------------------------";
   const DELIMITER2 = "======================================================================";
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="TestRunner" returns="Dev.Unit.Text.Run.TestRunner" scope="class">
-///     <args>
-///       <arg name="stream" type="IO.Stream.AbstractStream" />
-///     </args>
-///     <body>
+/**
+ * @param IO_Stream_AbstractStream $stream
+ * @return Dev_Unit_Text_Run_TestRunner
+ */
   static public function TestRunner(IO_Stream_AbstractStream $stream = null) {
     return new Dev_Unit_Run_Text_TestRunner($stream);
   }
-///     </body>
-///   </method>
 
-///   <method name="main" returns="int" scope="class">
-///     <args>
-///       <arg name="argv" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $argv
+ * @return int
+ */
   static public function main(array $argv) { return Core::with(new Dev_Unit_Run_Text_Application())->main($argv); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Dev.Unit.Run.Text.Listener" extends="Dev.Unit.TestResultListener">
+/**
+ * @package Dev\Unit\Run\Text
+ */
 class Dev_Unit_Run_Text_TestResultListener extends Dev_Unit_TestResultListener {
 
   protected $stream;
   protected $current_name = '';
   protected $test_no      = 1;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="stream" type="IO.Stream.AbstractStream" />
-///     </args>
-///     <body>
+/**
+ * @param IO_Stream_AbstractStream $stream
+ */
   public function __construct(IO_Stream_AbstractStream $stream) { $this->stream = $stream; }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="start_test" returns="Dev.Unit.Text.TestResult">
-///     <args>
-///       <arg name="test" type="Dev.Unit.TextCase" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Unit_TextCase $test
+ * @return Dev_Unit_Text_TestResult
+ */
   public function on_start_test(Dev_Unit_TestResult $result, Dev_Unit_TestCase $test) {
     $name = Core_Types::virtual_class_name_for($test);
     return $this->format(
@@ -82,94 +69,71 @@ class Dev_Unit_Run_Text_TestResultListener extends Dev_Unit_TestResultListener {
       ($name != $this->current_name) ? ($this->current_name = $name) : '',
       $test->method);
   }
-///     </body>
-///   </method>
 
 
-///   <method name="add_success" returns="Dev.Unit.Text.TestResult">
-///     <args>
-///       <arg name="test" type="Dev.Unit.TestCase" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Unit_TestCase $test
+ * @return Dev_Unit_Text_TestResult
+ */
   public function on_add_success(Dev_Unit_TestResult $result, Dev_Unit_TestCase $test) {
     return $this->format("ok\n");
   }
-///     </body>
-///   </method>
 
-///   <method name="add_error" returns="Dev.Unit.Text.TestResult">
-///     <args>
-///       <arg name="test" type="Dev.Unit.TestCase" />
-///       <arg name="error" type="stdClass" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Unit_TestCase $test
+ * @param stdClass $error
+ * @return Dev_Unit_Text_TestResult
+ */
   public function on_add_error(Dev_Unit_TestResult $result, Dev_Unit_TestCase $test, Dev_Unit_Error $error) {
     return $this->format("ERROR\n");
   }
-///     </body>
-///   </method>
 
-///   <method name="on_add_failure" returns="Dev.Unit.Text.TestResult">
-///     <args>
-///       <arg name="test" type="Dev.Unit.TestCase" />
-///       <arg name="failure" type="stdClass" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Unit_TestCase $test
+ * @param stdClass $failure
+ * @return Dev_Unit_Text_TestResult
+ */
   public function on_add_failure(Dev_Unit_TestResult $result, Dev_Unit_TestCase $test, Dev_Unit_Failure $failure) {
     return $this->format("FAIL\n");
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="format" returns="Dev.Unit.Text.TestResultListener" access="private">
-///     <body>
+/**
+ * @return Dev_Unit_Text_TestResultListener
+ */
   private function format() {
     $args = func_get_args();
     $format = array_shift($args);
     $this->stream->write(vsprintf($format, $args));
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
 
-/// <class name="Dev.Unit.Run.Text.TestRunner">
-///   <depends supplier="Dev.Unit.Text.TestResult" stereotype="uses" />
+/**
+ * @package Dev\Unit\Run\Text
+ */
 class Dev_Unit_Run_Text_TestRunner {
 
   protected $stream;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="stream" type="IO.Stream.AbstractStream" />
-///     </args>
-///     <body>
+/**
+ * @param IO_Stream_AbstractStream $stream
+ */
   public function __construct(IO_Stream_AbstractStream $stream = null) {
     $this->stream = $stream ? $stream : IO::stdout();
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="Dev.Unit.Run.Text.TestResult">
-///     <args>
-///       <arg name="Dev.Unit.RunInterface" />
-///     </args>
-///     <body>
+/**
+ * @param  $Dev.Unit.RunInterface
+ * @return Dev_Unit_Run_Text_TestResult
+ */
   public function run(Dev_Unit_RunInterface $test) {
 
     $result = Dev_Unit::TestResult()->
@@ -208,18 +172,13 @@ class Dev_Unit_Run_Text_TestRunner {
 
     return $result;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="print_errors_for" returns="Dev.Unit.Run.Text.TestRunner" access="protected">
-///     <args>
-///       <arg name="result" type="Dev.Unit.TestResult" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Unit_TestResult $result
+ * @return Dev_Unit_Run_Text_TestRunner
+ */
   protected function print_errors_for(Dev_Unit_TestResult $result) {
     foreach (array('failures', 'errors') as $flavour) {
       if (Core::with_attr($result, "num_of_$flavour") > 0) {
@@ -235,25 +194,21 @@ class Dev_Unit_Run_Text_TestRunner {
 
     return $this;
   }
-///     </body>
-///   </method>
 
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="Dev.Unit.Run.Text.Application" extends="CLI.Application.Base">
+/**
+ * @package Dev\Unit\Run\Text
+ */
 class Dev_Unit_Run_Text_Application extends CLI_Application_Base {
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="int">
-///     <args>
-///       <arg name="argv" type="array" />
-///     </args>
-///    <body>
+/**
+ * @param array $argv
+ * @return int
+ */
   public function run(array $argv) {
     Dev_Unit_Run_Text::TestRunner()->run(
       Dev_Unit::TestLoader()->
@@ -262,15 +217,12 @@ class Dev_Unit_Run_Text_Application extends CLI_Application_Base {
         suite);
     return 0;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="setup" returns="Dev.Unit.Test.Application" access="protected">
-///     <body>
+/**
+ * @return Dev_Unit_Test_Application
+ */
   protected function setup() {
     $this->options->
       brief('Dev.Unit.Run.Text'.Dev_Unit_Run_Text::VERSION."\n".
@@ -285,11 +237,6 @@ class Dev_Unit_Run_Text_Application extends CLI_Application_Base {
     $this->config->prefix = 'Test.';
     $this->config->noprefix = false;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

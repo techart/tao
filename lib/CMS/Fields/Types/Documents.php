@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Documents
+ */
+
 
 Core::load('CMS.Fields.Types.Attaches');
 

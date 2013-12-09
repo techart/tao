@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Checkboxes
+ */
+
 
 class CMS_Fields_Types_Checkboxes extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

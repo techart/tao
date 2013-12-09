@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Application
+ */
+
 
 class CMS_Application extends WS_Services_REST_Application implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

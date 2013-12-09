@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Storage
+ */
+
 
 class Storage implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Wiki
+ */
+
 
 Core::load('CMS.Fields.Types.HTML', 'CMS.Redactor');
 

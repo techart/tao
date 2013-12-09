@@ -1,54 +1,45 @@
 <?php
-/// <module name="Dev.Source.Doc" maintainer="svistunov@techart.ru" version="0.1.0">
+/**
+ * Dev.Source.Doc
+ * 
+ * @package Dev\Source\Doc
+ * @version 0.1.0
+ */
 Core::load('XML','CLI.Application', 'Proc', 'Dev.Source', 'Object');
-/// <class name="Dev.Source.Doc" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <implements interface="CLI.RunInterface" />
+/**
+ * @package Dev\Source\Doc
+ */
 class Dev_Source_Doc implements Core_ModuleInterface, CLI_RunInterface {
-///   <constants>
   const VERSION = '0.1.0';
-///   </constants>
 
-///   <protocol name="performing">
-///   <method name="main">
-///     <args>
-///       <arg name="argv" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $argv
+ */
   static public function main(array $argv) { Core::with(new Dev_Source_Doc_Application())->main($argv); }
-///     </body>
-///   </method>
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Dev.Source.Doc.LibraryDirGenerator">
+/**
+ * @package Dev\Source\Doc
+ */
 class Dev_Source_Doc_LibraryDirGenerator {
   protected $path_to_library;
   protected $path_to_html;
   protected $toc;
 
-///   <protocol name="creating">
-///   <method name="__construct">
-///     <args>
-///       <arg name="path_to_library" type="string" />
-///       <arg name="path_to_html" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path_to_library
+ * @param string $path_to_html
+ */
   public function __construct($path_to_library, $path_to_html) {
     $this->path_to_library = rtrim((string) $path_to_library, '/');
     $this->path_to_html = rtrim((string) $path_to_html, '/');
 
     $this->toc = array();
   }
-///     </body>
-///   </method>
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="generate">
-///     <body>
+/**
+ */
   public function generate() {
     foreach (new Dev_Source_LibraryDirIterator($this->path_to_library) as $module_name => $module) {
       if (Core_Strings::contains($module_name, '.')) {
@@ -69,11 +60,9 @@ class Dev_Source_Doc_LibraryDirGenerator {
     $this->write_toc();
     $this->write_index();
   }
-///     </body>
-///   </method>
 
-///   <method name="write_toc" access="protected">
-///     <body>
+/**
+ */
   protected function write_toc() {
     $toc_dom = XML::Builder();
 
@@ -100,40 +89,29 @@ class Dev_Source_Doc_LibraryDirGenerator {
     IO_FS::File($this->path_to_html."/toc.html")->open('w+')->
       write($toc_dom->document->saveHTML())->close();
   }
-///     </body>
-///   </method>
 
-///   <method name="add_to_toc" access="protected">
-///     <args>
-///       <arg name="module_generator" type="Dev.Source.Doc.ModuleGenerator" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Source_Doc_ModuleGenerator $module_generator
+ */
   protected function add_to_toc(Dev_Source_Doc_ModuleGenerator $module_generator) {
     $this->toc[$module_generator->module->name] = array('href' => $module_generator->ref,
       'classes' => $module_generator->classes, 'interfaces' => $module_generator->interfaces);
   }
-///     </body>
-///   </method>
 
-///   <method name="write_css" access="protected">
-///     <body>
+/**
+ */
   protected function write_css() {
     IO_FS::File($this->path_to_html."/style.css")->
       open('w+')->write(self::css())->close();
   }
-///     </body>
-///   </method>
 
-///   <method name="write_index">
-///     <body>
+/**
+ */
   protected function write_index() {
     IO_FS::File($this->path_to_html."/index.html")->
       open('w+')->write(self::index_html())->close();
   }
-///     </body>
-///   </method>
 
-/// <ignore>
   public static function css() {
     return <<<CSS
     --body { color: red;}
@@ -162,14 +140,13 @@ CSS;
 
 HTML;
   }
-/// </ignore>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// <class name="Dev.Source.Doc.ModuleGenerator" extends="Dtat.Object">
+/**
+ * @package Dev\Source\Doc
+ */
 class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
   protected $path;
   protected $module;
@@ -178,38 +155,29 @@ class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
   protected $interfaces;
   static $listeners;
 
-///   <protocol name="creating">
-///   <method name="__construct">
-///     <args>
-///       <arg name="module" type="Dev.Source.Module" />
-///       <arg name="path" type="path" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Source_Module $module
+ * @param path $path
+ */
   public function __construct(Dev_Source_Module $module, $path) {
     $this->module = $module;
     $this->path = $path;
     $this->ref = Core_Strings::replace($this->module->name, '.', '/').".html";
   }
-///     </body>
-///   </method>
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="listener" returns="Dev.Source.Doc.ModuleGenerator">
-///     <args>
-///       <arg name="listener" type="Dev.Source.Doc.ModuleGeneratorListener" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Source_Doc_ModuleGeneratorListener $listener
+ * @return Dev_Source_Doc_ModuleGenerator
+ */
   static function listener(Dev_Source_Doc_ModuleGeneratorListener $listener) {
     if (!isset(self::$listeners)) self::$listeners = Object::Listener();
     self::$listeners->append($listener);
   }
-///     </body>
-///   </method>
 
-///   <method name="get_interfaces" access="protected" returns="mixed">
-///     <body>
+/**
+ * @return mixed
+ */
   protected function get_interfaces() {
     if ($this->interfaces != null) return $this->interfaces;
     foreach ($this->module->xml->getElementsByTagName('interface') as $k => $v) {
@@ -218,11 +186,10 @@ class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
     }
     return $this->interfaces;
   }
-///     </body>
-///   </method>
 
-///   <method name="get_classes" returns="mixed" access="protected">
-///     <body>
+/**
+ * @return mixed
+ */
   protected function get_classes() {
     if ($this->classes != null) return $this->classes;
     $this->classes = array();
@@ -232,11 +199,10 @@ class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
     }
     return $this->classes;
   }
-///     </body>
-///   </method>
 
-///   <method name="write" returns="Dev.Source.Doc.Generator">
-///     <body>
+/**
+ * @return Dev_Source_Doc_Generator
+ */
   public function write() {
     $xslt = new XSLTProcessor();
     $xslt->registerPHPFunctions();
@@ -247,19 +213,16 @@ class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
     if (isset(self::$listeners)) self::$listeners->on_write($this);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="write_diagram">
-///     <body>
+/**
+ */
   public function write_diagram() {
     exec("bin/tao-source-diagram -o{$this->path}.png -Tpng {$this->module->name}");
   }
-///     </body>
-///   </method>
 
-///   <method name="generate_imagemap" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   static public function generate_imagemap($module_name) {
     exec("bin/tao-source-diagram -Tcmap {$module_name}", $ouput);
     $res = '';
@@ -267,10 +230,7 @@ class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
       $res .= $v."\n";
     return $res;
   }
-///     </body>
-///   </method>
 
-/// <ignore>
   static function xslt() {
     return <<<XSL
 
@@ -552,75 +512,55 @@ class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
 XSL;
 
   }
-/// </ignore>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// <interface name="Dev.Source.Doc.ModuleGeneratorListener">
+/**
+ * @package Dev\Source\Doc
+ */
 interface Dev_Source_Doc_ModuleGeneratorListener {
-///   <protocol name="observing">
 
-///   <method name="on_write">
-///     <args>
-///       <arg name="module_generator" type="Dev.Source.Doc.ModuleGenerator" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Source_Doc_ModuleGenerator $module_generator
+ */
   public function on_write(Dev_Source_Doc_ModuleGenerator $module_generator);
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </interface>
 
-/// <class name="Dev.Source.Doc.ApplicationListener">
-///   <implements interface="Dev.Source.Doc.ModuleGeneratorListener" />
+/**
+ * @package Dev\Source\Doc
+ */
 class Dev_Source_Doc_ApplicationListener implements Dev_Source_Doc_ModuleGeneratorListener {
   protected $stream;
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="stream" type="IO.Stream.AbstractStream" />
-///     </args>
-///     <body>
+/**
+ * @param IO_Stream_AbstractStream $stream
+ */
   public function __construct(IO_Stream_AbstractStream $stream = null) {
     $this->stream = Core::if_null($stream, IO::stderr());
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="observing">
 
-///   <method name="on_write">
-///     <args>
-///       <arg name="module_generator" type="Dev.Source.Doc.ModuleGenerator" />
-///     </args>
-///     <body>
+/**
+ * @param Dev_Source_Doc_ModuleGenerator $module_generator
+ */
   public function on_write(Dev_Source_Doc_ModuleGenerator $module_generator) {
     $this->stream->write($module_generator->module->name."\n");
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Dev.Source.Doc.Application" extends="CLI.Application.Base">
+/**
+ * @package Dev\Source\Doc
+ */
 class Dev_Source_Doc_Application extends CLI_Application_Base {
-///   <protocol name="performing">
 
-///   <method name="run" returns="int">
-///     <args>
-///       <arg name="argv" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param array $argv
+ * @return int
+ */
   public function run(array $argv) {
     if ($this->config->visible)
       Dev_Source_Doc_ModuleGenerator::listener(new Dev_Source_Doc_ApplicationListener());
@@ -637,15 +577,11 @@ class Dev_Source_Doc_Application extends CLI_Application_Base {
     }
     return 0;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="setup" access="protected">
-///     <body>
+/**
+ */
   protected function setup() {
     $this->options->
       brief('Dev.Source.Doc '.Dev_Source_Doc::VERSION.': TAO documentation generator')->
@@ -657,11 +593,6 @@ class Dev_Source_Doc_Application extends CLI_Application_Base {
     $this->config->library = './lib';
     $this->config->visible  = false;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

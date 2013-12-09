@@ -1,0 +1,104 @@
+<?= CMS::stdscript('jquery/tabby.js') ?>
+<?= CMS::stdscript('jquery/cookie.js') ?>
+<?= CMS::stdscript('jquery/textarearesizer.js') ?>
+<script type="text/javascript">
+<!--
+$(function(){ 
+	$('td.use-tab-key textarea').tabby(); 
+	$('td.textarea-resizer textarea').TextAreaResizer(); 
+});
+//-->
+</script>
+<?= $this->forms->begin_form($form,array('onSubmit' => 'return check_'.$form->name.'(this);')); ?>
+<?php
+
+$mce_include = false;
+$relative_fields = array();
+$relative_items = array();
+
+$jsv = array();
+foreach($form_fields as $name => $parms) { 
+	$match = isset($parms['match'])?
+		trim($parms['match']):'';
+	$error_message = isset($parms['error_message'])?
+		trim($parms['error_message']):'';
+	if ($match!='') if ($match[0]=='/') {
+		if ($error_message=='') $error_message = 'Error: '.$caption;
+		$jsv[$name] = array(
+			'match' => $match,
+			'message' => $error_message,
+		);
+	}
+}
+
+$ftpl = CMS::view('admin/table/fields');
+
+if ($template_form)
+	include($c->template_path($template_form));	
+else if ($form_tabs) 
+	include('form-tab-view.phtml');
+else 
+	include('form-table.phtml');	
+
+	
+?>
+<?= $this->forms->end_form($form); ?>
+
+<script type="text/javascript">
+<!--
+
+<?php if (sizeof($relative_fields)>0) { ?>
+
+	<?php foreach($relative_items as $rname => $rdata) { ?>
+	var relative_items_<?= $form->name ?>_<?= $rname ?> = <?= json_encode($rdata) ?>;
+	function relative_field_<?= $form->name ?>_<?= $rname ?>(id) {
+		var data = relative_items_<?= $form->name ?>_<?= $rname ?>[id];
+		var elem = $('#<?= $form->name ?>_<?= $rname ?>');
+		elem.empty();
+		for (var key in data) $('<option>').attr('value',key).attr('selected',elem.attr('start_value')==key).text(data[key]).appendTo(elem);
+	}
+	<?php } ?>
+
+	<?php foreach($relative_fields as $rname => $rdata) { ?>
+	function relative_on_change_<?= $form->name ?>_<?= $rname ?>(elem) {
+		<?php foreach($rdata as $rfield) { ?>
+		relative_field_<?= $form->name ?>_<?= $rfield ?>(elem.value);
+	    <?php } ?>
+	}
+	<?php } ?>
+	
+	$(function(){
+		<?php foreach($relative_fields as $rname => $rdata) { ?>
+		$('#<?= $form->name ?>_<?= $rname ?>').change(function(){relative_on_change_<?= $form->name ?>_<?= $rname ?>(this)});
+		relative_on_change_<?= $form->name ?>_<?= $rname ?>($('#<?= $form->name ?>_<?= $rname ?>').get(0));
+		<?php } ?>
+	});
+
+<?php } ?>
+
+function check_<?= $form->name ?>(frm) {
+<?php foreach($jsv as $name => $_jsv) { ?>
+	if (!document.getElementById("<?= $form->name ?>_<?= $name ?>").value.match(<?= $_jsv['match'] ?>)) {
+		alert("<?= htmlspecialchars($_jsv['message']) ?>");
+		return false;
+	}
+<?php } ?>
+	return true;
+}
+
+//-->
+</script>
+
+
+<?php if ($mce_include) {  
+	$this->use_scripts(CMS_Admin::$jquery,'tiny_mce/tiny_mce.js','tiny_mce_init.js');
+	$item_id = isset($item_id)? $item_id : 0;
+?>	
+<script language="javascript" type="text/javascript">
+<!--
+tiny_mce_init('<?= $c->admin_url('aimages',$item_id) ?>','<?= (CMS::check_yes(CMS::$cfg->admin->tinymce_switch)? 'none':'textareas') ?>');
+//-->
+</script>
+
+
+<?php } ?>

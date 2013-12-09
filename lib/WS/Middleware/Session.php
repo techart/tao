@@ -1,36 +1,36 @@
 <?php
-/// <module name="WS.Session" version="0.2.0" maintainer="timokhin@techart.ru">
+/**
+ * WS.Session
+ * 
+ * @package WS\Middleware\Session
+ * @version 0.2.0
+ */
 Core::load('Net.HTTP.Session', 'WS');
 
-/// <class name="WS.Session" stereotype="module">
-///   <implements interface="Core.ModulteInterface" />
+/**
+ * @package WS\Middleware\Session
+ */
 class WS_Middleware_Session implements Core_ModuleInterface {
-///   <constants>
   const VERSION = '0.2.1';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Service" returns="WS.Session.Service" scope="class">
-///     <body>
+/**
+ * @return WS_Session_Service
+ */
   static public function Service(WS_ServiceInterface $application) { return new WS_Middleware_Session_Service($application); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="WS.Session.Service" extends="WS.MiddlewareService">
+/**
+ * @package WS\Middleware\Session
+ */
 class WS_Middleware_Session_Service extends WS_MiddlewareService {
 
-///   <protocol name="performing">
 
-///   <method name="run" returns="mixed">
-///     <args>
-///       <arg name="env" type="WS.Environment" />
-///     </args>
-///     <body>
+/**
+ * @param WS_Environment $env
+ * @return mixed
+ */
   public function run(WS_Environment $env) {
     $error = null;
     if (Core::is_cli() && !$env->request->session()) {
@@ -51,11 +51,6 @@ class WS_Middleware_Session_Service extends WS_MiddlewareService {
     if ($error) throw $error;
     else        return $result;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

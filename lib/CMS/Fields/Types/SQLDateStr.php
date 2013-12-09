@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\SQLDateStr
+ */
+
 
 class CMS_Fields_Types_SQLDateStr extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 
@@ -23,15 +27,22 @@ class CMS_Fields_Types_SQLDateStr extends CMS_Fields_AbstractField implements Co
 		return $format;
 	}
 
-	public function assign_from_object($form,$object,$name,$data) {
-		$value = (string)(is_object($object)?$object[$name]:$object);
-		$value = $this->view_value($value,$name,$data);
+	public function assign_from_object($form, $object, $name, $data) {
+		if (isset($object[$name])) {
+			if (is_object($object[$name])) {
+				$value = $object[$name]->format($this->get_format($name, $data)); 
+			} else{
+				$value = $this->view_value((string) $object[$name], $name, $data);
+			}
+		} else {
+			$value = $this->view_value((string) $object, $name, $data);
+		}
 		$form[$name] = $value;
 	}
 
 
 	public function assign_to_object($form,$object,$name,$data) {
-		$object->$name = Time::parse(str_replace('- ', '', $form[$name]));
+		$object->$name = Time::parse($form[$name]);
 	}
 	
 	public function sqltype() {

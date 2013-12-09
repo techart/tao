@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\HTML
+ */
+
 
 Core::load('CMS.Fields.Types.ImageList', 'CMS.Redactor');
 
@@ -12,7 +16,8 @@ class CMS_Fields_Types_HTML extends CMS_Fields_Types_ImageList implements Core_M
       CMS::$current_controller->field_action_url($name, 'imagelist', $data['__item']);
     $editor = $this->get_editor($name, $data);
     $editor->set_images_link($imagelink);
-    $editor->process_template($l, $selector);
+    $l->redactor->add($editor, $selector);
+    // $editor->process_template($l, $selector);
     parent::layout_preprocess($l, $name, $data);
   }
   

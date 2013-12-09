@@ -1,38 +1,45 @@
 <?php
-/// <module name="Mail.Transport.PHP" version="0.2.0" maintainer="timokhin@techart.ru">
-///   <brief>Модуль для отправки сообщения с помощью стандартных средств php</brief>
+/**
+ * Mail.Transport.PHP
+ * 
+ * Модуль для отправки сообщения с помощью стандартных средств php
+ * 
+ * @package Mail\Transport\PHP
+ * @version 0.2.0
+ */
 Core::load('Mail.Transport');
 
-/// <class name="Mail.Transport.PHP" stereotype="module">
+/**
+ * @package Mail\Transport\PHP
+ */
 class Mail_Transport_PHP implements Core_ModuleInterface {
 
   const VERSION = '0.2.0';
   const EXPORTS = 'Sender';
 
-///   <protocol name="building">
 
-///   <method name="Sender" returns="Mail.Transport.PHP.Sender" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Mail.Transport.PHP.Sender</brief>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Mail.Transport.PHP.Sender
+ * 
+ * @return Mail_Transport_PHP_Sender
+ */
   static public function Sender() { return new Mail_Transport_PHP_Sender(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Mail.Transport.PHP.Sender" extends="Mail.Transport.AbstractSender">
-///   <brief>Отправляет сообщение с помощью функции mail</brief>
+/**
+ * Отправляет сообщение с помощью функции mail
+ * 
+ * @package Mail\Transport\PHP
+ */
 class Mail_Transport_PHP_Sender extends Mail_Transport_AbstractSender {
-///   <protocol name="processing">
 
-///   <method name="send" returns="boolean">
-///     <brief>Отправляет сообщение</brief>
-///     <args>
-///       <arg name="message" type="Mail.Message.Message" brief="сообщение" />
-///     </args>
-///     <body>
+/**
+ * Отправляет сообщение
+ * 
+ * @param Mail_Message_Message $message
+ * @return boolean
+ */
   public function send(Mail_Message_Message $message) {
     $encoder = Mail_Serialize::Encoder();
     return mail(
@@ -43,11 +50,6 @@ class Mail_Transport_PHP_Sender extends Mail_Transport_AbstractSender {
         $message,
         array('To' => false, 'Subject' => false)));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

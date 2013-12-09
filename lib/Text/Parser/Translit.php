@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Text\Parser\Translit
+ */
+
 
 Core::load('Text.Process');
 

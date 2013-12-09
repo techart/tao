@@ -1,108 +1,89 @@
 <?php
-/// <module name="DB.ORM.Assets" version="0.2.0" maintainer="timokhin@techart.ru">
+/**
+ * DB.ORM.Assets
+ * 
+ * @package DB\ORM\Assets
+ * @version 0.2.0
+ */
 
 Core::load('IO.FS');
 
-/// <class name="DB.ORM.Assets" stereotype="module">
-///   <implements interface="Core.ConfigurableModuleInterface" />
+/**
+ * @package DB\ORM\Assets
+ */
 class DB_ORM_Assets implements Core_ConfigurableModuleInterface {
 
-///   <constants>
   const VERSION = '0.2.0';
-///   </constants>
 
   static protected $options = array('root' => '.', 'root_url' => '/');
 
-///   <protocol name="creating">
 
-///   <method name="initialize" scope="class">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ */
   static public function initialize(array $options = array()) { self::options($options); }
-///     </body>
-///   </method>
 
-///   <method name="options" scope="class" returns="mixed">
-///     <args>
-///       <arg name="options" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $options
+ * @return mixed
+ */
   static public function options(array $options = array()) {
     if (count($options)) Core_Arrays::update(self::$options, $options);
     return self::$options;
   }
-///     </body>
-///   </method>
 
-///   <method name="option" scope="class">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="value" default="null" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param  $value
+ */
   static public function option($name, $value = null) {
     $prev = isset(self::$options[$name]) ? self::$options[$name] : null;
     if ($value !== null) self::options(array($name => $value));
     return $prev;
   }
-///     </body>
-///   </method>
 
-///   <method name="Collection" returns="DB.ORM.Assets.Collection" scope="class">
-///     <args>
-///       <arg name="items" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $items
+ * @return DB_ORM_Assets_Collection
+ */
   static public function Collection(array $items = array()) {
     return new DB_ORM_Assets_Collection($items);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <interface name="DB.ORM.Assets.AssetContainerInterface">
+/**
+ * @package DB\ORM\Assets
+ */
 interface DB_ORM_Assets_AssetContainerInterface {}
-/// </interface>
 
 
-/// <class name="DB.ORM.Assets.Asset">
-///   <implements interface="Core.PropertyAccessInterface" />
+/**
+ * @package DB\ORM\Assets
+ */
 class DB_ORM_Assets_Asset
   implements Core_PropertyAccessInterface {
 
   protected $collection;
   protected $name;
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="collection" type="DB.ORM.Assets.Collection" />
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param DB_ORM_Assets_Collection $collection
+ * @param string $name
+ */
   public function __construct(DB_ORM_Assets_Collection $collection, $name) {
     $this->collection = $collection;
     $this->name       = $name;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'name':
@@ -115,15 +96,12 @@ class DB_ORM_Assets_Asset
         return $this->collection->annotation_for($this->name);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'name':
@@ -135,14 +113,11 @@ class DB_ORM_Assets_Asset
         {$this->collection->annotate($this->name, $value); return $this;}
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __isset($property) {
     switch ($property) {
       case 'name':
@@ -154,14 +129,11 @@ class DB_ORM_Assets_Asset
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __unset($property) {
     switch ($property) {
       case 'name':
@@ -173,18 +145,13 @@ class DB_ORM_Assets_Asset
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="DB.ORM.Assets.Collection">
-///   <implements interface="Core.IndexedAccessInterface" />
-///   <implements interface="Iterator" />
-///   <implements interface="Core.PropertyAccessInterface" />
+/**
+ * @package DB\ORM\Assets
+ */
 class DB_ORM_Assets_Collection
   implements Core_IndexedAccessInterface,
              Core_PropertyAccessInterface,
@@ -200,171 +167,123 @@ class DB_ORM_Assets_Collection
   protected $added   = array();
   protected $removed = array();
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="path" type="string" />
-///       <arg name="items" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ * @param array $items
+ */
   public function __construct(array $items = array()) {
     $this->items = $items;
   }
-///     </body>
-///   </method>
 
-///   <method name="path">
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $path
+ */
   public function path($path) {
     $this->path = $path;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="indexing">
 
-///   <method name="offsetGet" returns="mixed">
-///     <args>
-///       <arg name="index" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $index
+ * @return mixed
+ */
   public function offsetGet($index) {
     return $this->offsetExists($index) ?  new DB_ORM_Assets_Asset($this, $index) : null;
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetSet" returns="mixed">
-///     <args>
-///       <arg name="index" type="value" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param value $index
+ * @param  $value
+ * @return mixed
+ */
   public function offsetSet($index, $value) {
     $this->store_as($index, $value, '');
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <args>
-///       <arg name="index" />
-///     </args>
-///     <body>
+/**
+ * @param  $index
+ * @return boolean
+ */
   public function offsetExists($index) { return isset($this->items[$index]); }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <args>
-///       <arg name="index" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $index
+ */
   public function offsetUnset($index) { $this->remove($index); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="quering">
 
-///   <method name="annotation_for" returns="mixed">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return mixed
+ */
   public function annotation_for($name) { return $this->items[$name]; }
-///     </body>
-///   </method>
 
-///   <method name="path_for" returns="string">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return string
+ */
   public function path_for($name) {
     return $this->path === null ?
       null :
       DB_ORM_Assets::option('root').'/'.$this->path.($name ? '/'.$name : '');
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="counting" interface="Core.CountInterface">
 
-///   <method name="count" returns="int">
-///     <body>
+/**
+ * @return int
+ */
   public function count() { return count($this->items); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="performing">
 
-///   <method name="annotate" returns="DB.ORM.Assets.Collection">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="annotation" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $annotation
+ * @return DB_ORM_Assets_Collection
+ */
   public function annotate($name, $annotation) {
     $this->items[$name] = $annotation;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="store_file" returns="DB.ORM.Assets.Collection">
-///     <body>
+/**
+ * @return DB_ORM_Assets_Collection
+ */
   public function store_file($file, $name) {
     if ($file instanceof IO_FS_File) $this->added[$name] = $file;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="store_as" returns="DB.ORM.Assets.Collection">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="file" type="IO.FS.File" />
-///       <arg name="annotation" type="string" default="''" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param IO_FS_File $file
+ * @param string $annotation
+ * @return DB_ORM_Assets_Collection
+ */
   public function store_as($name, $file, $annotation = '') {
     $this->
       annotate($name, $annotation)->
       store_file($file, $name);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="store" returns="DB.ORM.Assets.Collection">
-///     <args>
-///       <arg name="file" type="IO.FS.File" />
-///       <arg name="annotation" type="string" default="''" />
-///     </args>
-///     <body>
+/**
+ * @param IO_FS_File $file
+ * @param string $annotation
+ * @return DB_ORM_Assets_Collection
+ */
   public function store($file, $annotation = '') { return $this->store_as($file->name, $file, $annotation); }
-///     </body>
-///   </method>
 
-///   <method name="remove" returns="DB.ORM.Assets.Collection">
-///     <args>
-///       <arg name="index" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $index
+ * @return DB_ORM_Assets_Collection
+ */
   public function remove($index) {
     if (isset($this->items[$index])) {
       unset($this->items[$index]);
@@ -372,11 +291,10 @@ class DB_ORM_Assets_Collection
     }
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="destroy" returns="DB.ORM.Assets.Collection">
-///     <body>
+/**
+ * @return DB_ORM_Assets_Collection
+ */
   public function destroy() {
     if ($this->path !== null) {
       foreach (array_keys($this->items) as $name) IO_FS::rm($this->path_for($name));
@@ -384,11 +302,10 @@ class DB_ORM_Assets_Collection
     }
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="sync" returns="DB.ORM.Assets.Collection">
-///     <body>
+/**
+ * @return DB_ORM_Assets_Collection
+ */
   public function sync() {
     if ($this->path !== null) {
       IO_FS::mkdir($this->path_for(''), 0777, true);
@@ -400,19 +317,14 @@ class DB_ORM_Assets_Collection
     }
     return $this;
   }
-///     </body>
-///   </method>
-
-///   </protocol>
 
 
-///   <protocol name="accessing" type="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+
+/**
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch ($property) {
       case 'path':
@@ -426,24 +338,18 @@ class DB_ORM_Assets_Collection
         throw new Core_MissingPropertyException($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch ($property) {
       case 'path':
@@ -455,67 +361,46 @@ class DB_ORM_Assets_Collection
         return false;
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ */
   public function __unset($property) { throw new Core_ReadOnlyObjectException($this); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="iterating" interface="Iterator">
 
-///   <method name="rewind">
-///     <body>
+/**
+ */
   public function rewind() {
     reset($this->items);
     $this->current = key($this->items);
   }
-///     </body>
-///   </method>
 
-///   <method name="key" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function key() { return $this->current; }
-///     </body>
-///   </method>
 
-///   <method name="valid" returns="boolean">
-///     <body>
+/**
+ * @return boolean
+ */
   public function valid() { return $this->current ? true : false; }
-///     </body>
-///   </method>
 
-///   <method name="next">
-///     <body>
+/**
+ */
   public function next() { $this->current = next($this->items) !== false ? key($this->items) : null; }
-///     </body>
-///   </method>
 
-///   <method name="current" returns="P2.DB.EntityAsset">
-///     <body>
+/**
+ * @return P2_DB_EntityAsset
+ */
   public function current() { return new DB_ORM_Assets_Asset($this, $this->current); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="make_storage" returns="boolean">
-///     <body>
+/**
+ * @return boolean
+ */
   protected function make_storage() { return IO_FS::mkdir($this->path, 0777, true); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

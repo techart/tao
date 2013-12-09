@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package IO\Arc\ZIP
+ */
+
 
 class IO_Arc_ZIP extends IO_Arc_Archiver implements Core_ModuleInterface
 {

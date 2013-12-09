@@ -1,17 +1,20 @@
 <?php
-/// <module name="Templates.HTML" version="0.2.2" maintainer="timokhin@techart.ru">
-///   <brief>HTML шаблоны</brief>
+/**
+ * Templates.HTML
+ * 
+ * HTML шаблоны
+ * 
+ * @package Templates\HTML
+ * @version 0.2.2
+ */
 
 Core::load('Templates', 'Object', 'Cache', 'Text.Insertions', 'Templates.HTML.Preprocess', 'Templates.HTML.Includes');
 
-/// <class name="Templates.HTML" stereotype="module">
-///   <implements interface="Core.ConfigurableModuleInterface" />
-///   <depends supplier="Templates.HTML.Template" stereotype="creates" />
-///   <depends supplier="Templates" stereotype="uses" />
+/**
+ * @package Templates\HTML
+ */
 class Templates_HTML implements Core_ConfigurableModuleInterface  {
-///   <constants>
   const VERSION = '0.2.2';
-///   </constants>
 
   static protected $helpers;
   
@@ -35,14 +38,12 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     'timestamp_pattern' => '%s?%d' // '/nocache/%2$d%1$s'
  );
 
-///   <protocol name="creating">
 
-///   <method name="initialize" scope="class">
-///     <brief>Инициализация модуля</brief>
-///     <args>
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * Инициализация модуля
+ * 
+ * @param array $options
+ */
   static public function initialize(array $options = array()) {
     self::$helpers = Object::Aggregator()->fallback_to(Templates::helpers());
     foreach(self::$options as $k => $v) self::$options[$k] = str_replace('%files%',Core::option('files_name'),$v);
@@ -52,40 +53,32 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     self::use_helper('assets', 'Templates.HTML.Assets');
     self::use_helper('maps', 'Templates.HTML.Maps');
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="configuring">
 
-///   <method name="options" returns="mixed" scope="class">
-///     <brief>Устанавливает опции</brief>
-///     <args>
-///       <arg name="options" type="array" default="array()" brief="массив опций" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает опции
+ * 
+ * @param array $options
+ * @return mixed
+ */
   static public function options(array $options = array()) {
     if (count($options)) Core_Arrays::update(self::$options, $options);
     return self::$options;
   }
-///     </body>
-///   </method>
 
-///   <method name="option" returns="mixed">
-///     <brief>Устанавливает/возвращает опцию</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя опции" />
-///       <arg name="value" default="null" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает/возвращает опцию
+ * 
+ * @param string $name
+ * @param  $value
+ * @return mixed
+ */
   static public function option($name, $value = null) {
     $prev = isset(self::$options[$name]) ? self::$options[$name] : null;
     if ($value !== null) self::options(array($name => $value));
     return $prev;
   }
-///     </body>
-///   </method>
 
   static public function add_scripts_settings($vars = array(), $replace = false) {
     if (!empty($vars))
@@ -97,87 +90,63 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     return self::add_scripts_settings($vars, $replace);
   }
 
-///   <method name="use_helpers" scope="class">
-///     <brief>Регистрирует хелпер</brief>
-///     <body>
+/**
+ * Регистрирует хелпер
+ * 
+ */
   static public function use_helpers() {
     $args = Core::normalize_args(func_get_args());
     foreach ($args as $k => $v)
       if ($v instanceof Templates_HelperInterface) self::$helpers->append($v, $k);
   }
-///     </body>
-///   </method>
 
-///   <method name="use_helper" scope="class">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="helper" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param  $helper
+ */
   static public function use_helper($name, $helper) {
     self::$helpers->append($helper, $name);
   }
-///     </body>
-///   </method>
 
-///   <method name="helper" >
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ */
   static public function helper($name) {
     return self::$helpers[$name];
   }
-///     </body>
-///   </method>
 
-///   <method name="join_styles" >
-///     <args>
-///       <arg name="v" type="boolean" default="true" />
-///     </args>
-///     <body>
+/**
+ * @param boolean $v
+ */
   static public function join_styles($v = true) {
     self::option('join_styles', $v);
   }
-///     </body>
-///   </method>
 
-///   <method name="join_scripts" >
-///     <args>
-///       <arg name="v" type="boolean" default="true" />
-///     </args>
-///     <body>
+/**
+ * @param boolean $v
+ */
   static public function join_scripts($v = true) {
     self::option('join_scripts', $v);
   }
  ///     </body>
-///   </method>
 
   static public function is_url($path) {
     return preg_match('{^(http|https|ftp):}', $path);
   }
 
-///   <method name="js_path" >
-///     <args>
-///       <arg name="path" type="stirng" />
-///     </args>
-///     <body>
+/**
+ * @param stirng $path
+ */
   static public function js_path($path, $copy = true) {
     return self::path('js', $path, $copy);
   }
-///     </body>
-///   </method>
 
-///   <method name="css_path" >
-///     <args>
-///       <arg name="path" type="stirng" />
-///     </args>
-///     <body>
+/**
+ * @param stirng $path
+ */
   static public function css_path($path, $copy = true) {
     return self::path('css', $path, $copy);
   }
-///     </body>
-///   </method>
 
   public static function path($type, $path, $copy = true)
   {
@@ -194,14 +163,22 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
         return $url;
       }
     }
+    if (Core::option('deprecated')) {
+      $file = Core::tao_deprecated_file('files/'. self::option("{$type}_dir") . '/' . $path);
+      if (is_file($file)) {
+        return self::extern_filepath('file://' . $file, $copy);
+      }
+    }
+    $rc = Events::call('templates.asset.path', $type, $path, $copy);
+    if (!is_null($rc)) {
+      return $rc;
+    }
     return $urls[0];
   }
 
-///   <method name="extern_filepath" >
-///     <args>
-///       <arg name="path" type="stirng" />
-///     </args>
-///     <body>
+/**
+ * @param stirng $path
+ */
   static public function extern_filepath($file, $copy = true) {
     $file = (string) $file;
     $prefix = self::option('extern_file_prefix');
@@ -232,53 +209,33 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     }
     return $file;
   }
-///     </body>
-///   </method>
-
-///   <method name="layouts_path_for">
-///     <args>
-///       <arg name="path" type="string" />
-///     </args>
-///     <body>
-  static public function layouts_path_for($path) {
-    return self::option('layouts_path') . '/' . ((string) $path);
-  }
-///     </body>
-///   </method>
   
-///   </protocol>
 
-///   <protocol name="quering">
 
-///   <method name="helpers" returns="Object.Aggregator">
-///     <brief>Возвращает делигатор хелперов</brief>
-///     <body>
+/**
+ * Возвращает делигатор хелперов
+ * 
+ * @return Object_Aggregator
+ */
   static public function helpers() { return self::$helpers; }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="building">
 
-///   <method name="Template" returns="Templates.HTML.Template" scope="class">
-///     <brief>Фабричный метод, возвращает объект класса Templates.HTML.Template</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Фабричный метод, возвращает объект класса Templates.HTML.Template
+ * 
+ * @param string $name
+ * @return Templates_HTML_Template
+ */
   static public function Template($name, array $parameters = array(), $js_agregator = null, $css_agregator = null) {
   	return Core::make(self::$options['template_class'], $name, $parameters, $js_agregator, $css_agregator);
   }
-///     </body>
-///   </method>
 
   static public function meta() {
     if (is_object(self::$meta)) return self::$meta;
     return self::$meta = new Templates_HTML_Metas();
   }
 
-///   </protocol>
 
 
 //TODO: deprecated
@@ -297,13 +254,13 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
 */
 
 }
-/// </class>
 
 
-/// <class name="Templates.HTML.Template" extends="Templates.NestableTemplate">
-///   <brief>Класс HTML шаблона</brief>
-///   <implements interface="Core.IndexedAccessInterface" />
-///   <depends supplier="Templates.MissingTemplateException" stereotype="throws" />
+/**
+ * Класс HTML шаблона
+ * 
+ * @package Templates\HTML
+ */
 class Templates_HTML_Template
   extends Templates_NestableTemplate
   implements Core_IndexedAccessInterface {
@@ -321,22 +278,18 @@ class Templates_HTML_Template
   protected $use_onpage_to_file = array('js' => false, 'css' => false);
   protected $default_use_attributes = array('js' => false, 'css' => false);
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <brief>Конструктор</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Конструктор
+ * 
+ * @param string $name
+ */
   public function __construct($name, array $parameters = array(), $js_agregator = null, $css_agregator = null) {
     parent::__construct($name);
     $this->content = new ArrayObject();
     $this->setup($js_agregator, $css_agregator);
     $this->with($parameters);
   }
-///     </body>
-///   </method>
 
   public function setup($js_agregator = null, $css_agregator = null) {
     $this->agregators['js'] = ($js_agregator instanceof Templates_HTML_Includes_AgregatorInterface) ?
@@ -348,7 +301,6 @@ class Templates_HTML_Template
     $this->join_styles(Templates_HTML::option('join_styles'));
   }
 
-///   </protocol>
 
 
   public function clear($name) {
@@ -572,18 +524,12 @@ class Templates_HTML_Template
   }
 
 
-  //TODO: deprecated alises:
-  //---------------------------------
   public function within_layout($layout) {
-    $names = $this->make_layout_paths($layout);
-    $class = get_class($this);
-    $l = new $class(Templates_HTML::layouts_path_for($names[0]));
-    $l->configure_layoute();
-    foreach (array_slice($names, 1) as $n) {
-      $l->inside(new self(Templates_HTML::layouts_path_for($n)));
+    if (Templates::is_absolute_path($layout)) {
+      return $this->inside(Templates_HTML::Template($layout));
     }
-    $this->inside($l);
-    return $this;
+    $template = Templates_HTML::Template(Templates_HTML::option('layouts_path') . '/' . $layout);
+    return $this->inside($template);
   }
 
   public function no_layout() {
@@ -594,22 +540,12 @@ class Templates_HTML_Template
       return $this->with($parameters);
   }
 
-  protected function make_layout_paths($path) {
-    for ($res = array(), $parts  = Core_Strings::split_by('/', (string) $path);
-         count($parts) > 0;
-         Core_Arrays::pop($parts)) $res[] = implode('/', $parts);
-    return $res;
-  }
-
-    //---------------------------------
-
-
-///   <method name="inside" returns="Templates.NestableTemplate">
-///     <brief>Устанавливает внутри какого шаблона находиться данный шаблон</brief>
-///     <args>
-///       <arg name="container" type="Templates.Text.Template" brief="шаблон-контейнер" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает внутри какого шаблона находиться данный шаблон
+ * 
+ * @param Templates_Text_Template $container
+ * @return Templates_NestableTemplate
+ */
   public function inside(Templates_NestableTemplate $container) {
     parent::inside($container);
     foreach ($this->agregators as $name => $ag) {
@@ -622,58 +558,60 @@ class Templates_HTML_Template
     $this->agregators = $container->agregators;
     return $this;
   }
-///     </body>
-///   </method>
 
-  public function spawn($name) {
-    $res = Templates_HTML::Template($name);
+  public function copy($name, $with_content = true)
+  {
+    $res = is_object($name) ? $name : Templates_HTML::Template($name);
     $res->agregators = $this->agregators;
     $res->helpers = $this->helpers;
     $res->no_duplicates = $this->no_duplicates;
+    if ($with_content) {
+      $res->content = $this->content;
+    }
+    return $res;
+  }
+
+  public function spawn($name) {
+    $res = $this->copy($name, false);
     $res->spawn_from = $this->root;
     return $res;
   }
 
 
-///   <protocol name="performing">
 
-///   <method name="begin" returns="Templates.Text.Template">
-///     <brief>Начинает запись блока</brief>
-///     <args>
-///       <arg name="block" brief="имя блока" />
-///     </args>
-///     <body>
+/**
+ * Начинает запись блока
+ * 
+ * @param  $block
+ * @return Templates_Text_Template
+ */
   public function begin($block) {
     ob_start();
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="end" returns="Templates.Text.Template">
-///     <brief>Заканчивает запись блока и сохраняет его</brief>
-///     <args>
-///       <arg name="block" brief="имя блока" />
-///       <arg name="prepend" type="добавить или заменить текущий блок" />
-///     </args>
-///     <body>
+/**
+ * Заканчивает запись блока и сохраняет его
+ * 
+ * @param  $block
+ * @param добавить или заменить текущий блок $prepend
+ * @return Templates_Text_Template
+ */
   public function end($block, $append = true) {
     $value = ob_get_clean();
     return $this->content($block, $value, $append);
     // $this->content[$block] = ($append && isset($this->content[$block]) ? $this->content[$block] : '') . $value;
     // return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="content" returns="Templates.HTML.Template">
-///     <brief>Создает блок и заполняет его контентом</brief>
-///     <args>
-///       <arg name="name"    type="string" brief="имя блока" />
-///       <arg name="content" type="string" brief="контент/содержимое блока" />
-///       <arg name="prepend" type="boolean" default="true" brief="добавить в начало или в конец блока $name" />
-///     </args>
-///     <body>
+/**
+ * Создает блок и заполняет его контентом
+ * 
+ * @param string $name
+ * @param string $content
+ * @param boolean $prepend
+ * @return Templates_HTML_Template
+ */
   public function content($name, $content, $prepend = true) {
     if ($this->record)
         $this->record_call(__FUNCTION__, func_get_args());
@@ -691,90 +629,74 @@ class Templates_HTML_Template
       $this->content[$name] = $old_content.$content;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="prepend_to" returns="Templates.HTML.Template">
-///     <brief>Добавить контент к концу блоку</brief>
-///     <args>
-///       <arg name="name"    type="string" brief="имя блока" />
-///       <arg name="content" type="string" brief="контент" />
-///     </args>
-///     <body>
+/**
+ * Добавить контент к концу блоку
+ * 
+ * @param string $name
+ * @param string $content
+ * @return Templates_HTML_Template
+ */
   public function prepend_to($name, $content) { return $this->content($name, $content, true); }
-///     </body>
-///   </method>
 
-///   <method name="append_to" returns="Templates.HTML.Template">
-///     <brief>Добавить контент к началу блоку</brief>
-///     <args>
-///       <arg name="name"    type="string" brief="имя блока" />
-///       <arg name="content" type="string" brief="контент" />
-///     </args>
-///     <body>
+/**
+ * Добавить контент к началу блоку
+ * 
+ * @param string $name
+ * @param string $content
+ * @return Templates_HTML_Template
+ */
   public function append_to($name, $content) { return $this->content($name, $content, false); }
-///     </body>
-///   </method>
 
-///   <method name="if_empty" returns="Templates.HTML.Template">
-///     <brief>Добавляет контент к блоку, если этот блок пустой</brief>
-///     <args>
-///       <arg name="block" type="string" brief="имя блока" />
-///       <arg name="content" type="string" brief="контент" />
-///     </args>
-///     <body>
+/**
+ * Добавляет контент к блоку, если этот блок пустой
+ * 
+ * @param string $block
+ * @param string $content
+ * @return Templates_HTML_Template
+ */
   public function if_empty($block, $content) {
     if (!isset($this->content[$block])) $this->contnet($block, $content);
     return $this;
   }
-///     </body>
-///   </method>
 
 //TODO: deprecated use meta
 //-----------------------
-///   <method name="title" returns="Templates.HTML.Template">
-///     <brief>Зополняет блок title, если он пустой</brief>
-///     <args>
-///       <arg name="content" type="string" brief="контент" />
-///     </args>
-///     <body>
+/**
+ * Зополняет блок title, если он пустой
+ * 
+ * @param string $content
+ * @return Templates_HTML_Template
+ */
   public function title($content) { return $this->if_empty('title', htmlspecialchars($content)); }
-///     </body>
-///   </method>
 
-///   <method name="description" returns="Templates.HTML.Template">
-///     <brief>Зополняет блок description, если он пустой</brief>
-///     <args>
-///       <arg name="content" type="string" />
-///     </args>
-///     <body>
+/**
+ * Зополняет блок description, если он пустой
+ * 
+ * @param string $content
+ * @return Templates_HTML_Template
+ */
   public function description($content) { return $this->if_empty('description', htmlspecialchars($content)); }
-///     </body>
-///   </method>
 //-----------------------
 
   protected function partial_cache_key($name, $parms) {
      return $this->cache_key($name, $parms, 'partial');
   } 
 
-///   <method name="partial" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function partial_cache($name, $params = array(), $key = null, $timeout = null) {
     $key = $key ? $key : $this->partial_cache_key($name, $params);
     return $this->cached_call($key, array($this, 'partial'), array($name, $params));
   }
-///     </body>
-///   </method>
 
-///   <method name="partial" returns="string">
-///     <brief>Возвращает результат шаблона с именем $__name</brief>
-///     <details>
-///       Кроме имени шаблона могут переданны переменные/параметры, которые будут досутпны в шаблоне $__name
-///     </details>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Возвращает результат шаблона с именем $__name
+ * 
+ * @param string $name
+ * @return string
+ */
   public function partial($__name, $__params = array()) {
     Events::call('templates.partial', $this, $_name, $__params);
     extract(array_merge($this->get_parms(), $__params));
@@ -788,17 +710,12 @@ class Templates_HTML_Template
     } else
       throw new Templates_MissingTemplateException($__path);
   }
-///     </body>
-///   </method>
 
-///   <method name="compose" returns="string">
-///     <brief>Компанует вместе несколько вызовов partial или/и строки</brief>
-///     <details>
-///       В метод может быть переданно любое количество параметров
-///       Если параметр - массив, то этот массив подается на вход методу partial и результат комбинируется с другими вызовами или строками
-///       Если параметр - строка, то она проста добавляется к результату
-///     </details>
-///     <body>
+/**
+ * Компанует вместе несколько вызовов partial или/и строки
+ * 
+ * @return string
+ */
   public function compose() {
     $r = '';
     $args = func_get_args();
@@ -809,17 +726,15 @@ class Templates_HTML_Template
     }
     return $r;
   }
-///     </body>
-///   </method>
 
-///   <method name="tag" returns="string">
-///     <brief>Формирует html-таг</brief>
-///     <args>
-///       <arg name="name" type="string" brief="название" />
-///       <arg name="attrs" type="array" default="array()" brief="массив атрибутов" />
-///       <arg name="close" type="boolean" default="true" brief="закрывать или нет таг" />
-///     </args>
-///     <body>
+/**
+ * Формирует html-таг
+ * 
+ * @param string $name
+ * @param array $attrs
+ * @param boolean $close
+ * @return string
+ */
   public function tag($name, array $attrs = array(), $close = true) {
     $tag = '<'.((string) $name);
 
@@ -828,17 +743,15 @@ class Templates_HTML_Template
 
     return $tag .= (boolean) $close ? ' />' : '>';
   }
-///     </body>
-///   </method>
 
-///   <method name="content_tag" returns="string">
-///     <brief>Формирует таг с контеном</brief>
-///     <args>
-///       <arg name="name" type="string" brief="название" />
-///       <arg name="content" type="string" brief="контетн" />
-///       <arg name="attrs" type="array" default="array()" brief="массив атрибутов" />
-///     </args>
-///     <body>
+/**
+ * Формирует таг с контеном
+ * 
+ * @param string $name
+ * @param string $content
+ * @param array $attrs
+ * @return string
+ */
   public function content_tag($name, $content, array $attrs = array()) {
     $tag = '<'.((string) $name);
 
@@ -848,8 +761,6 @@ class Templates_HTML_Template
 
     return $tag .= '>'.((string) $content).'</'.((string) $name.'>');
   }
-///     </body>
-///   </method>
 
   public function attributes($attrs) {
     $tag = '';
@@ -859,46 +770,39 @@ class Templates_HTML_Template
     return $tag;
   }
 
-///   <method name="link_to" returns="string">
-///     <brief>Формирует таг a</brief>
-///     <args>
-///       <arg name="url" type="string" brief="адрес ссылки" />
-///       <arg name="content" type="string" brief="контент/содержимое тага" />
-///       <arg name="attrs" type="array" default="array()" brief="массив атрибутов" />
-///     </args>
-///     <body>
+/**
+ * Формирует таг a
+ * 
+ * @param string $url
+ * @param string $content
+ * @param array $attrs
+ * @return string
+ */
   public function link_to($url, $content, array $attrs = array()) {
     return $this->content_tag('a', $content, array_merge($attrs, array('href' => $url)));
   }
-///     </body>
-///   </method>
 
-///   <method name="mail_to" returns="string">
-///     <brief>Формирует mailto ссылку</brief>
-///     <args>
-///       <arg name="address"  type="string" brief="адрес" />
-///       <arg name="body" type="string" brief="содержимое/контент тага" />
-///       <arg name="attributes" type="array" default="array()" brief="массив атрибутов" />
-///     </args>
-///     <body>
+/**
+ * Формирует mailto ссылку
+ * 
+ * @param string $address
+ * @param string $body
+ * @param array $attributes
+ * @return string
+ */
   public function mail_to($address, $body = '', array $attributes = array()) {
     return $this->link_to("mailto:$address", ($body ? $body : $address), $attributes);
   }
-///     </body>
-///   </method>
 
-///   <method name="button_to" returns="string">
-///     <brief>Формирует html-форму с кнопкой, отправляющей запрос по указанному адресу</brief>
-///     <details>
-///       Если массив атрибутов содержит 'confirm' параметр, тогда к кнопке будет добавлено оnclick событие, выводящее окно подтверждения действия.
-///     </details>
-///     <args>
-///       <arg name="url"        type="string"/>
-///       <arg name="text"       type="string" brief="Текст кнопки" />
-///       <arg name="method"     type="string" default="'get'" brief="метод формы" />
-///       <arg name="attributes" type="array"  default="array()" brief="массив атрибутов" />
-///     </args>
-///     <body>
+/**
+ * Формирует html-форму с кнопкой, отправляющей запрос по указанному адресу
+ * 
+ * @param string $url
+ * @param string $text
+ * @param string $method
+ * @param array $attributes
+ * @return string
+ */
   public function button_to($url, $text, $method = 'get', array $attributes = array()) {
     $confirmation = Core_Arrays::pick($attributes, 'confirm');
     return $this->
@@ -914,18 +818,16 @@ class Templates_HTML_Template
           'action' => $url,
           'method' => ($method == 'get' || $method == 'post' ? $method : 'post')));
   }
-///     </body>
-///   </method>
 
-///   <method name="form_button_to" returns="string">
-///     <brief>Формирует кнопку, отправляющую запрос по указанному адресу</brief>
-///     <args>
-///       <arg name="url"        type="string" />
-///       <arg name="text"       type="string" brief="текст кнопки" />
-///       <arg name="method"     type="string" default="'get'" brief="метод отправки (get|put|post|delete)" />
-///       <arg name="attributes" type="array"  default="array()" brief="массив атрибутов" />
-///     </args>
-///     <body>
+/**
+ * Формирует кнопку, отправляющую запрос по указанному адресу
+ * 
+ * @param string $url
+ * @param string $text
+ * @param string $method
+ * @param array $attributes
+ * @return string
+ */
   public function form_button_to($url, $text, $method = 'get', array $attributes = array()) {
     $confirmation = Core_Arrays::pick($attributes, 'confirm');
     return $this->tag('input', array(
@@ -937,29 +839,24 @@ class Templates_HTML_Template
                    'return '.$this->make_confirmation($confirmation).';') +
       $attributes);
   }
-///     </body>
-///   </method>
 
-///   <method name="image">
-///     <brief>Формирует img таг</brief>
-///     <args>
-///       <arg name="url" type="string" brief="url к картинке" />
-///       <arg name="attrs" type="array" default="array()" brief="массив атрибутов" />
-///     </args>
-///     <body>
+/**
+ * Формирует img таг
+ * 
+ * @param string $url
+ * @param array $attrs
+ */
   public function image($url, array $attrs = array()) {
     return $this->tag('img', array_merge($attrs, array('src' => $url)));
   }
-///     </body>
-///   </method>
 
-///   <method name="js_link" returns="string">
-///     <brief>Формирует таг script ссылающийся на указанный js-скрипт</brief>
-///     <args>
-///       <arg name="path" type="string" brief="url путь к js файлу" />
-///       <arg name="options" type="array" />
-///     </args>
-///     <body>
+/**
+ * Формирует таг script ссылающийся на указанный js-скрипт
+ * 
+ * @param string $path
+ * @param array $options
+ * @return string
+ */
   public function js_link($path, array $options = array(), $add_timestamp = true) {
     return $this->content_tag('script',  '',
         array_merge(array(
@@ -967,16 +864,14 @@ class Templates_HTML_Template
           ),
           $options))."\n";
   }
-///     </body>
-///   </method>
 
-///   <method name="css_link" returns="string">
-///     <brief>Формирует link таг ссылающийся на указанный css-файл</brief>
-///     <args>
-///       <arg name="path" type="string" />
-///       <arg name="options" type="array" />
-///     </args>
-///     <body>
+/**
+ * Формирует link таг ссылающийся на указанный css-файл
+ * 
+ * @param string $path
+ * @param array $options
+ * @return string
+ */
   public function css_link($path, array $options = array(),  $add_timestamp = true) {
     return $this->tag('link',
         array_merge(array(
@@ -986,8 +881,6 @@ class Templates_HTML_Template
           ),
           $options))."\n";
   }
-///     </body>
-///   </method>
 
   protected function js_path($path, $add_timestamp = true) {
     $path = Templates_HTML::js_path($path);
@@ -1007,35 +900,31 @@ class Templates_HTML_Template
     return $add_timestamp ? $this->add_timestamp($path) : $path;
   }
 
-///   <method name="js" returns="Templates.HTML.Template">
-///     <body>
+/**
+ * @return Templates_HTML_Template
+ */
   public function js($string) {
     if (empty($string)) return '';
     return $this->content_tag('script', $string);
   }
-///     </body>
-///   </method>
 
-///   <method name="css" returns="Templates.HTML.Template">
-///     <body>
+/**
+ * @return Templates_HTML_Template
+ */
   public function css($string) {
     if (empty($string)) return '';
     return $this->content_tag('style', $string, array('type' => 'text/css'));
   }
-///     </body>
-///   </method>
-
-///   </protocol>
 
 
-///   <protocol name="accessing">
 
-///   <method name="__get" returns="mixed">
-///     <brief>Доступ на чтение к свойствам объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+
+/**
+ * Доступ на чтение к свойствам объекта
+ * 
+ * @param string $property
+ * @return mixed
+ */
   public function __get($property) {
     switch (true) {
       case $property == 'meta':
@@ -1058,19 +947,14 @@ class Templates_HTML_Template
         return parent::__get($property);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__set" returns="mixed">
-///     <brief>Доступ на запись к свойствам объекта</brief>
-///     <details>
-///       Выбрасывает исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Доступ на запись к свойствам объекта
+ * 
+ * @param string $property
+ * @param  $value
+ * @return mixed
+ */
   public function __set($property, $value) {
     switch (true) {
       case in_array($property, array('agregators', 'meta')):
@@ -1090,15 +974,13 @@ class Templates_HTML_Template
         return parent::__set($property, $value);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__isset" returns="boolean">
-///     <brief>Проверяет установленно ли свойство объекта</brief>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства" />
-///     </args>
-///     <body>
+/**
+ * Проверяет установленно ли свойство объекта
+ * 
+ * @param string $property
+ * @return boolean
+ */
   public function __isset($property) {
     switch (true) {
       case in_array($property, array('agregators', 'include_meta', 'meta', 'allow_filtering', 'no_duplicates')):
@@ -1110,18 +992,12 @@ class Templates_HTML_Template
         return parent::__set($property, $value);
     }
   }
-///     </body>
-///   </method>
 
-///   <method name="__unset">
-///     <brief>Очищает свойство объекта</brief>
-///     <details>
-///       Выбрасывает исключение, доступ только для чтения
-///     </details>
-///     <args>
-///       <arg name="property" type="string" brief="имя свойства объекта" />
-///     </args>
-///     <body>
+/**
+ * Очищает свойство объекта
+ * 
+ * @param string $property
+ */
   public function __unset($property) {
     switch (true) {
       case in_array($property, array('agregators', 'include_meta', 'meta', 'allow_filtering')):
@@ -1134,10 +1010,7 @@ class Templates_HTML_Template
         return parent::__set($property, $value);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
    public function __sleep(){
     return array_merge(parent::__sleep(), 
@@ -1164,14 +1037,13 @@ class Templates_HTML_Template
     return $this;
   }
 
-///   <protocol name="indexing" interface="Core.IndexedPropertyAccessInterface">
 
-///   <method name="offsetGet" returns="mixed">
-///     <brief>Возвращает содержтмое блока с именем $index</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя блока" />
-///     </args>
-///     <body>
+/**
+ * Возвращает содержтмое блока с именем $index
+ * 
+ * @param string $index
+ * @return mixed
+ */
   public function offsetGet($index) {
     switch (true) {
       case $index == 'include_files':
@@ -1183,57 +1055,44 @@ class Templates_HTML_Template
     }
     // isset($this->content[$index]) ? $this->content[$index] : '';
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetSet" returns="mixed">
-///     <brief>Устанавливает содержимое блока</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя блока" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * Устанавливает содержимое блока
+ * 
+ * @param string $index
+ * @param  $value
+ * @return mixed
+ */
   public function offsetSet($index, $value) {
     return $this->clear($index)->content($index, (string) $value);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <brief>Проверяет существует ли блок</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя блока" />
-///     </args>
-///     <body>
+/**
+ * Проверяет существует ли блок
+ * 
+ * @param string $index
+ * @return boolean
+ */
   public function offsetExists($index) { return isset($this->content[$index]); }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <brief>Удаляет блок</brief>
-///     <args>
-///       <arg name="index" type="string" brief="имя блока" />
-///     </args>
-///     <body>
+/**
+ * Удаляет блок
+ * 
+ * @param string $index
+ */
   public function offsetUnset($index) { unset($this->content[$index]); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="make_confirmation" returns="string">
-///     <brief>Формирует js confirm вызов</brief>
-///     <args>
-///       <arg name="text" type="string" />
-///     </args>
-///     <body>
+/**
+ * Формирует js confirm вызов
+ * 
+ * @param string $text
+ * @return string
+ */
   protected function make_confirmation($text) {
     return $text ? "confirm('".Core_Strings::replace($text, "'", "\'")."')": 'true';
   }
-///     </body>
-///   </method>
 
   public function set_patrial_paths($paths = array(), $base_name = '')
   {
@@ -1260,12 +1119,12 @@ class Templates_HTML_Template
     return $result;
   }
 
-///   <method name="get_partial_path" returns="string" access="protected">
-///     <brief>Возвращает путь до partial шаблона</brief>
-///     <args>
-///       <arg name="name" type="string" brief="имя шаблона" />
-///     </args>
-///     <body>
+/**
+ * Возвращает путь до partial шаблона
+ * 
+ * @param string $name
+ * @return string
+ */
   protected function get_partial_path($name, $paths = array()) {
     if (Core_Strings::starts_with($name, '!')) {
       $trace = debug_backtrace();
@@ -1286,22 +1145,22 @@ class Templates_HTML_Template
     }
     return $result;
   }
-///     </body>
-///   </method>
 
-///   <method name="get_helpers" returns="Object.Aggregator" access="protected">
-///     <brief>Возвращает делегатор хелперов текущего шаблона</brief>
-///     <body>
+/**
+ * Возвращает делегатор хелперов текущего шаблона
+ * 
+ * @return Object_Aggregator
+ */
   protected function get_helpers() {
     return Core::if_null($this->helpers,
       $this->container ? $this->container->get_helpers() : Templates_HTML::helpers());
   }
-///     </body>
-///   </method>
 
-///   <method name="load" access="protected" returns="Templates.HTML.Template">
-///     <brief>Инклюдит указанный фаил, создавая необходимые переменные</brief>
-///     <body>
+/**
+ * Инклюдит указанный фаил, создавая необходимые переменные
+ * 
+ * @return Templates_HTML_Template
+ */
   protected function load($__path) {
     extract($this->get_parms());
     if (IO_FS::exists($__path))
@@ -1310,15 +1169,13 @@ class Templates_HTML_Template
       throw new Templates_MissingTemplateException($__path);
     return $this;
   }
-///     </body>
-///   </method>
 
-///   <method name="render_nested" returns="string">
-///     <brief>Возвращает конечный результат</brief>
-///     <args>
-///       <arg name="content" type="ArrayObject" default="null" brief="контент, содержащий блоки" />
-///     </args>
-///     <body>
+/**
+ * Возвращает конечный результат
+ * 
+ * @param ArrayObject $content
+ * @return string
+ */
   protected function render_nested(ArrayObject $content = null) {
     Events::call('templates.render', $this, $content);
     if ($content) $this->update_content($content);
@@ -1330,8 +1187,6 @@ class Templates_HTML_Template
     Events::call('templates.render_result', $rc, $this, $content);
     return $rc;
   }
-///     </body>
-///   </method>
 
   protected function update_content($content, $ignore = array()) {
     foreach ($content as $k => $v) {
@@ -1379,15 +1234,12 @@ class Templates_HTML_Template
     return Text_Insertions::filter()->process($content, array('layout' => $this));
   }
 
-///   </protocol>
 }
-/// </class>
 
 //TODO: Iterator
-/// <class name="Templates.HTML.Metas">
-///   <implements interface="Core.IndexedPropertyAccessInterface" />
-///   <implements interface="Core.CallInterface" />
-///   <implements interface="Core.StringifyInterface" />
+/**
+ * @package Templates\HTML
+ */
 class Templates_HTML_Metas implements Core_PropertyAccessInterface, 
              Core_CallInterface,
              Core_StringifyInterface {
@@ -1396,14 +1248,12 @@ class Templates_HTML_Metas implements Core_PropertyAccessInterface,
   protected $http  = array();
   protected $named = array();
 
-///   <protocol name="calling" interface="Core.CallInterface">
 
-///   <method name="__call" returns="WebKit.Metas.MetaTags">
-///     <args>
-///       <arg name="method" type="string" />
-///       <arg name="args"   type="array"  />
-///     </args>
-///     <body>
+/**
+ * @param string $method
+ * @param array $args
+ * @return WebKit_Metas_MetaTags
+ */
   public function __call($method, $args) {
     switch ($method) {
       case 'title':
@@ -1417,18 +1267,13 @@ class Templates_HTML_Metas implements Core_PropertyAccessInterface,
     }
     return $this;
   }
-///     </body>
-///   </method>
   
-///   </protocol>
 
-///   <protocol name="accessing" interface="Core.PropertyAccessInterface">
 
-///   <method name="__get" returns="string">
-///     <args>
-///       <arg name="property" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @return string
+ */
   public function __get($property) {
     switch ($property) {
       case 'title':
@@ -1439,15 +1284,12 @@ class Templates_HTML_Metas implements Core_PropertyAccessInterface,
           (isset($this->named[$property]) ? $this->named[$property] : null);
     }
   }
-///     </body>
-///   </method>
   
-///   <method name="__set" returns="string">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value"    type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param string $value
+ * @return string
+ */
   public function __set($property, $value) {
     switch ($property) {
       case 'title':
@@ -1457,30 +1299,23 @@ class Templates_HTML_Metas implements Core_PropertyAccessInterface,
         return $value;
     }
   }
-///     </body>
-///   </method>
   
-///   <method name="__isset" returns="boolean">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value"    type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param string $value
+ * @return boolean
+ */
   public function __isset($property) {
     return $property == 'title' || 
            ($this->is_http_field($name) ?
              isset($this->http[$this->http_field_name($name)]) : 
              isset($this->named[$name]));   
   }
-///     </body>
-///   </method>
   
-///   <method name="__unset">
-///     <args>
-///       <arg name="property" type="string" />
-///       <arg name="value"    type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $property
+ * @param string $value
+ */
   public function __unset($property) {
     if ($property == 'title') throw new Core_UndestroyablePropertyException($property);
     
@@ -1489,12 +1324,8 @@ class Templates_HTML_Metas implements Core_PropertyAccessInterface,
     else
       if (isset($this->named[$property])) unset($this->named[$property]);  
   }
-///     </body>
-///   </method>
 
-///   </protocol>
   
-///   <protocol name="stringifyng" interface="Core.StringifyInterface">
 
   protected function http_to_string($name, $content) {
     return sprintf("<meta http-equiv=\"%s\" content=\"%s\" />\n", 
@@ -1509,8 +1340,9 @@ class Templates_HTML_Metas implements Core_PropertyAccessInterface,
     return sprintf("<meta name=\"%s\" content=\"%s\" />\n", htmlspecialchars($name), htmlspecialchars($content));
   }
   
-///   <method name="as_string" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function as_string() {
     $result = '';
     if (isset($this->http['content_type'])) {
@@ -1528,43 +1360,29 @@ class Templates_HTML_Metas implements Core_PropertyAccessInterface,
   
     return $result;
   }
-///     </body>
-///   </method>
   
-///   <method name="__toString" returns="string">
-///     <body>
+/**
+ * @return string
+ */
   public function __toString() { return $this->as_string(); }
-///     </body>
-///   </method>
   
-///   </protocol>
   
-///   <protocol name="supporting">
 
-///   <method name="is_http_field" returns="boolean" access="protected">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return boolean
+ */
   protected function is_http_field($name) { return Core_Strings::starts_with($name, 'http_'); }
-///     </body>
-///   </method>
   
-///   <method name="http_field_name" returns="string" access="protected">
-///     <args>
-///       <arg name="name" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @return string
+ */
   protected function http_field_name($name) {
     return Core_Strings::downcase(
       Core_Regexps::replace('{^http_}', '', $name));
   }
-///     </body>
-///   </method>
 
-///   </protocol>
   
 }
-/// </class> 
 
-/// </module>

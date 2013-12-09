@@ -1,33 +1,33 @@
 <?php
-/// <module name="WebKit.Mappers.Rest" version="1.2.0" maintainer="timokhin@techart.ru">
+/**
+ * WebKit.Mappers.Rest
+ * 
+ * @package WebKit\Mappers\Rest
+ * @version 1.2.0
+ */
 
 Core::load('WebKit.Controller');
 
-/// <class name="WebKit.Mappers.Rest" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="WebKit.Mappers.Rest.Mapper" stereotype="creates" />
+/**
+ * @package WebKit\Mappers\Rest
+ */
 class WebKit_Mappers_Rest implements Core_ModuleInterface {
 
-///   <constants>
   const MODULE  = 'WebKit.Mappers.Rest';
   const VERSION = '1.2.0';
-///   </constants>
 
-///   <protocol name="building">
 
-///   <method name="Mapper" returns="WebKit.Mappers.Rest.Mapper" scope="class">
-///     <body>
+/**
+ * @return WebKit_Mappers_Rest_Mapper
+ */
   static public function Mapper() { return new WebKit_Mappers_Rest_Mapper(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
 
-/// <class name="WebKit.Mappers.Rest.Mapper" extends="WebKit.Controller.AbstractMapper">
-///   <implements interface="Core.CallInterface" />
+/**
+ * @package WebKit\Mappers\Rest
+ */
 class WebKit_Mappers_Rest_Mapper
   extends    WebKit_Controller_AbstractMapper
   implements Core_CallInterface {
@@ -36,14 +36,12 @@ class WebKit_Mappers_Rest_Mapper
   protected $single_names   = array();
   protected $default_format = 'html';
 
-///   <protocol name="configuring">
 
-///   <method name="map" returns="WebKit.Mappers.Rest.Mapper">
-///     <args>
-///       <arg name="name"       type="string" />
-///       <arg name="definition" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param array $definition
+ * @return WebKit_Mappers_Rest_Mapper
+ */
   public function map($name, array $definition) {
     $this->resources[$name] = $definition;
     if (!isset($this->resources[$name]['single']) || $this->resources[$name]['single'] == $name)
@@ -52,18 +50,13 @@ class WebKit_Mappers_Rest_Mapper
     $this->single_names[$this->resources[$name]['single']] = $name;
     return $this;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="routing">
 
-///   <method name="route" returns="WebKit.Controller.Route">
-///     <args>
-///       <arg name="request" type="WebKit.HTTP.Request" />
-///     </args>
-///     <body>
+/**
+ * @param WebKit_HTTP_Request $request
+ * @return WebKit_Controller_Route
+ */
   public function route($request) {
     if ($this->is_not_match_for($request->urn)) return null;
 
@@ -151,19 +144,14 @@ class WebKit_Mappers_Rest_Mapper
       merge($this->defaults)->
       add_controller_prefix($this->options['prefix']);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="calling" interface="Core.CallInterface">
 
-///   <method name="__call" returns="mixed">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="args" type="array" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param array $args
+ * @return mixed
+ */
   public function __call($name, $args) {
     if (!Core_Regexps::match('{_url$}', $name))
       throw new Core_MissingMethodException($name);
@@ -208,27 +196,17 @@ class WebKit_Mappers_Rest_Mapper
       $this->add_path($url).(isset($args[0]) ? '.'.$args[0] : ".{$this->default_format}"),
       $parms);
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="guess_format" returns="string" access="protected">
-///     <args>
-///       <arg name="uri" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $uri
+ * @return string
+ */
   protected function guess_format($uri) {
     return ($match = Core_Regexps::match_with_results('{\.([a-z]+)$}', $uri)) ?
       $match[1] : $this->default_format;
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

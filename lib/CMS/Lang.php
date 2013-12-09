@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Lang
+ */
+
 
 class CMS_Lang implements Core_ModuleInterface {
 

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Vars2\Type\Image
+ */
+
 
 class CMS_Vars2_Type_Image extends CMS_Var implements Core_ModuleInterface {
 	

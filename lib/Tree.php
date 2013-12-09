@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Tree
+ */
+
 
 class Tree implements Core_ModuleInterface {
 	const VERSION = '0.0.0';

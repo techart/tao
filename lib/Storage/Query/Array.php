@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Storage\Query\Array
+ */
+
 
 Core::load('Storage');
 

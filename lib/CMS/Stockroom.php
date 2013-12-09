@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Stockroom
+ */
+
 
 class CMS_Stockroom implements Core_ModuleInterface 
 {

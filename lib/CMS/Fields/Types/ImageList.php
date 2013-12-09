@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\ImageList
+ */
+
 
 Core::load('CMS.Fields', 'CMS.Redactor');
 

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Templates\HTML\Preprocess
+ */
+
 
 Core::load('Cache', 'WS');
 

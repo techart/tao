@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Lang\Factory\Ru
+ */
+
 
 class CMS_Lang_Factory_Ru implements Core_ModuleInterface {
 

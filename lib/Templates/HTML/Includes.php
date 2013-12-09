@@ -43,7 +43,6 @@ interface Templates_HTML_Includes_AgregatorInterface extends IteratorAggregate {
 }
 
 
-/// <class name="Templates.HTML.Includes.Agregator">
 class Templates_HTML_Includes_Agregator implements Core_IndexedAccessInterface, Templates_HTML_Includes_AgregatorInterface {
 
   protected $files;
@@ -276,50 +275,34 @@ class Templates_HTML_Includes_Agregator implements Core_IndexedAccessInterface, 
       return new ArrayIterator($this->files_list());
   }
 
-///   <protocol name="indexing" interface="Core.IndexedPropertyAccessInterface">
 
-///   <method name="offsetGet" returns="mixed">
-///     <args>
-///       <arg name="index" type="string" brief="имя блока" />
-///     </args>
-///     <body>
+/**
+ * @param string $index
+ * @return mixed
+ */
   public function offsetGet($index) {
    return $this->files[$index];
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetSet" returns="mixed">
-///     <args>
-///       <arg name="index" type="string" brief="имя блока" />
-///       <arg name="value" brief="значение" />
-///     </args>
-///     <body>
+/**
+ * @param string $index
+ * @param  $value
+ * @return mixed
+ */
   public function offsetSet($index, $value) {
     return $this->add_file_array($index, $value);
   }
-///     </body>
-///   </method>
 
-///   <method name="offsetExists" returns="boolean">
-///     <args>
-///       <arg name="index" type="string" brief="имя блока" />
-///     </args>
-///     <body>
+/**
+ * @param string $index
+ * @return boolean
+ */
   public function offsetExists($index) { return isset($this->files[$index]); }
-///     </body>
-///   </method>
 
-///   <method name="offsetUnset">
-///     <args>
-///       <arg name="index" type="string" brief="имя блока" />
-///     </args>
-///     <body>
+/**
+ * @param string $index
+ */
   public function offsetUnset($index) { unset($this->files[$index]); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>

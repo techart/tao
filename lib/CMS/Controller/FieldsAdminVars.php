@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Controller\FieldsAdminVars
+ */
+
 
 Core::load('CMS.Controller.Table', 'Object');
 

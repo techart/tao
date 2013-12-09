@@ -1,35 +1,33 @@
 <?php
-/// <module name="WS.Adapters.Apache" version="0.2.0" maintainer="timokhin@techart.ru">
+/**
+ * WS.Adapters.Apache
+ * 
+ * @package WS\Adapters\Apache
+ * @version 0.2.0
+ */
 
 Core::load('WS', 'Net.HTTP');
 
-/// <class name="WS.Adapters.Apache" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
-///   <depends supplier="WS.Adapters.Apache.Adapter" stereotype="creates" />
+/**
+ * @package WS\Adapters\Apache
+ */
 class WS_Adapters_Apache implements Core_ModuleInterface {
-///   <constants>
   const VERSION = '0.2.1';
-///   </constants>
-///   <protocol name="supporting" >
-///   <method name="Adapter" scope="class" returns="WS.Adapters.Apache.Adapter">
-///     <body>
+/**
+ * @return WS_Adapters_Apache_Adapter
+ */
   static public function Adapter() { return new WS_Adapters_Apache_Adapter(); }
-///     </body>
-///   </method>
-///   </protocol>
 }
-/// </class>
 
-/// <class name="WS.Adapters.Apache.Adapter">
-///   <implements interface="WS.AdapterInterface" />
-///   <depends supplier="Net.HTTP.Request" stereotype="creates" />
-///   <depends supplier="Net.HTTP.Response" stereotype="uses" />
+/**
+ * @package WS\Adapters\Apache
+ */
 class WS_Adapters_Apache_Adapter implements WS_AdapterInterface {
 
-///   <protocol name="building">
 
-///   <method name="make_request" returns="Net.HTTP.Request">
-///     <body>
+/**
+ * @return Net_HTTP_Request
+ */
   public function make_request() {
     Core_Arrays::deep_merge_update_inplace($_POST, array_filter($this->current_uploads()));
 
@@ -40,14 +38,10 @@ class WS_Adapters_Apache_Adapter implements WS_AdapterInterface {
     method((isset($_POST['_method']) && $_POST['_method']) ? $_POST['_method'] : $_SERVER['REQUEST_METHOD'])->
     headers(apache_request_headers());
   }
-///     </body>
-///   </method>
 
-///   <method name="process_response">
-///     <args>
-///       <arg name="response" type="Net.HTTP.Response" />
-///     </args>
-///     <body>
+/**
+ * @param Net_HTTP_Response $response
+ */
   public function process_response(Net_HTTP_Response $response) {
     //FIXME: $response->protocol
     
@@ -71,15 +65,11 @@ class WS_Adapters_Apache_Adapter implements WS_AdapterInterface {
     print $response->body;
       
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="supporting">
 
-///   <method name="current_uploads" access="protected">
-///     <body>
+/**
+ */
   protected function current_uploads() {
     $files = array();
     foreach ($_FILES as $name => $file) {
@@ -96,14 +86,10 @@ class WS_Adapters_Apache_Adapter implements WS_AdapterInterface {
     $this->create_objects($files);
     return $files;
   }
-///     </body>
-///   </method>
 
-///   <method name="create_objects" access="protected">
-///     <args>
-///       <arg name="nfiles" type="array" brief="массив файлов" />
-///     </args>
-///     <body>
+/**
+ * @param array $nfiles
+ */
   protected function create_objects(array &$files) {
     foreach ($files as $name => &$file) {
       if (is_array($file))
@@ -116,12 +102,7 @@ class WS_Adapters_Apache_Adapter implements WS_AdapterInterface {
           $this->create_objects($file);
     }
   }
-///     </body>
-///   </method>
 
-///   </protocol>
 
 }
-/// </class>
 
-/// </module>

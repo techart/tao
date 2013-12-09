@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package Service\Yandex\Market
+ */
+
 
 Core::load('Net.HTTP', 'Net.Agents.HTTP');
 

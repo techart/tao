@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Parms
+ */
+
 
 class CMS_Fields_Types_Parms extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 

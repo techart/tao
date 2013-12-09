@@ -1,33 +1,30 @@
 <?php
-/// <module name="CMS.ORM" maintainer="gusev@techart.ru" version="0.0.0">
+/**
+ * CMS.ORM
+ * 
+ * @package CMS\ORM
+ * @version 0.0.0
+ */
 Core::load('DB.ORM', 'Object');
-/// <class name="CMS.ORM" stereotype="module">
-///   <implements interface="Core.ModuleInterface" />
+/**
+ * @package CMS\ORM
+ */
 
 class CMS_ORM implements Core_ModuleInterface {
 
-///   <constants>
 	const MODULE = 'CMS.ORM';
 	const VERSION = '0.0.0'; 
-///   </constants>
 	
 
-///   <protocol name="creating">
 
-///   <method scope="class" name="initialize">
-///     <args>
-///       <arg name="config" type="array" default="array()" />
-///     </args>
-///     <body>
+/**
+ * @param array $config
+ */
 	static function initialize($config=array()) {
 		foreach($config as $key => $value) self::$$key = $value;
 	} 
-///     </body>
-///   </method>
 	
-///   </protocol>	
 
-///   <protocol name="performing">
 
 	static function map($name,$classname) {
 		CMS_ORM_Root::$classes[$name] = $classname;
@@ -38,15 +35,13 @@ class CMS_ORM implements Core_ModuleInterface {
 		return $mapper;
 	}
 
-///   </protocol>	
 
-///   <protocol name="supporting">
-///   </protocol>	
 	
 } 
-/// </class>
 
-/// <class name="CMS.ORM.Root">
+/**
+ * @package CMS\ORM
+ */
 
 class CMS_ORM_Root extends DB_ORM_ConnectionMapper {
 
@@ -71,10 +66,11 @@ class CMS_ORM_Root extends DB_ORM_ConnectionMapper {
 
 }
 
-/// </class>
 
 
-/// <class name="CMS.ORM.Mapper">
+/**
+ * @package CMS\ORM
+ */
 
 class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 
@@ -289,10 +285,11 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 
 }
 
-/// </class>
 
 
-/// <class name="CMS.ORM.Entity">
+/**
+ * @package CMS\ORM
+ */
 
 class CMS_ORM_Entity extends DB_ORM_Entity implements DB_ORM_AttrEntityInterface {
 
@@ -529,9 +526,7 @@ class CMS_ORM_Entity extends DB_ORM_Entity implements DB_ORM_AttrEntityInterface
 	}
 }
 
-/// </class>
 
 
 
 
-/// </module>

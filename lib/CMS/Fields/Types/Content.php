@@ -1,4 +1,8 @@
 <?php
+/**
+ * @package CMS\Fields\Types\Content
+ */
+
 
 Core::load('CMS.Fields.Types.ImageList', 'Text.Process');
 

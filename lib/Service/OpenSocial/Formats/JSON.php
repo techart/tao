@@ -1,62 +1,50 @@
 <?php
-/// <module name="Service.OpemSocial.Formats.JSON">
+/**
+ * Service.OpemSocial.Formats.JSON
+ * 
+ * @package Service\OpenSocial\Formats\JSON
+ */
 
-/// <class name="Service.OpenSocial.Formats.JSON" stereotype="module">
-///   <implements interface="Service.OpenSocial.ModuleInterface" />
-///   <depends supplier="Service.OpenSocial.Formats.JSON.Format" stereotype="creates" />
+/**
+ * @package Service\OpenSocial\Formats\JSON
+ */
 class Service_OpenSocial_Formats_JSON implements Service_OpenSocial_ModuleInterface {
 
-///   <protocol name="building">
 
-///   <method name="Format" returns="Service.OpenSocial.JSON.Format" scope="class">
-///     <body>
+/**
+ * @return Service_OpenSocial_JSON_Format
+ */
   static public function Format() { return new Service_OpenSocial_Formats_JSON_Format(); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// <class name="Service.OpenSocial.Formats.JSON.Format" extends="Service.OpenSocial.Format">
+/**
+ * @package Service\OpenSocial\Formats\JSON
+ */
 class Service_OpenSocial_Formats_JSON_Format extends Service_OpenSocial_Format {
 
-///   <protocol name="creating">
 
-///   <method name="__construct">
-///     <args>
-///       <arg name="name" type="string" />
-///       <arg name="content_type" type="string" />
-///     </args>
-///     <body>
+/**
+ * @param string $name
+ * @param string $content_type
+ */
   public function __construct() { parent::__construct('json', 'application/json'); }
-///     </body>
-///   </method>
 
-///   </protocol>
 
-///   <protocol name="processing">
 
-///   <method name="encode" returns="string" stereotype="abstract">
-///     <args>
-///       <arg name="object" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param  $object
+ * @return string
+ */
   public function encode($object) { return json_encode($object); }
-///     </body>
-///   </method>
 
-///   <method name="decode" returns="object" stereotype="abstract">
-///     <args>
-///       <arg name="string" type="string" />
-///     </args>
-///     <body>
+/**
+ * @abstract
+ * @param string $string
+ * @return object
+ */
   public function decode($string) { return json_decode($string); }
-///     </body>
-///   </method>
 
-///   </protocol>
 }
-/// </class>
 
-/// </module>

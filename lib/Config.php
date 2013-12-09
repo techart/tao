@@ -1,28 +1,28 @@
 <?php
+/**
+ * @package Config
+ */
+
 
 Core::load('Config.DSL');
 
 class Config implements Core_ModuleInterface
 {
 	protected static $options = array(
-		'paths' => array(
-			'app' => '../app/config/app.php',
-			'site' => '../config/site.php',
-		),
-		'extends_path' => array(),
-		'base_paths' => array('../app/config/', '../config/'),
+		'instance_class' => 'Config.Instance'
 	);
-
-	public static function initialize($opts = array())
-	{
-		self::$options = Core_Arrays::deep_merge_update(self::$options, $opts);
-	}
 
 	protected static $instances = array();
 
-	static public function core()
+	public static function initialize($opts = array())
 	{
-		return self::get('core');
+		self::$options['base_paths'] = array(Core::tao_config_dir(), '../app/config/', '../config/');
+		self::$options = Core_Arrays::deep_merge_update(self::$options, $opts);
+	}
+
+	static public function modules()
+	{
+		return self::get('modules');
 	}
 
 	static public function site()
@@ -32,64 +32,76 @@ class Config implements Core_ModuleInterface
 
 	public static function app()
 	{
-		return self::get('app')->extend(self::site());
+		return self::get('site');
 	}
 
-	public static function configure()
-	{
-		return self::get('configure');
-	}
-
+	/**
+	* @todo: find all files & load ?
+	*/
 	public static function all()
 	{
-		$res = self::app();
-		foreach (self::$options['extends_path'] as $name => $path) {
-			$res->$name = self::instance($path);
-		}
-		return $res;
+		return self::app();
 	}
 
 	public static function get($name)
 	{
-		if (isset(self::$options['paths'][$name])) {
-			return self::instance(self::$options['paths'][$name]);
+		if (isset(self::$instances[$name])) {
+			return self::$instances[$name];
 		}
-		$path = self::path_for($name);
-		self::$options['extends_path'][$name] = $path;
-		return self::instance($path);
+		$paths = self::paths_for($name);
+		return self::$instances[$name] = self::instance($paths);
 	}
 
-	protected static function path_for($name)
+	protected static function paths_for($name)
 	{
-		$path = '';
+		$paths = array();
 		foreach (self::$options['base_paths'] as $bp) {
-			$path = trim($bp, '/') . '/' . $name . '.php';
+			$path = rtrim($bp, '/') . '/' . $name . '.php';
 			if (is_file($path)) {
-				return $path;
+				$paths[] = $path;
 			}
 		}
-		return $path;
+		return $paths;
 	}
 
-	public static function instance($path)
+	protected static function instance($paths)
 	{
-		if (!isset(self::$instances[$path])) {
-			$inst = new Config_Instance();
+		$paths = (array) $paths;
+		$res = null;
+		foreach ($paths as $path) {
+			$inst = self::make_instance();
 			$inst->___path = $path;
-			self::$instances[$path] = Config_DSL::Builder($inst)->load($path)->object;
+			$inst = Config_DSL::Builder($inst)->load($path)->object;
+			if (is_null($res)) {
+				$res = $inst;
+			} elseif (is_array($res) && is_array($inst)) {
+				$res = array_replace_recursive($res, $inst);
+			} else {
+				$res = $res->extend($inst);
+			}
 		}
-		return self::$instances[$path];
+		return is_null($res) ? self::make_instance(): $res;
+	}
+
+	protected static function make_instance()
+	{
+		return Core::make(self::$options['instance_class']);
 	}
 
 }
 
 class Config_Instance extends stdClass
 {
-	protected function include_file($name)
+	protected function include_file($name, $inplace = false)
 	{
 		if (isset($this->___path) && ($dir = dirname($this->___path))) {
 			$file = $dir . '/' . $name . '.php';
-			$this->$name = Config_DSL::load($file);
+			$data = Config_DSL::load($file);
+			if ($inplace) {
+				$this->extend_object($data);
+			} else {
+				$this->$name = $data;
+			}
 		}
 		return $this;
 	}
@@ -103,10 +115,10 @@ class Config_Instance extends stdClass
 		return $this;
 	}
 
-	public function extend($var)
+	public function extend($var, $inplace = false)
 	{
 		if (is_string($var)) {
-			return $this->include_file($var);
+			return $this->include_file($var, $inplace);
 		} else {
 			return $this->extend_object($var);
 		}
@@ -117,7 +129,11 @@ class Config_Instance extends stdClass
 		$path = !is_null($path) ? $path : $this->___path;
 		if (!empty($path)) {
 			Core::load('IO.FS');
-			IO_FS::File($path)->update("<?php \nreturn " . var_export($this, true) . ';');
+			IO_FS::File($path)->update("<?php
+/**
+ * @package Config
+ */
+ \nreturn " . var_export($this, true) . ';');
 		}
 	}
 
