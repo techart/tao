@@ -186,7 +186,7 @@
     }
 
     function onError(fromPage, toPage) {
-      alert("error loading pages " + fromPage + " to " + toPage);
+      //alert("error loading pages " + fromPage + " to " + toPage);
     }
 
     function onSuccess(resp) {

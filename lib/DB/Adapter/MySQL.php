@@ -162,9 +162,10 @@ class DB_Adapter_MySQL_Cursor extends DB_Adapter_PDO_Cursor
 		switch ($metadata->type) {
 			case 'datetime':
 			case 'timestamp':
-			case 'time':
 			case 'date':
 				return is_null($value) ? null : Time_DateTime::parse($value, Time::FMT_DEFAULT);
+      case 'time':
+        return is_null($value) ? null : Time_DateTime::parse($value, TIME::FMT_HMS);
 			case 'boolean':
 				return $value ? true : false;
 			case 'longlong':
@@ -226,7 +227,8 @@ class DB_Adapter_MySQL_Schema implements DB_Adapter_SchemaInterface
 
 		'timestamp:normal' => 'TIMESTAMP',
 		'datetime:normal' => 'DATETIME',
-		'date:normal' => 'DATE' 
+		'date:normal' => 'DATE',
+    'time:normal' => 'TIME' 
 	);
 
 	/**

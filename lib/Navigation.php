@@ -415,8 +415,13 @@ class Navigation_SetState implements IteratorAggregate {
   }
 
   public function draw($template_name = 'simple', $params = array()) {
+    $links = $this->get_links();
+    $level = 0;
+    if (!empty($links)) {
+      $level = reset($links)->level;
+    }
     return Navigation::draw($template_name, array_merge(
-        array('links' => new ArrayObject($this->get_links()), 'level_num' => $this->current_level), $params));
+        array('links' => new ArrayObject($links), 'level_num' => $level), $params));
   }
 
   public function route() {

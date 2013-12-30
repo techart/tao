@@ -19,7 +19,7 @@ class Tree_DB_MPT implements Core_ModuleInterface {
 		}
 		if ($create_join_table && !empty($data['name'])) {
 			$join_schema = array($data['name']. '_tree' => array());
-			self::schema_join($join_schema['projects_tree']);
+			self::schema_join($join_schema[$data['name']. '_tree']);
 			DB_Schema::process($join_schema);
 		}
 	}

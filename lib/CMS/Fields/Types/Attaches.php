@@ -110,6 +110,10 @@ class CMS_Fields_Types_Attaches extends CMS_Fields_AbstractField implements Core
 		return false;
 	}
 
+	public function file_url($file) {
+		return CMS::file_url($file->path);
+	}
+
 	public function assign_to_object() {}
 
 	public function assign_from_object($form,$item,$name,$data) {

@@ -1,8 +1,7 @@
-
 <ul class="level<?= $this->level_num ?>">
 <?php foreach($this->links as $link) { $sel = $link->is_selected(); ?>
 <li><a href="<?= $link->url ?>"<?= ($sel?' class="current"':'') ?>><?= $link->title ?></a><?php 
-	if ($sel&&$link->sublinks) echo $link->sublinks->draw('ul-tree')
+	if ($link->sublinks) echo $link->sublinks->draw('ul-tree')
 ?></li>
 <?php } ?>
 </ul>

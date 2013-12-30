@@ -14,7 +14,7 @@ Core::load('Text.Process');
 
 class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInterface 
 {
-	static $template_link			= '<a href="%s">%s</a>';
+	static $template_link			= '<a href="%s" class="%s">%s</a>';
 	static $template_external_link		= '<a href="%s" target="_blank">%s</a>';
 	static $template_wiki_link 		= '<a href="/%s">%s</a>';
 	static $template_h1			= '<h1>%s</h1>';
@@ -43,6 +43,7 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 
 	static $show_url_length = 100;
 	static $url_callback = false;
+	static $link_class_callback = false;
 	
 	protected $current = false;
 	protected $html = '';
@@ -50,12 +51,20 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 	protected $cursor = 0;
 	protected $ul = 0;
 	protected $ol = 0;
+	protected $insertions = array();
 	
 	
 	protected $highlights = array(
 		'php' => 'Text.Highlight.PHP',
 	);
 	
+	
+	static public function initialize($config=array())
+	{
+		foreach($config as $k => $v) {
+			self::$$k = $v;
+		}
+	}
 	
 	public function configure($config) {
 	  
@@ -72,19 +81,38 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 		foreach($config as $k=>$v) {
 			self::$$k = $v;
 		}
+		$this->insertions = array();
+		$source = preg_replace_callback('/\%([a-z0-9_-]+)\{([^\}]*)\}/sm',array($this,'replace_insertions_callback'),$source);
+		
+		
 		$this->current = false;
 		$this->html = '';
 		$this->cursor = 0;
 		$this->lines = explode("\n",$source);
 		$this->ul = 0;
 		$this->ol = 0;
+		
+		
 
 		$ccc = 0;
 		while (!$this->eof()) {
 			$this->parse_one();
 		}
 		$this->close_block();
+		
+		foreach($this->insertions as $c => $v) {
+			$this->html = str_replace("!!!insertion{$c}!!!",$v,$this->html);
+		}
+		
+		
 		return $this->html;
+	}
+	
+	protected function replace_insertions_callback($m)
+	{
+		$c = count($this->insertions);
+		$this->insertions[] = $m[0];
+		return "!!!insertion{$c}!!!";
 	}
 	
 	
@@ -141,8 +169,9 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 			$txt = $s;
 			if (mb_strlen($txt)>self::$show_url_length+3) $txt = mb_substr($txt,0,self::$show_url_length).'...';
 		}
+		$link_class = 'wiki_exists';
 		if (Core_Regexps::match('{^http://}',$url)) return sprintf(self::$template_external_link,$url,$txt);
-		if (Core_Regexps::match('{/}',$url)) return sprintf(self::$template_link,$url,$txt);
+		if (Core_Regexps::match('{/}',$url)) return sprintf(self::$template_link,$url,$link_class,$txt);
 		$wurl = false;
 		if (self::$url_callback) {
 			$wurl = call_user_func(self::$url_callback,$url);
@@ -150,7 +179,12 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 		if (!$wurl) {
 			$wurl = CMS::objects()->wiki->make_url($url);
 		}
-		if ($wurl) return sprintf(self::$template_link,$wurl,$txt);
+		if ($wurl) {
+			if (self::$link_class_callback) {
+				$link_class = call_user_func(self::$link_class_callback,$url);
+			}
+			return sprintf(self::$template_link,$wurl,$link_class,$txt);
+		}
 		return sprintf(self::$template_wiki_link,ucfirst($url),$txt);
 	}
 
@@ -183,7 +217,13 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 			
 			$line = $this->parse_simple_line($line);
 			
-			if ($line=='') $this->close_block();
+			if (Core_Regexps::match('{^!!!insertion\d+!!!$}',trim($line))) {
+				$this->close_block();
+				$line = trim($line);
+				$this->html .= "\n$line\n";
+			}
+			
+			else if (trim($line)=='') $this->close_block();
 
 			else if ($m = Core_Regexps::match_with_results('{^<source\s+lang="(.+)">}i',$tline)) {
 				$this->close_block();
@@ -269,8 +309,9 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 			}
 			
 			else {
-				$this->open_block('p');
-				$this->html .= "$line";
+			
+				//$this->open_block('p');
+				$this->html .= "<p>$line</p>";
 			}
 	}
 	

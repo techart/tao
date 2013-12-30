@@ -22,6 +22,7 @@ if (empty($images)) {
 }
 
 if (count($images)>0) {
+	$this->use_styles('images.css');
 	$default_config = array(
 		'preview' => '120x120',
 		'full' => '800x600',

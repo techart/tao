@@ -103,7 +103,7 @@ class CMS_Fields_Types_Upload extends CMS_Fields_AbstractField implements Core_M
 		return $this;
 	}
 
-	public function uploaded_file_name($file, $params, $item, $name) {
+	public function uploaded_file_name($file, $parms, $item, $name) {
 		$filename = '%{field}-%{id}-%{time}%{dotext}';
 		if (isset($parms['filename'])) {
 			$filename = $parms['filename'];

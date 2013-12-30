@@ -28,6 +28,8 @@ class CMS_Fields_Types_DocumentsGrid extends CMS_Fields_Types_Documents_Base imp
 			CMS::stdfile_url('styles/fields/documents-grid.css')
 		);
 		$l->use_scripts(
+			CMS::stdfile_url('scripts/tao/data.js'),
+			CMS::stdfile_url('scripts/tao/oop.js'),
 			CMS::stdfile_url('scripts/fields/documents-grid.js'),
 			CMS::stdfile_url('scripts/jquery/ui.js'),
 			CMS::stdfile_url('scripts/jquery/event.drag.js'),
@@ -36,6 +38,7 @@ class CMS_Fields_Types_DocumentsGrid extends CMS_Fields_Types_Documents_Base imp
 			CMS::stdfile_url('scripts/SlickGrid/slick.formatters.js'),
 			CMS::stdfile_url('scripts/SlickGrid/slick.editors.js'),
 			CMS::stdfile_url('scripts/SlickGrid/slick.grid.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.table.js'),
 			CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowmovemanager.js'),
 			CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowselectionmodel.js'),
 			CMS::stdfile_url('scripts/tao/data.js')

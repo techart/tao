@@ -13,7 +13,7 @@ Core::load('WS', 'Events');
  */
 class CMS implements Core_ModuleInterface {
 	const MODULE  = 'CMS';
-	const VERSION = '2.0.20';
+	const VERSION = '2.0.28';
 
 	static $libpath		= '';
 	static $taopath		= '';

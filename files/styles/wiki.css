@@ -46,3 +46,10 @@ table.standard {
 		background-color: #EEEEFF;
 	}
 
+a.wiki_exists {
+	color: #008;
+}
+
+a.wiki_not_exists {
+	color: #800;
+}

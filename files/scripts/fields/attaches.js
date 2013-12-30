@@ -9,6 +9,7 @@ TAO.fields.attaches.list_reload = function(field_name, field) {
 	var url = $('.addattache', field).attr('data-url-reload');
 	var callback = function() {
 	 	TAO.fields.attaches.binds_delete_attachment(field_name, field);
+		TAO.fields.attaches.binds_select_url(field);
 	 	$list.trigger('reload', [$list, 'upload']);
 	};
 	if (url) {
@@ -29,6 +30,30 @@ TAO.fields.attaches.binds_delete_attachment = function(field_name, field)  {
 		}
 		return false;
 	});
+}
+
+TAO.fields.attaches.binds_select_url = function(field)  {
+	$("td.url", field).unbind('dblclick').dblclick(function(e) {
+		TAO.fields.attaches.select_text(this);
+		e.preventDefault();
+	});
+}
+
+TAO.fields.attaches.select_text = function(element)  {
+	var range,
+		selection;
+
+	if (document.body.createTextRange) {
+		range = document.body.createTextRange();
+		range.moveToElementText(element);
+		range.select();
+	} else if (window.getSelection) {
+		selection = window.getSelection();
+		range = document.createRange();
+		range.selectNodeContents(element);
+		selection.removeAllRanges();
+		selection.addRange(range);
+	}
 }
 
 TAO.fields.attaches.process = function(field) {
@@ -70,12 +95,14 @@ TAO.fields.attaches.process = function(field) {
 			$list.load(url,{},
 			 function() {
 			 	TAO.fields.attaches.binds_delete_attachment(field_name, field);
+				TAO.fields.attaches.binds_select_url(field);
 			 	$list.trigger('reload', [$list, 'delete']);
 			 });
 			TAO.fields.attaches.binds_delete_attachment(field_name, field);
 	}
 	
 	TAO.fields.attaches.binds_delete_attachment(field_name, field);
+	TAO.fields.attaches.binds_select_url(field);
 
 }
 

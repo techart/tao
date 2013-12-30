@@ -27,7 +27,7 @@ class DB_Schema implements Core_ModuleInterface {
  *     - 'description': описание
  *     - 'name': имя колонки,
  *     - 'mysql_definition', 'pgsql_definition' ... : строка определени колонки, если задано, то все последющие опции игнорируются
- *     - 'type': Тип: 'char', 'varchar', 'text', 'blob', 'int', 'timestamp', 'datetime', 'date',
+ *     - 'type': Тип: 'char', 'varchar', 'text', 'blob', 'int', 'timestamp', 'datetime', 'date', 'time'
  *       'float', 'numeric', or 'serial'. Используйте 'serial' для auto incrementing
  *         колонок, для MySQL это аналогично 'INT auto_increment'.
  *     - 'mysql_type', 'pgsql_type', 'sqlite_type', etc.: тип специфичный для конкретной БД.

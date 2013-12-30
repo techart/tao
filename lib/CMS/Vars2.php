@@ -224,7 +224,7 @@ abstract class CMS_Var implements Core_PropertyAccessInterface, Core_IndexedAcce
 	}
 
 	public function preview() {
-		return htmlspecialchars(mb_substr($this['value'],0,100));
+		return htmlspecialchars(mb_substr($this['value'],0,70));
 	}
 
 	public function is_dir() {

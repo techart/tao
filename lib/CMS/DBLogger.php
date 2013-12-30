@@ -77,7 +77,7 @@ class CMS_DBLogger implements Core_ModuleInterface, DB_QueryExecutionListener {
 		$fh = fopen(self::$log_file,'a');
 		fwrite($fh,$this->create_string($cursor)."\n");
 		fclose($fh);
-		chmod(self::$log_file,CMS::$chmod_file);
+		CMS::chmod_file(self::$log_file);
 	}
 	
 	protected function create_string($cursor) {
@@ -88,8 +88,15 @@ class CMS_DBLogger implements Core_ModuleInterface, DB_QueryExecutionListener {
 		self::$alltime += $t;
 		$at = self::$alltime;
 		$q = preg_replace('{\s+}u',' ',$cursor->sql);
+		$c = 0;
 		foreach($cursor->binds as $var) {
-			$q = preg_replace('{:[a-z0-9_]+}u','"'.mysql_escape_string($var).'"',$q,1);
+			$q = preg_replace('{:[a-z0-9_]+}u','"<!<'.$c.'>!>"',$q,1);
+			$c++;
+		}
+		$c = 0;
+		foreach($cursor->binds as $var) {
+			$q = str_replace("<!<{$c}>!>",mysql_escape_string($var),$q);
+			$c++;
 		}
 		$q = preg_replace('{\s+}u',' ',$q);
 		return "$scnt [$d] [$t / $at] $u\n$q\n";

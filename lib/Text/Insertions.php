@@ -114,7 +114,7 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
     list($str, $args) = $this->standartizate_parms($m[2]);
     $result = $this->replace($name, $str, $args);
     if (!empty($result)) {
-      $result = " $result ";
+      //$result = " $result ";
     }
     return $result;
   }
@@ -242,7 +242,8 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
   }
   
   protected function get_pattern() {
-    return '/\s*%([a-z0-9_-]+)\{([^\{\}]*)\}\s*/ui';
+    //return '/\s*%([a-z0-9_-]+)\{([^\{\}]*)\}\s*/ui';
+    return '/%([a-z0-9_-]+)\{([^\{\}]*)\}/ui';
   }
 
 }

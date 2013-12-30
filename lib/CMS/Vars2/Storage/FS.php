@@ -115,6 +115,7 @@ class CMS_Vars2_Storage_FS extends CMS_Vars_Storage implements Core_ModuleInterf
 			}
 		}
 		file_put_contents($file,$s);
+		CMS::chmod_file($file);
 	}
 
 	protected function load_info($file) {

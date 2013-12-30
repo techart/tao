@@ -30,7 +30,7 @@ class CMS_ORM_Tree_MPMapper extends Tree_DB_MP_Mapper {
 		$this->parent->table(self::table_from($this));
 		$this->parent->classname($this->options['classname']);
 		$this->parent->component(CMS::component_for($this));
-		$this->parent->setup();
+		$this->parent->configure();
 		$this->columns($this->parent->options['columns']);
 		parent::setup();
 	}
@@ -42,7 +42,7 @@ class CMS_ORM_Tree_MPTMapper extends Tree_DB_MPT_Mapper {
 		$this->parent->table(self::table_from($this));
 		$this->parent->classname($this->options['classname']);
 		$this->parent->component(CMS::component_for($this));
-		$this->parent->setup();
+		$this->parent->configure();
 		$this->columns($this->parent->options['columns']);
 		parent::setup();
 	}

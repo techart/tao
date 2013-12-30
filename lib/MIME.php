@@ -53,11 +53,12 @@ class MIME implements Core_ModuleInterface {
   static protected $types_definition = array(
   'application/x-rar' => array('rar', true),
   'application/excel' => array('xls,xlt', true),
-  'application/msword' => array('doc,dot,wiz,wrd', true) ,
+  'application/msword' => array('doc,dot,wiz,wrd', true),
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => array('docx', true),
   'application/octet-stream' => array('a,bin,dll,exe,o,obj,so', true),
   'application/oda' => array('oda', false),
   'application/pdf' => array('pdf', true),
-  'application/postscript' => array('ai,eps,ps', false),
+  'application/postscript' => array('ai,eps,ps,aps', false),
   'application/vnd.ms-excel' => array('xlb,xls', true),
   'application/vnd.ms-powerpoint' => array('pot,ppa,pps,ppt,pwz', true),
   'application/x-bcpio' => array('bcpio', false),
@@ -87,7 +88,8 @@ class MIME implements Core_ModuleInterface {
   'application/x-troff-ms' => array('ms', false),
   'application/x-troff' => array('t,tr,roff', false),
   'application/x-ustar' => array('ustar', true),
-  'application/x-wais-source' => array('src'),
+  'application/x-wais-source' => array('src', false),
+  'application/x-apple-diskimage' => array('dmg', true),
   'application/zip;zip' => array('zip', true),
   'audio/basic' => array('au,snd', true),
   'audio/mpeg' => array('mpga,mp2,mp3', true),
@@ -111,6 +113,7 @@ class MIME implements Core_ModuleInterface {
   'image/x-xwindowdump' => array('xwd', true),
   'message/rfc822' => array('eml,mht,mhtml,nws', false),
   'text/css' => array('css', false),
+  'text/csv' => array('csv', false),
   'text/html' => array('htm,html,shtml,htx,htmlx', false),
   'text/plain' => array('bat,c,h,ksh,pl,py,rb,php,txt,dat', false),
   'text/rtf' => array('rtf', false),
@@ -127,7 +130,25 @@ class MIME implements Core_ModuleInterface {
   'video/x-sgi-movie' => array('movie', true),
   'application/vnd.oasis.opendocument.text' => array('odt', true),
   'application/vnd.oasis.opendocument.spreadsheet' => array('ods', true),
-  'application/vnd.oasis.opendocument.presentation' => array('odp', true) );
+  'application/vnd.oasis.opendocument.presentation' => array('odp', true),
+  'application/postscript' => array('aps', true),
+  'application/stuffit' => array('hqx', true),
+  'application/x-java-archive' => array('jar', true),
+  'audio/x-mpegurl' => array('m3u', true),
+  'audio/mp4' => array('m4a', true),
+  'application/x-msaccess' => array('mdb', true),
+  'audio/midi' => array('mid,midi', true),
+  'video/mp4' => array('mp4', true),
+  'vnd.oasis.opendocument.graphics' => array('odg', true),
+  'audio/ogg' => array('ogg', true),
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation' => array('pptx', true),
+  'application/x-stuffit' => array('sit', true),
+  'image/svg+xml' => array('svg', true),
+  'application/x-font-truetype' => array('ttf', true),
+  'audio/x-ms-wma' => array('wma', true),
+  'audio/x-ms-wmv' => array('wmv', true),
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => array('xlsx', true)
+);
 
   static protected $type_objects = array();
 
@@ -190,10 +211,8 @@ class MIME implements Core_ModuleInterface {
  * @return MIME_Type
  */
   static public function type_for_file($file) {
-    return self::type_for_suffix(
-      IO_FS::Path($file instanceof IO_FS_File ?
-        $file->path :
-        (string)$file)->extension);
+	$file = IO_FS::Path($file);
+    return self::type_for_suffix(isset($file->extension) ? $file->extension : '');
   }
 
 /**

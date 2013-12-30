@@ -36,10 +36,13 @@ table.attaches-list {
 	border-spacing: 1px;
 	border: none;
 	margin: 0 0 2px 0;
+    border-collapse: separate;
 }
 
 	table.attaches-list tr td {
 		background-color: #eee;
+        font-size: 11px;
+        color: #444;
 	}
 
 	table.attaches-list tr:hover td {
@@ -47,12 +50,11 @@ table.attaches-list {
 	}
 
 	table.attaches-list td.file {
-		padding: 0 5px;
+		padding: 2px 5px;
 	}
 
 		table.attaches-list td.file a {
 			font-size: 11px;
-			text-decoration: none;
 			color: #444;
 			display: block;
 		}
@@ -65,3 +67,7 @@ table.attaches-list {
 			height: 16px;
 			cursor: pointer;
 		}
+
+    table.attaches-list td.url {
+        padding: 2px 8px;
+    }

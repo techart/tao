@@ -166,7 +166,7 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     if (Core::option('deprecated')) {
       $file = Core::tao_deprecated_file('files/'. self::option("{$type}_dir") . '/' . $path);
       if (is_file($file)) {
-        return self::extern_filepath('file://' . $file, $copy);
+        return self::extern_filepath(self::option('extern_file_prefix') . $file, $copy);
       }
     }
     $rc = Events::call('templates.asset.path', $type, $path, $copy);
@@ -184,6 +184,7 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     $prefix = self::option('extern_file_prefix');
     if (Core_Strings::starts_with($file, $prefix)) {
       $res = str_replace($prefix, '', $file);
+      $res_name = ltrim(str_replace(Core::tao_dir(), '', $res), '/.');
       if ($copy == false) {
         return $res;
       }
@@ -191,18 +192,19 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
       $paths = Templates_HTML::option('paths');
       $mtime = @filemtime($res);
       if ($mtime) {
-        $name = md5($res . $mtime);
         $dir = trim(self::option('copy_dir'), '/');
         $root = $paths['_fallback'];
         if (isset($paths[$ext])) {
           $root = $paths[$ext];
         }
-        $dir = $root . '/' . $dir;
+        $base_dir = $root . '/' . $dir;
+        $path = sprintf('%s/%s', $base_dir, $res_name);
+        $dir = dirname($path);
         if (!is_dir($dir)) {
           IO_FS::mkdir($dir, null, true);
         }
-        $path = sprintf('%s/%s.%s', $dir, $name, $ext);
-        if (IO_FS::exists($path) || IO_FS::cp($res, $path)) {
+        $mtime_exists = @filemtime($path);
+        if (($mtime > $mtime_exists && IO_FS::cp($res, $path)) || IO_FS::exists($path)) {
           return '/' . ltrim($path, '.');
         }
       }
@@ -272,7 +274,7 @@ class Templates_HTML_Template
   protected $allow_filtering = true;
   protected $spawn_from;
   protected $scripts_settings = array();
-  protected $enable_less = false;
+  protected $enable_less = true;
   protected $no_duplicates = array();
   protected $partial_paths = array();
   protected $use_onpage_to_file = array('js' => false, 'css' => false);

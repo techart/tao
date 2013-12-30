@@ -11,7 +11,7 @@ $item_size = explode('x', $type_object->admin_size($data));
 $h = $item_size[1]+23;
 $item_size_style = "width:{$item_size[0]}px; height: {$h}px;";
 
-$this->append_to('css', ".gallery-list-item { $item_size_style}");
+$this->append_to('css', ".gallery-list-$name .gallery-list-item { $item_size_style}");
 $save_url = CMS::$current_controller->field_action_url($name,'save',$item);
 
 

@@ -23,7 +23,7 @@ class DB_ORM implements Core_ModuleInterface, Core_ConfigurableModuleInterface {
 /**
  */
   static public function initialize(array $options = array()) {
-    self::options($options);
+	self::options($options);
   }
 
 /**
@@ -31,8 +31,8 @@ class DB_ORM implements Core_ModuleInterface, Core_ConfigurableModuleInterface {
  * @return mixed
  */
   static public function options(array $options = array()) {
-    if (count($options)) Core_Arrays::update(self::$options, $options);
-    return self::$options;
+	if (count($options)) Core_Arrays::update(self::$options, $options);
+	return self::$options;
   }
 
 /**
@@ -40,9 +40,9 @@ class DB_ORM implements Core_ModuleInterface, Core_ConfigurableModuleInterface {
  * @param  $value
  */
   static public function option($name, $value = null) {
-    $prev = isset(self::$options[$name]) ? self::$options[$name] : null;
-    if ($value !== null) self::options(array($name => $value));
-    return $prev;
+	$prev = isset(self::$options[$name]) ? self::$options[$name] : null;
+	if ($value !== null) self::options(array($name => $value));
+	return $prev;
   }
 
 
@@ -51,7 +51,7 @@ class DB_ORM implements Core_ModuleInterface, Core_ConfigurableModuleInterface {
  * @return DB_ORM_MapperSet
  */
   static public function MapperSet(DB_ORM_Mapper $parent = null) {
-    return new DB_ORM_MapperSet($parent);
+	return new DB_ORM_MapperSet($parent);
   }
 
 
@@ -125,7 +125,7 @@ interface DB_ORM_ImmutableMapperInterface {
  */
 abstract class DB_ORM_Mapper
   implements Core_PropertyAccessInterface,
-             Core_CallInterface {
+			 Core_CallInterface {
 
   protected $parent;
   protected $maps = array();
@@ -148,14 +148,14 @@ abstract class DB_ORM_Mapper
   public function spawn() { return Core::make(Core_Types::class_name_for($this), $this, true); }
 
   public function clear() {
-    $class = get_class($this);
-    return $this->parent instanceof $class ? $this->parent->clear() : $this;
+	$class = get_class($this);
+	return $this->parent instanceof $class ? $this->parent->clear() : $this;
   }
 
   public function shift($class) {
-    $p = Core::make($class, $this->parent);
-    $this->parent = $p;
-    return $this;
+	$p = Core::make($class, $this->parent);
+	$this->parent = $p;
+	return $this;
   }
 
 /**
@@ -163,32 +163,32 @@ abstract class DB_ORM_Mapper
  * @return mixed
  */
   public function downto($path) {
-    $r = $this;
-    foreach (explode('/', $path) as $s) {
-      switch (true) {
-        case $s && is_numeric($s):
-          $r = $r[$s];
-          break;
-        case $s && isset($r->$s):
-          $r = $r->$s;
-          break;
-        default:
-          return null;
-      }
-    }
-    return $r;
+	$r = $this;
+	foreach (explode('/', $path) as $s) {
+	  switch (true) {
+		case $s && is_numeric($s):
+		  $r = $r[$s];
+		  break;
+		case $s && isset($r->$s):
+		  $r = $r->$s;
+		  break;
+		default:
+		  return null;
+	  }
+	}
+	return $r;
   }
 
 
   public function map($name, $callback)
   {
-    if (Core_Types::is_callable($callback)) {
-      if ($callback instanceof Closure && method_exists($callback, 'bindTo')) {
-        $callback = $callback->bindTo($m = $this->spawn(), $m);
-      }
-      $this->maps[$name] = $callback;
-    }
-    return $this;
+	if (Core_Types::is_callable($callback)) {
+	  if ($callback instanceof Closure && method_exists($callback, 'bindTo')) {
+		$callback = $callback->bindTo($m = $this->spawn(), $m);
+	  }
+	  $this->maps[$name] = $callback;
+	}
+	return $this;
   }
 
 
@@ -234,7 +234,7 @@ abstract class DB_ORM_Mapper
  */
   protected function __can_map($name, $is_call = false)
   {
-    return isset($this->maps[$name]);
+	return isset($this->maps[$name]);
   }
 
 /**
@@ -251,12 +251,12 @@ abstract class DB_ORM_Mapper
  * @return mixed
  */
   protected function pmap($name, $method) {
-    if (is_string($method) && method_exists($this, $method))
-      return  $this->$method();
-    if ($r = $this->__map($name))
-      return $r;
-    if ($this->parent)
-      return $this->parent->pmap($name, $method);
+	if (is_string($method) && method_exists($this, $method))
+	  return  $this->$method();
+	if ($r = $this->__map($name))
+	  return $r;
+	if ($this->parent)
+	  return $this->parent->pmap($name, $method);
   }
 
 /**
@@ -268,12 +268,12 @@ abstract class DB_ORM_Mapper
  * @return mixed
  */
   protected function cmap($name, $method, array $args) {
-    if (is_string($method) && method_exists($this, $method))
-      return call_user_func_array(array($this, $method), $args);
-    if ($r = $this->__map($name, $args))
-      return $r;
-    if ($this->parent)
-      return $this->parent->cmap($name, $method, $args);
+	if (is_string($method) && method_exists($this, $method))
+	  return call_user_func_array(array($this, $method), $args);
+	if ($r = $this->__map($name, $args))
+	  return $r;
+	if ($this->parent)
+	  return $this->parent->cmap($name, $method, $args);
 
   }
 
@@ -286,22 +286,22 @@ abstract class DB_ORM_Mapper
  * @return mixed
  */
   public function __get($property) {
-    switch ($property) {
-      case 'parent':
-        return $this->$property;
-      case 'db':
-      case 'session':
-        return $this instanceof DB_ORM_ConnectionMapperInterface ? $this : $this->parent->$property;
-      case '__root':
-        return isset($this->parent) ? $this->parent->__get("__root") : $this;
-      default:
-        if ($m  = $this->can_pmap($property))
-          return $this->pmap($property, $m);
-        else
-          return (isset($this->$property)) ?
-            $this->$property :
-            (isset($this->parent) ? $this->parent->$property : null);
-    }
+	switch ($property) {
+	  case 'parent':
+		return $this->$property;
+	  case 'db':
+	  case 'session':
+		return $this instanceof DB_ORM_ConnectionMapperInterface ? $this : $this->parent->$property;
+	  case '__root':
+		return isset($this->parent) ? $this->parent->__get("__root") : $this;
+	  default:
+		if ($m  = $this->can_pmap($property))
+		  return $this->pmap($property, $m);
+		else
+		  return (isset($this->$property)) ?
+			$this->$property :
+			(isset($this->parent) ? $this->parent->$property : null);
+	}
   }
 
 /**
@@ -311,19 +311,19 @@ abstract class DB_ORM_Mapper
  * @param  $value
  */
   public function __set($property, $value) {
-    switch ($property) {
-      case 'parent':
-        $this->child_of($value);
-        return $this;
-      case 'db':
-      case 'session':
-      case '__root':
-        throw new Core_ReadOnlyPropertyException($property);
-      default:
-        throw $this->can_pmap($property) ?
-          new Core_ReadOnlyPropertyException($property) :
-          new Core_MissingPropertyException($property);
-    }
+	switch ($property) {
+	  case 'parent':
+		$this->child_of($value);
+		return $this;
+	  case 'db':
+	  case 'session':
+	  case '__root':
+		throw new Core_ReadOnlyPropertyException($property);
+	  default:
+		throw $this->can_pmap($property) ?
+		  new Core_ReadOnlyPropertyException($property) :
+		  new Core_MissingPropertyException($property);
+	}
   }
 
 /**
@@ -331,15 +331,15 @@ abstract class DB_ORM_Mapper
  * @return boolean
  */
   public function __isset($property) {
-    switch ($property) {
-      case 'parent':
-      case 'db':
-      case 'session':
-      case '__root':
-        return true;
-      default:
-        return (boolean) $this->can_pmap($property);
-    }
+	switch ($property) {
+	  case 'parent':
+	  case 'db':
+	  case 'session':
+	  case '__root':
+		return true;
+	  default:
+		return (boolean) $this->can_pmap($property);
+	}
   }
 
 /**
@@ -383,24 +383,24 @@ abstract class DB_ORM_Mapper
  * @return mixed
  */
   public function __call($method, $args) {
-    if (isset($this->maps[$method])) {
-      return Core::invoke($this->maps[$method], $args);
-    }
-    if ($m = $this->can_cmap($method))
-      return $this->cmap($method, $m, $args);
-    else {
-      if ($this->parent)
-        return method_exists($this->parent, $method) ?
-          call_user_func_array(array($this->parent, $method), $args) : $this->parent->__call($method, $args);
-      else
-        throw new Core_MissingMethodException($method);
-    }
+	if (isset($this->maps[$method])) {
+	  return Core::invoke($this->maps[$method], $args);
+	}
+	if ($m = $this->can_cmap($method))
+	  return $this->cmap($method, $m, $args);
+	else {
+	  if ($this->parent)
+		return method_exists($this->parent, $method) ?
+		  call_user_func_array(array($this->parent, $method), $args) : $this->parent->__call($method, $args);
+	  else
+		throw new Core_MissingMethodException($method);
+	}
   }
 
 
 
   protected function created_from_mapperset($mapperset, $name) {
-    return $this;
+	return $this;
   }
 
 /**
@@ -410,8 +410,8 @@ abstract class DB_ORM_Mapper
  * @return DB_ORM_Mapper
  */
   private function child_of(DB_ORM_Mapper $parent) {
-    $this->parent = $parent;
-    return $this;
+	$this->parent = $parent;
+	return $this;
   }
 
 }
@@ -426,7 +426,7 @@ abstract class DB_ORM_Mapper
  */
 class DB_ORM_MappingOptions
   implements Core_PropertyAccessInterface,
-             Core_IndexedAccessInterface {
+			 Core_IndexedAccessInterface {
 
   protected $parent;
   protected $options = array();
@@ -905,10 +905,10 @@ class DB_ORM_MappingOptions
  */
 class DB_ORM_SQLMapper extends DB_ORM_Mapper
   implements IteratorAggregate,
-             Core_IndexedAccessInterface,
-             Core_CountInterface,
-             DB_ORM_ImmutableMapperInterface,
-             Core_StringifyInterface {
+			 Core_IndexedAccessInterface,
+			 Core_CountInterface,
+			 DB_ORM_ImmutableMapperInterface,
+			 Core_StringifyInterface {
 	/**
 	 * @var DB_ORM_MappingOptions Коллекция опций
 	 */
@@ -942,27 +942,32 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 	 * 
 	 */
   public function __construct($parent = null , $spawn = false) {
-    parent::__construct($parent);
+	parent::__construct($parent);
 
-    $parent_options = $parent instanceof DB_ORM_SQLMapper ? $parent->options : null;
-    $this->options = new DB_ORM_MappingOptions($parent_options);
-    if (!$spawn) {
-      $this->before_setup();
-      $this->setup();
-      $this->after_setup();
-    }
-    //if (!($this->parent && ($this instanceof $this->parent))) $this->setup();
-    $this->as_array(false);
+	$parent_options = $parent instanceof DB_ORM_SQLMapper ? $parent->options : null;
+	$this->options = new DB_ORM_MappingOptions($parent_options);
+	if (!$spawn) {
+	  $this->configure();
+	}
+	//if (!($this->parent && ($this instanceof $this->parent))) $this->setup();
+	$this->as_array(false);
+  }
+
+  protected function configure()
+  {
+	$this->before_setup();
+	$this->setup();
+	$this->after_setup();
   }
 
   protected function before_setup()
   {
-    return $this;
+	return $this;
   }
 
   protected function after_setup()
   {
-    return $this;
+	return $this;
   }
 
 	/**
@@ -977,9 +982,9 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 	protected function setup() {return $this;}
 
   public function __name() {
-    if ($this->option('__name'))
-      return $this->option('__name');
-    return self::table_from($this);
+	if ($this->option('__name'))
+	  return $this->option('__name');
+	return self::table_from($this);
   }
 
 
@@ -988,16 +993,16 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return DB_ORM_SQLMapper
  */
   public function mode($mode) {
-    $this->option('mode', (string) $mode);
-    // $this->mode = (string) $mode;
-    return $this;
+	$this->option('mode', (string) $mode);
+	// $this->mode = (string) $mode;
+	return $this;
   }
 
   public function distinct($field = null) {
-    $this->mode('DISTINCT');
-    if (!is_null($field))
-      $this->option('distinct_field', $field);
-    return $this;
+	$this->mode('DISTINCT');
+	if (!is_null($field))
+	  $this->option('distinct_field', $field);
+	return $this;
   }
 
 	/**
@@ -1020,13 +1025,13 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 	}
 
   public function array_option($name, $value, $idx = null) {
-    $this->options->array_option($name, $value, $idx);
-    return $this;
+	$this->options->array_option($name, $value, $idx);
+	return $this;
   }
 
   public function options($values = array()) {
-    foreach ($values as $k => $v) $this->option($k, $v);
-    return $this;
+	foreach ($values as $k => $v) $this->option($k, $v);
+	return $this;
   }
 
 	/**
@@ -1045,18 +1050,18 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return DB_ORM_SQLMapper
  */
   public function preload() {
-    $keys = $this->options['key'];
-    $composite = count($keys) > 1;
+	$keys = $this->options['key'];
+	$composite = count($keys) > 1;
 
-    foreach ($this->select() as $item) {
-      if ($composite) {
-        $ids = array();
-        foreach ($keys as $v) $ids[] = $item[$v];
-        $id = implode(',', $ids);
-      } else $id = $item[$keys[0]];
-      $this->cache($id, $item);
-    }
-    return $this;
+	foreach ($this->select() as $item) {
+	  if ($composite) {
+		$ids = array();
+		foreach ($keys as $v) $ids[] = $item[$v];
+		$id = implode(',', $ids);
+	  } else $id = $item[$keys[0]];
+	  $this->cache($id, $item);
+	}
+	return $this;
   }
 
 
@@ -1065,23 +1070,23 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @param DB_ORM_SQLMapper|string $mapper
  */
   public function associate_table_for($mapper) {
-    $tables = array($this->options['table'][0], self::table_from($mapper));
-    sort($tables);
-    return  implode(DB_ORM::option('associate_tables_delimiter'), $tables);
+	$tables = array($this->options['table'][0], self::table_from($mapper));
+	sort($tables);
+	return  implode(DB_ORM::option('associate_tables_delimiter'), $tables);
   }
 
 /**
  * @param DB_ORM_SQLMapper|string $mapper
  */
   static public function table_from($mapper) {
-    return ($mapper instanceof DB_ORM_SQLMapper) ? $mapper->options['table'][0] : (string) $mapper;
+	return ($mapper instanceof DB_ORM_SQLMapper) ? $mapper->options['table'][0] : (string) $mapper;
   }
 
 /**
  * @param DB_ORM_Entity|int $entity
  */
   static public function id_from($entity) {
-    return ($entity instanceof DB_ORM_Entity) ? $entity['id'] : (int) $entity;
+	return ($entity instanceof DB_ORM_Entity) ? $entity['id'] : (int) $entity;
   }
 
 
@@ -1091,14 +1096,14 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return string
  */
   public function as_string() {
-    return $this->sql()->select($this->mode)->as_string();
+	return $this->sql()->select($this->mode)->as_string();
   }
 
 /**
  * @return string
  */
   public function __toString() {
-    return $this->as_string();
+	return $this->as_string();
   }
 
 
@@ -1108,14 +1113,14 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @param DB_ORM_Entity|int|string $entity
  */
   public function map_associated_with($mapper, $entity = null) {
-    $this_table = $this->options['table'][0];
-    $mapper_table = self::table_from($mapper);
-    $assoc_table = $this->associate_table_for($mapper);
-    $res = $this->join('inner', $assoc_table,
-      sprintf('%1$s.id = %2$s.%1$s_id', $this_table, $assoc_table));
-    if (!is_null($entity))
-      $res = $res->where(sprintf('%1$s.%2$s_id = :%2$s_id', $assoc_table, $mapper_table), self::id_from($entity));
-    return $res;
+	$this_table = $this->options['table'][0];
+	$mapper_table = self::table_from($mapper);
+	$assoc_table = $this->associate_table_for($mapper);
+	$res = $this->join('inner', $assoc_table,
+	  sprintf('%1$s.id = %2$s.%1$s_id', $this_table, $assoc_table));
+	if (!is_null($entity))
+	  $res = $res->where(sprintf('%1$s.%2$s_id = :%2$s_id', $assoc_table, $mapper_table), self::id_from($entity));
+	return $res;
   }
 
 //TODO: название поля id брать из опций маппера
@@ -1125,8 +1130,8 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @param DB_ORM_Entity|int|string $entity
  */
   public function map_dissociated_with($mapper, $entity) {
-    return $this->where(sprintf('id NOT IN (SELECT %1$s.%2$s_id FROM %1$s WHERE %1$s.%3$s_id = :%3$s_id)',
-      $this->associate_table_for($mapper), $this->options['table'][0], self::table_from($mapper)), self::id_from($entity));
+	return $this->where(sprintf('id NOT IN (SELECT %1$s.%2$s_id FROM %1$s WHERE %1$s.%3$s_id = :%3$s_id)',
+	  $this->associate_table_for($mapper), $this->options['table'][0], self::table_from($mapper)), self::id_from($entity));
   }
 
 /**
@@ -1135,14 +1140,14 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @param DB_ORM_Entity|int|string $mapper_entities
  */
   public function associate_with($mapper, $this_entities, $mapper_entities) {
-    $res = true;
-    foreach ((array) $this_entities as $this_entity)
-      foreach((array) $mapper_entities as $mapper_entity)
-        $res = $res && $this->connection->execute(
-          sprintf('INSERT INTO %1$s (%2$s_id, %3$s_id) VALUES(:%2$s_id, :%3$s_id)',
-            $this->associate_table_for($mapper), self::table_from($mapper), $this->options['table'][0]),
-          array(self::id_from($mapper_entity), self::id_from($this_entity)));
-    return $res;
+	$res = true;
+	foreach ((array) $this_entities as $this_entity)
+	  foreach((array) $mapper_entities as $mapper_entity)
+		$res = $res && $this->connection->execute(
+		  sprintf('INSERT INTO %1$s (%2$s_id, %3$s_id) VALUES(:%2$s_id, :%3$s_id)',
+			$this->associate_table_for($mapper), self::table_from($mapper), $this->options['table'][0]),
+		  array(self::id_from($mapper_entity), self::id_from($this_entity)));
+	return $res;
   }
 
 /**
@@ -1151,14 +1156,14 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @param DB_ORM_Entity|int|string $mapper_entities
  */
   public function dissociate_with($mapper, $this_entities, $mapper_entities) {
-    $res = true;
-    foreach ((array) $this_entities as $this_entity)
-      foreach((array) $mapper_entities as $mapper_entity)
-        $res = $res && $this->connection->execute(
-          sprintf('DELETE FROM %1$s WHERE %2$s_id = :%2$s_id AND %3$s_id = :%3$s_id)',
-            $this->associate_table_for($mapper), self::table_from($mapper), $this->options['table'][0]),
-          array(self::id_from($mapper_entity), self::id_from($this_entity)));
-    return $res;
+	$res = true;
+	foreach ((array) $this_entities as $this_entity)
+	  foreach((array) $mapper_entities as $mapper_entity)
+		$res = $res && $this->connection->execute(
+		  sprintf('DELETE FROM %1$s WHERE %2$s_id = :%2$s_id AND %3$s_id = :%3$s_id)',
+			$this->associate_table_for($mapper), self::table_from($mapper), $this->options['table'][0]),
+		  array(self::id_from($mapper_entity), self::id_from($this_entity)));
+	return $res;
   }
 
 /**
@@ -1167,50 +1172,50 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   public function make_entity() {
-    $args = func_get_args();
-    switch (count($args)) {
-      case 0: $args = array(array(), $this->clear()); break;
-      default: $args[] = $this->clear() ;break;
-    }
-    $entity = isset($this->options['classname']) ?
-      Core::amake($this->options['classname'], $args) :
-      Core::make(DB::option('collection_class'));
+	$args = func_get_args();
+	switch (count($args)) {
+	  case 0: $args = array(array(), $this->clear()); break;
+	  default: $args[] = $this->clear() ;break;
+	}
+	$entity = isset($this->options['classname']) ?
+	  Core::amake($this->options['classname'], $args) :
+	  Core::make(DB::option('collection_class'));
 
-    $array_access = ($entity instanceof ArrayAccess);
+	$array_access = ($entity instanceof ArrayAccess);
 
-    foreach ($this->options['defaults'] as $k => $v)
-      if ($array_access && !isset($entity[$k]))
-        $entity[$k] = $v;
-      else if (!isset($entity->$k))
-        $entity->$k = $v;
+	foreach ($this->options['defaults'] as $k => $v)
+	  if ($array_access && !isset($entity[$k]))
+		$entity[$k] = $v;
+	  else if (!isset($entity->$k))
+		$entity->$k = $v;
 
-    //$entity->mapper = $this->clear();
-    
-    $entity->after_make();
+	//$entity->mapper = $this->clear();
+	
+	$entity->after_make();
 
-    return $entity;
+	return $entity;
   }
 
   public function not_in($column, $values) {
-    return $this->in($column, $values, true);
+	return $this->in($column, $values, true);
   }
 
   public function in($column, $values, $not = false) {
-    if (empty($values)) return $this->where('1 = 0');
-    $values = array_values($values);
-    $ph = array();
-    $not = $not ? 'NOT' : '';
-    $placeholder = ":{$column}_{$not}_in_";
-    $placeholder = preg_replace('{[^a-z0-9_:]}i', '_', $placeholder);
-    foreach ($values as $k => $v) {
-      $ph[] =  $placeholder . $k;
-    }
-    return $this->where("$column $not IN (" . implode(',', $ph) . ")", $values);
+	if (empty($values)) return $this->where('1 = 0');
+	$values = array_values($values);
+	$ph = array();
+	$not = $not ? 'NOT' : '';
+	$placeholder = ":{$column}_{$not}_in_";
+	$placeholder = preg_replace('{[^a-z0-9_:]}i', '_', $placeholder);
+	foreach ($values as $k => $v) {
+	  $ph[] =  $placeholder . $k;
+	}
+	return $this->where("$column $not IN (" . implode(',', $ph) . ")", $values);
   }
 
   public function as_array($v = true) {
-    $this->option('as_array', $v);
-    return $this;
+	$this->option('as_array', $v);
+	return $this;
   }
 
 /**
@@ -1219,10 +1224,10 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return DB_Cursor
  */
   public function query($execute = true) {
-    $c = $this->make_cursor($this->sql()->select($this->mode), !$this->option('as_array'))->
-      bind($this->__get('binds'));
-    $this->mode = '';
-    return $execute ? $c->execute() : $c;
+	$c = $this->make_cursor($this->sql()->select($this->mode), !$this->option('as_array'))->
+	  bind($this->__get('binds'));
+	$this->mode = '';
+	return $execute ? $c->execute() : $c;
   }
 
 /**
@@ -1245,12 +1250,12 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   public function select_for() {
-    $args = func_get_args();
-    list($m, $this->mode) = array($this->mode, '');
-    return $this->spawn()->
-      where(array_shift($args), Core::normalize_args($args))->
-      mode($m)->
-      select();
+	$args = func_get_args();
+	list($m, $this->mode) = array($this->mode, '');
+	return $this->spawn()->
+	  where(array_shift($args), Core::normalize_args($args))->
+	  mode($m)->
+	  select();
   }
 
 /**
@@ -1259,23 +1264,23 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   public function select_first_for() {
-    $args = func_get_args();
-    list($m, $this->mode) = array($this->mode, '');
-    return $this->spawn()->
-      where(array_shift($args), Core::normalize_args($args))->
-      mode($m)->
-      select_first();
+	$args = func_get_args();
+	list($m, $this->mode) = array($this->mode, '');
+	return $this->spawn()->
+	  where(array_shift($args), Core::normalize_args($args))->
+	  mode($m)->
+	  select_first();
   }
 
 /**
  * @return int
  */
   public function stat($just_count = false) {
-    list($m, $this->mode) = array($this->mode, '');
-    return Core::with_index($this->make_cursor($this->sql()->stat($just_count, $m), false)->
-      bind($this->__get('binds'))->
-        execute()->
-        fetch(), 'count');
+	list($m, $this->mode) = array($this->mode, '');
+	return Core::with_index($this->make_cursor($this->sql()->stat($just_count, $m), false)->
+	  bind($this->__get('binds'))->
+		execute()->
+		fetch(), 'count');
   }
 
 /**
@@ -1283,11 +1288,11 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   public function stat_all($fetch_first = false) {
-    list($m, $this->mode) = array($this->mode, '');
-    $r = $this->make_cursor($this->sql()->stat(false, $m), false)->
-      bind($this->__get('binds'))->
-      execute();
-    return ($fetch_first ? $r->fetch() : $r->fetch_all());
+	list($m, $this->mode) = array($this->mode, '');
+	$r = $this->make_cursor($this->sql()->stat(false, $m), false)->
+	  bind($this->__get('binds'))->
+	  execute();
+	return ($fetch_first ? $r->fetch() : $r->fetch_all());
   }
 
 /**
@@ -1295,11 +1300,11 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return DB_ORM_SQLMapper
  */
   public function filter($args) {
-    switch (true) {
-      case is_string($args): return $this->where($args);
-      default:
-        return $this->spawn()->apply_filter($args);
-    }
+	switch (true) {
+	  case is_string($args): return $this->where($args);
+	  default:
+		return $this->spawn()->apply_filter($args);
+	}
   }
 
 /**
@@ -1308,24 +1313,24 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   public function find() {
-    $binds = array();
-    $values = Core::normalize_args(func_get_args());
+	$binds = array();
+	$values = Core::normalize_args(func_get_args());
 
-    foreach ($this->options['key'] as $idx => $key)
-      $binds[$key] = isset($values[$key]) ? $values[$key] : (isset($values[$idx]) ? $values[$idx] : 0);
+	foreach ($this->options['key'] as $idx => $key)
+	  $binds[$key] = isset($values[$key]) ? $values[$key] : (isset($values[$idx]) ? $values[$idx] : 0);
 
-    if (($entity = $this->make_cursor($this->sql()->find())->
-      bind(array_merge($this->__get('binds'), $binds))->
-      execute()->
-      fetch()) && method_exists($entity, 'after_find')) $entity->after_find();
+	if (($entity = $this->make_cursor($this->sql()->find())->
+	  bind(array_merge($this->__get('binds'), $binds))->
+	  execute()->
+	  fetch()) && method_exists($entity, 'after_find')) $entity->after_find();
 
-    return $entity;
+	return $entity;
   }
 
   public function inspect()
   {
-    Core::load('DB.Schema');
-    return DB_Schema::Table($this->connection)->for_table($this->options['table'][0])->inspect();
+	Core::load('DB.Schema');
+	return DB_Schema::Table($this->connection)->for_table($this->options['table'][0])->inspect();
   }
 
 /**
@@ -1333,19 +1338,19 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   public function lookup($value) {
-    if (($entity = isset($this->options['lookup_by']) ?
-      $this->spawn()->where($this->options['table_prefix'].'.'.$this->options['lookup_by'].'=:__val', $value)->select_first() :
-      null) && method_exists($entity, 'after_find')) $entity->after_find();
+	if (($entity = isset($this->options['lookup_by']) ?
+	  $this->spawn()->where($this->options['table_prefix'].'.'.$this->options['lookup_by'].'=:__val', $value)->select_first() :
+	  null) && method_exists($entity, 'after_find')) $entity->after_find();
 
-    return $entity;
+	return $entity;
   }
 
   public function search($value) {
-    if ($this->can_cmap('search')) return $this->__call('search', func_get_args());
-    $value = str_replace('%', '\%', $value);
-    return isset($this->options['search_by']) ?
-      $this->spawn()->where($this->options['table_prefix'].'.'.$this->options['search_by'].' LIKE :__val', "$value%") :
-      $this;
+	if ($this->can_cmap('search')) return $this->__call('search', func_get_args());
+	$value = str_replace('%', '\%', $value);
+	return isset($this->options['search_by']) ?
+	  $this->spawn()->where($this->options['table_prefix'].'.'.$this->options['search_by'].' LIKE :__val', "$value%") :
+	  $this;
   }
 
 /**
@@ -1355,24 +1360,24 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return boolean
  */
   public function update($e, $columns = array(), $key_values = array()) {
-    list($m, $this->mode) = array($this->mode, '');
-    //TODO: refactor
-    if (!empty($key_values)) {
-      foreach ($this->options['key'] as $k)
-        if (isset($key_values[$k]))
-          $e['key_' . $k] = $key_values[$k];
-    }
-    $rc =
-      $this->validate($e) && $this->access('update', $e) &&
-      $this->callback($e, 'before_save') && $this->callback($e, 'before_update') &&
-      ($this->make_cursor($this->sql()->update($m, $columns, $key_values))->
-        bind($e)->
-        execute()->is_successful) &&
-      $this->callback($e, 'after_update') && $this->callback($e, 'after_save');
-    Events::call('orm.mapper.change', $rc, $action = 'update', $this, $e);
-    Events::call('orm.mapper.update', $rc, $this, $e);
-    Events::call("orm.mapper.{$this->__name()}.update", $rc, $this, $e);
-    return $rc;
+	list($m, $this->mode) = array($this->mode, '');
+	//TODO: refactor
+	if (!empty($key_values)) {
+	  foreach ($this->options['key'] as $k)
+		if (isset($key_values[$k]))
+		  $e['key_' . $k] = $key_values[$k];
+	}
+	$rc =
+	  $this->validate($e) && $this->access('update', $e) &&
+	  $this->callback($e, 'before_save') && $this->callback($e, 'before_update') &&
+	  ($this->make_cursor($this->sql()->update($m, $columns, $key_values))->
+		bind($e)->
+		execute()->is_successful) &&
+	  $this->callback($e, 'after_update') && $this->callback($e, 'after_save');
+	Events::call('orm.mapper.change', $rc, $action = 'update', $this, $e);
+	Events::call('orm.mapper.update', $rc, $this, $e);
+	Events::call("orm.mapper.{$this->__name()}.update", $rc, $this, $e);
+	return $rc;
   }
 
 /**
@@ -1383,17 +1388,17 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return boolean
  */
   public function update_all(array $values, array $calc = array()) {
-    list($m, $this->mode) = array($this->mode, '');
-    $query = $this->sql()->update_all($m);
-    if (!empty($values)) $query->set(array_keys($values));
-    if (!empty($calc)) $query->set($calc);
-    $rc = $this->make_cursor($query)->
-      bind(array_merge($this->__get('binds'), $values))->
-      execute()->is_successful;
-    Events::call('orm.mapper.change', $rc, $action = 'update_all', $this, $e = null);
-    Events::call('orm.mapper.update_all', $rc, $this, $e = null);
-    Events::call("orm.mapper.{$this->__name()}.update_all", $rc, $this, $e = null);
-    return $rc;
+	list($m, $this->mode) = array($this->mode, '');
+	$query = $this->sql()->update_all($m);
+	if (!empty($values)) $query->set(array_keys($values));
+	if (!empty($calc)) $query->set($calc);
+	$rc = $this->make_cursor($query)->
+	  bind(array_merge($this->__get('binds'), $values))->
+	  execute()->is_successful;
+	Events::call('orm.mapper.change', $rc, $action = 'update_all', $this, $e = null);
+	Events::call('orm.mapper.update_all', $rc, $this, $e = null);
+	Events::call("orm.mapper.{$this->__name()}.update_all", $rc, $this, $e = null);
+	return $rc;
   }
 
 /**
@@ -1404,24 +1409,24 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return int
  */
   public function insert($e) {
-    list($m, $this->mode) = array($this->mode, '');
-    $rc =
-      $this->validate($e) && $this->access('insert', $e) &&
-      $this->callback($e, 'before_save') && $this->callback($e, 'before_insert') &&
-      $this->make_cursor($this->sql()->insert($m))->
-        bind($e)->
-          execute();
-    if ($rc) {
-      $id = (int) $this->connection->last_insert_id();
-      if ($id && (count($this->options['key']) == 1) && !$this->options['explicit_key'])
-        $e[$this->options['key'][0]] = $id;
-    }
-    $rc =
-      $rc && $this->callback($e, 'after_insert') && $this->callback($e, 'after_save');
-    Events::call('orm.mapper.change', $rc, $action = 'insert', $this, $e);
-    Events::call('orm.mapper.insert', $rc, $this, $e);
-    Events::call("orm.mapper.{$this->__name()}.insert", $rc, $this, $e);
-    return $rc;
+	list($m, $this->mode) = array($this->mode, '');
+	$rc =
+	  $this->validate($e) && $this->access('insert', $e) &&
+	  $this->callback($e, 'before_save') && $this->callback($e, 'before_insert') &&
+	  $this->make_cursor($this->sql()->insert($m))->
+		bind($e)->
+		  execute();
+	if ($rc) {
+	  $id = (int) $this->connection->last_insert_id();
+	  if ($id && (count($this->options['key']) == 1) && !$this->options['explicit_key'])
+		$e[$this->options['key'][0]] = $id;
+	}
+	$rc =
+	  $rc && $this->callback($e, 'after_insert') && $this->callback($e, 'after_save');
+	Events::call('orm.mapper.change', $rc, $action = 'insert', $this, $e);
+	Events::call('orm.mapper.insert', $rc, $this, $e);
+	Events::call("orm.mapper.{$this->__name()}.insert", $rc, $this, $e);
+	return $rc;
   }
 
 /**
@@ -1431,36 +1436,36 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return boolean
  */
   public function delete($e) {
-    list($m, $this->mode) = array($this->mode, '');
-    $rc =
-      $this->access('delete', $e) &&
-      $this->callback($e, 'before_delete') &&
-      $this->make_cursor($this->sql()->delete($m))->
-        bind($e)->
-        execute()->is_successful &&
-      $this->callback($e, 'after_delete');
-    Events::call('orm.mapper.change', $rc, $action = 'delete', $this, $e);
-    Events::call('orm.mapper.delete', $rc, $this, $e);
-    Events::call("orm.mapper.{$this->__name()}.delete", $rc, $this, $e);
-    return $rc;
+	list($m, $this->mode) = array($this->mode, '');
+	$rc =
+	  $this->access('delete', $e) &&
+	  $this->callback($e, 'before_delete') &&
+	  $this->make_cursor($this->sql()->delete($m))->
+		bind($e)->
+		execute()->is_successful &&
+	  $this->callback($e, 'after_delete');
+	Events::call('orm.mapper.change', $rc, $action = 'delete', $this, $e);
+	Events::call('orm.mapper.delete', $rc, $this, $e);
+	Events::call("orm.mapper.{$this->__name()}.delete", $rc, $this, $e);
+	return $rc;
   }
 
 
   public function save($e) {
-    $id = null;
-    if (method_exists($e, 'id')) {
-      $id = $e->id();
-    } else {
-      $key = $this->options['key'];
-      if (is_array($key)) {
-        $key = reset($key);
-        $id = $e[$key];
-      } else {
-        $id = $e['id'];
-      }
-    }
-    if (!empty($id)) return $this->update($e);
-    else return $this->insert($e);
+	$id = null;
+	if (method_exists($e, 'id')) {
+	  $id = $e->id();
+	} else {
+	  $key = $this->options['key'];
+	  if (is_array($key)) {
+		$key = reset($key);
+		$id = $e[$key];
+	  } else {
+		$id = $e['id'];
+	  }
+	}
+	if (!empty($id)) return $this->update($e);
+	else return $this->insert($e);
   } 
 
 /**
@@ -1469,13 +1474,13 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return boolean
  */
   public function delete_all() {
-    list($mode, $this->mode) = array($this->mode, '');
-    $rc = $this->make_cursor($this->sql()->delete_all($mode))->
-      bind($this->__get('binds'))->
-      execute()->is_successful;
-    Events::call('orm.mapper.change', $rc, $action = 'delete_all', $this, $e = null);
-    Events::call('orm.mapper.delete_all', $rc, $this, $e = null);
-     Events::call("orm.mapper.{$this->__name()}.delete_all", $rc, $this, $e = null);
+	list($mode, $this->mode) = array($this->mode, '');
+	$rc = $this->make_cursor($this->sql()->delete_all($mode))->
+	  bind($this->__get('binds'))->
+	  execute()->is_successful;
+	Events::call('orm.mapper.change', $rc, $action = 'delete_all', $this, $e = null);
+	Events::call('orm.mapper.delete_all', $rc, $this, $e = null);
+	 Events::call("orm.mapper.{$this->__name()}.delete_all", $rc, $this, $e = null);
   }
 
 
@@ -1494,7 +1499,7 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   protected function cmap($name, $method, array $args = array()) {
-    return is_string($method) ? call_user_func_array(array($this->spawn(), $method), $args) : parent::cmap($name, $method, $args);//$this->__map($name, $args);
+	return is_string($method) ? call_user_func_array(array($this->spawn(), $method), $args) : parent::cmap($name, $method, $args);//$this->__map($name, $args);
   }
 
 /**
@@ -1502,7 +1507,7 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   protected function pmap($name, $method) {
-    return is_string($method) ? call_user_func_array(array($this->spawn(), $method), array()) : parent::pmap($name, $method);//$this->__map($name);
+	return is_string($method) ? call_user_func_array(array($this->spawn(), $method), array()) : parent::pmap($name, $method);//$this->__map($name);
   }
 
 
@@ -1514,8 +1519,8 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return DB_ORM_SQLStatement
  */
   public function spawn_for() {
-    $args = func_get_args();
-    return $this->spawn()->where(array_shift($args), Core::normalize_args($args));
+	$args = func_get_args();
+	return $this->spawn()->where(array_shift($args), Core::normalize_args($args));
   }
 
 
@@ -1527,7 +1532,7 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return DB_ORM_SQLMapper
  */
   public function paginate_with(Data_Pagination_Pager $pager) {
-    return $this->spawn()->range($pager->items_per_page, $pager->current->offset);
+	return $this->spawn()->range($pager->items_per_page, $pager->current->offset);
   }
 
 
@@ -1552,9 +1557,9 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return boolean
  */
   public function validate($entity) {
-    return isset($this->options['validator']) ?
-      Core::with_index($this->options, 'validator')->validate($entity) :
-      true;
+	return isset($this->options['validator']) ?
+	  Core::with_index($this->options, 'validator')->validate($entity) :
+	  true;
   }
 
 /**
@@ -1563,12 +1568,12 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return boolean
  */
   public function access($action, $entity = null) {
-    $table = self::table_from($this);
-    $rc = Events::call('orm.access', $this, $table, $action, $entity);
-    if (!is_null($rc)) return $rc;
-    $rc = Events::call('orm.access.' . $table, $this, $action, $entity);
-    if (!is_null($rc)) return $rc;
-    return true;
+	$table = self::table_from($this);
+	$rc = Events::call('orm.access', $this, $table, $action, $entity);
+	if (!is_null($rc)) return $rc;
+	$rc = Events::call('orm.access.' . $table, $this, $action, $entity);
+	if (!is_null($rc)) return $rc;
+	return true;
   }
 
 /**
@@ -1577,8 +1582,8 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return mixed
  */
   protected function callback($entity, $name) {
-    return is_object($entity) && method_exists($entity, $name) ?
-      $entity->$name() : true;
+	return is_object($entity) && method_exists($entity, $name) ?
+	  $entity->$name() : true;
   }
 
 /**
@@ -1586,9 +1591,9 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return DB_Cursor
  */
   protected function make_cursor($sql, $typed = true) {
-    $cursor = $this->connection->prepare($sql);
-    if ($typed) $cursor->as_object($this->make_entity());
-    return $cursor;
+	$cursor = $this->connection->prepare($sql);
+	if ($typed) $cursor->as_object($this->make_entity());
+	return $cursor;
   }
 
 	/**
@@ -1619,22 +1624,22 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * @return DB_ORM_SQLMapper
  */
   protected function collect_binds($expr, $parms) {
-    $adapter = $this->connection->adapter;
+	$adapter = $this->connection->adapter;
 
-    if ($adapter->is_castable_parameter($parms)) $parms = $adapter->cast_parameter($parms);
+	if ($adapter->is_castable_parameter($parms)) $parms = $adapter->cast_parameter($parms);
 
-    if ($match = Core_Regexps::match_all('{(?::([a-zA-Z_0-9]+))}', $expr)) {
-      foreach ($match[1] as $no => $name) {
-        if (Core_Types::is_array($parms) || $parms instanceof ArrayAccess)
-          $this->binds[$name] = $adapter->cast_parameter(isset($parms[$name]) ? $parms[$name] : $parms[$no]);
-        elseif (is_object($parms))
-          $this->binds[$name] = $adapter->cast_parameter($parms->$name);
-        else
-          $this->binds[$name] = $adapter->cast_parameter($parms);
-      }
-    }
+	if ($match = Core_Regexps::match_all('{(?::([a-zA-Z_0-9]+))}', $expr)) {
+	  foreach ($match[1] as $no => $name) {
+		if (Core_Types::is_array($parms) || $parms instanceof ArrayAccess)
+		  $this->binds[$name] = $adapter->cast_parameter(isset($parms[$name]) ? $parms[$name] : $parms[$no]);
+		elseif (is_object($parms))
+		  $this->binds[$name] = $adapter->cast_parameter($parms->$name);
+		else
+		  $this->binds[$name] = $adapter->cast_parameter($parms);
+	  }
+	}
 
-    return $this;
+	return $this;
   }
 
 
@@ -1764,30 +1769,34 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 			case 'validator':
 			case 'table':
 			case 'calculate':
-      case 'explicit_key':
-      case 'lookup_by':
-      case 'search_by':
-      case 'index':
-      case 'defaults':
-        $this->options->__call($method, $args);
-        return $this;
+	  case 'explicit_key':
+	  case 'lookup_by':
+	  case 'search_by':
+	  case 'index':
+	  case 'defaults':
+		$this->options->__call($method, $args);
+		return $this;
 			case 'order_by':
 			case 'group_by':
 			case 'range':
-				$this->is_immutable ?
-					$this->spawn()->__call($method, $args) :
+				if ($this->is_immutable) {
+					return $this->spawn()->__call($method, $args);
+				} else {
 					$this->options->__call($method, $args);
-				return $this;
+					return $this;
+				}
 			case 'key':
 			case 'columns':
-        $this->options->$method(Core::normalize_args($args));
-        return $this;
+		$this->options->$method(Core::normalize_args($args));
+		return $this;
 			case 'only':
 			case 'exclude':
-				$this->is_immutable ?
-					$this->spawn()->__call($method, $args) :
+				if ($this->is_immutable) {
+					return $this->spawn()->__call($method, $args);
+				} else {
 					$this->options->$method(Core::normalize_args($args));
-				return $this;
+					return $this;
+				}
 			case 'having':
 			case 'where':
 				if ($this->is_immutable) return $this->spawn()->__call($method, $args);
@@ -1838,10 +1847,10 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 	 * return mixed
 	 */
 	public function offsetGet($index) {
-    if (!isset($this->cache[$index]) && (($e = $this->find($index)) || ($e = $this->lookup($index)))) {
-      $this->cache[$index] = $e;
-    }
-    return isset($this->cache[$index])?$this->cache[$index]:null;
+	if (!isset($this->cache[$index]) && (($e = $this->find($index)) || ($e = $this->lookup($index)))) {
+	  $this->cache[$index] = $e;
+	}
+	return isset($this->cache[$index])?$this->cache[$index]:null;
   }
 
 	/**
@@ -2043,8 +2052,8 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQLBuilder
  */
   public function for_options(DB_ORM_MappingOptions $options) {
-    $this->options = $options;
-    return $this;
+	$this->options = $options;
+	return $this;
   }
 
 
@@ -2055,11 +2064,11 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_Select
  */
   public function select($mode = '') {
-    $sql = $this->select_with_options(
-      $this->options['result'],
-      array('join', 'where', 'group_by', 'having', 'order_by', 'index'), $mode);
+	$sql = $this->select_with_options(
+	  $this->options['result'],
+	  array('join', 'where', 'group_by', 'having', 'order_by', 'index'), $mode);
 
-    return ($r = $this->options['range']) ? $sql->range($r[0], $r[1]) : $sql;
+	return ($r = $this->options['range']) ? $sql->range($r[0], $r[1]) : $sql;
   }
 
 /**
@@ -2068,16 +2077,16 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_Select
  */
   public function find() {
-    $table  = $this->options['table'];
-    $prefix = isset($table[1]) ? $table[1] : $table[0];
+	$table  = $this->options['table'];
+	$prefix = isset($table[1]) ? $table[1] : $table[0];
 
-    $keys   = array();
-    foreach ($this->options['key'] as $v) $keys[] = "$prefix.$v = :$v";
+	$keys   = array();
+	foreach ($this->options['key'] as $v) $keys[] = "$prefix.$v = :$v";
 
-    return $this->select_with_options(
-      $this->options['result'],
-      array('join', 'where', 'group_by', 'having', 'order_by', 'index'))->
-        where($keys)->range(1);
+	return $this->select_with_options(
+	  $this->options['result'],
+	  array('join', 'where', 'group_by', 'having', 'order_by', 'index'))->
+		where($keys)->range(1);
   }
 
 /**
@@ -2087,21 +2096,21 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_SelectStatement
  */
   public function stat($just_count = false, $mode = '') {
-    $what = '*';
-    if (strtolower($mode) == 'distinct' && $this->options['distinct_field']) {
-      $what = $mode . ' ' . $this->options['distinct_field'];
-      $mode = '';
-    }
+	$what = '*';
+	if (strtolower($mode) == 'distinct' && $this->options['distinct_field']) {
+	  $what = $mode . ' ' . $this->options['distinct_field'];
+	  $mode = '';
+	}
 
-    return $just_count ?
-      $this->select_with_options(
-        "COUNT($what) count",
-        array('join', 'where', 'group_by', 'having', 'index'),
-        $mode) :
-      $this->select_with_options(
-        Core::if_not_set($this->options, 'calculate', "COUNT($what) count"),
-        array('join', 'where', 'group_by', 'having', 'order_by', 'index'),
-        $mode);
+	return $just_count ?
+	  $this->select_with_options(
+		"COUNT($what) count",
+		array('join', 'where', 'group_by', 'having', 'index'),
+		$mode) :
+	  $this->select_with_options(
+		Core::if_not_set($this->options, 'calculate', "COUNT($what) count"),
+		array('join', 'where', 'group_by', 'having', 'order_by', 'index'),
+		$mode);
   }
 
 /**
@@ -2111,13 +2120,13 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_Insert
  */
   public function insert($mode = '') {
-    $o = $this->options;
+	$o = $this->options;
 
-    $auto = (count($o['key']) == 1 && !$o['explicit_key']) ? $o['key'][0] : false;
+	$auto = (count($o['key']) == 1 && !$o['explicit_key']) ? $o['key'][0] : false;
 
-    $cols = array();
-    foreach ($o['columns'] as $v) if (!($auto && $v == $auto)) $cols[] = $v;
-    return DB_ORM_SQL::Insert($cols)->mode($mode)->into($o['table'][0]);
+	$cols = array();
+	foreach ($o['columns'] as $v) if (!($auto && $v == $auto)) $cols[] = $v;
+	return DB_ORM_SQL::Insert($cols)->mode($mode)->into($o['table'][0]);
   }
 
 /**
@@ -2126,10 +2135,10 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_Delete
  */
   public function delete($mode = '') {
-    $keys = array();
-    foreach ($this->options['key'] as $v) $keys[] = "$v = :$v";
+	$keys = array();
+	foreach ($this->options['key'] as $v) $keys[] = "$v = :$v";
 
-    return DB_ORM_SQL::Delete($this->options['table'][0])->where($keys)->mode($mode);
+	return DB_ORM_SQL::Delete($this->options['table'][0])->where($keys)->mode($mode);
   }
 
 /**
@@ -2138,8 +2147,8 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_Delete
  */
   public function delete_all($mode = '') {
-    $sql = DB_ORM_SQL::Delete($this->options['table'][0])->mode($mode);
-    return isset($this->options['where']) ? $sql->where($this->options['where']) : $sql;
+	$sql = DB_ORM_SQL::Delete($this->options['table'][0])->mode($mode);
+	return isset($this->options['where']) ? $sql->where($this->options['where']) : $sql;
   }
 
 /**
@@ -2148,13 +2157,13 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_Update
  */
   public function update($mode = '', $columns = array(), $key_values = array()) {
-    $keys = array();
-    foreach ($this->options['key'] as $v) $keys[] =  "$v =  :" . (isset($key_values[$v]) ? 'key_' : '') . $v;
+	$keys = array();
+	foreach ($this->options['key'] as $v) $keys[] =  "$v =  :" . (isset($key_values[$v]) ? 'key_' : '') . $v;
 
-    return DB_ORM_SQL::Update($this->options['aliased_table'])->
-      mode($mode)->
-      set(count($columns) ? array_intersect($this->options['columns'], $columns) : $this->options['columns'])->
-      where($keys);
+	return DB_ORM_SQL::Update($this->options['aliased_table'])->
+	  mode($mode)->
+	  set(count($columns) ? array_intersect($this->options['columns'], $columns) : $this->options['columns'])->
+	  where($keys);
   }
 
 /**
@@ -2163,9 +2172,9 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_Update
  */
   public function update_all($mode = '') {
-    return DB_ORM_SQL::Update($this->options['aliased_table'])->
-      mode($mode)->
-      where($this->options['where']);
+	return DB_ORM_SQL::Update($this->options['aliased_table'])->
+	  mode($mode)->
+	  where($this->options['where']);
   }
 
 
@@ -2178,23 +2187,23 @@ class DB_ORM_SQLBuilder {
  * @return DB_ORM_SQL_Statement
  */
   protected function select_with_options($what, array $options = array(), $mode = '') {
-    $sql = DB_ORM_SQL::Select($what)->mode($mode)->from($this->options['aliased_table']);
+	$sql = DB_ORM_SQL::Select($what)->mode($mode)->from($this->options['aliased_table']);
 
-    foreach ($options as $opt) {
-      switch ($opt) {
-        case 'join':
-          foreach ($this->options['join'] as $j) $sql->join($j[0], $j[1], $j[2]);
-          break;
-        case 'where':
-        case 'group_by':
-        case 'having':
-        case 'order_by':
-        case 'index':
-          if (isset($this->options[$opt])) $sql->$opt($this->options[$opt]);
-          break;
-      }
-    }
-    return $sql;
+	foreach ($options as $opt) {
+	  switch ($opt) {
+		case 'join':
+		  foreach ($this->options['join'] as $j) $sql->join($j[0], $j[1], $j[2]);
+		  break;
+		case 'where':
+		case 'group_by':
+		case 'having':
+		case 'order_by':
+		case 'index':
+		  if (isset($this->options[$opt])) $sql->$opt($this->options[$opt]);
+		  break;
+	  }
+	}
+	return $sql;
   }
 
 }
@@ -2210,8 +2219,8 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  * @param DB_ORM_Mapper $parent
  */
   public function __construct(DB_ORM_Mapper $parent = null) {
-    parent::__construct($parent);
-    $this->setup();
+	parent::__construct($parent);
+	$this->setup();
   }
 
 /**
@@ -2226,9 +2235,9 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  * @return DB_ORM_MapperSet
  */
   public function submappers(array $mappers, $prefix = '') {
-    foreach ($mappers as $k => $v)
-      $this->mappers[is_numeric($k) ? strtolower($v) : $k] = "$prefix$v";
-    return $this;
+	foreach ($mappers as $k => $v)
+	  $this->mappers[is_numeric($k) ? strtolower($v) : $k] = "$prefix$v";
+	return $this;
   }
 
 /**
@@ -2237,7 +2246,7 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  */
 // TODO: deprecated
   public function with_submappers(array $mappers, $prefix = '') {
-    return $this->submappers($mappers, $prefix);
+	return $this->submappers($mappers, $prefix);
   }
 
 /**
@@ -2246,8 +2255,8 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  * @return DB_ORM_MapperSet
  */
   public function submapper($mapper, $module) {
-    $this->mappers[(string) $mapper] = (string) $module;
-    return $this;
+	$this->mappers[(string) $mapper] = (string) $module;
+	return $this;
   }
 
 /**
@@ -2257,7 +2266,7 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  */
 // TODO: deprecated
   public function with_submapper($mapper, $module) {
-    return $this->submapper($mapper, $module);
+	return $this->submapper($mapper, $module);
   }
 
 
@@ -2270,9 +2279,9 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  * @return mixed
  */
   protected function pmap($name, $method) {
-    if (!isset($this->cache[$name]))
-      $this->cache[$name] = parent::pmap($name, $method);
-    return $this->cache[$name];
+	if (!isset($this->cache[$name]))
+	  $this->cache[$name] = parent::pmap($name, $method);
+	return $this->cache[$name];
   }
 
 /**
@@ -2280,19 +2289,19 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  * @param boolean $is_call
  * @return boolean
  */
-    public function __can_map($name, $is_call = false) { return isset($this->mappers[$name]); }
+	public function __can_map($name, $is_call = false) { return isset($this->mappers[$name]); }
 
 /**
  * @param string $name
  * @param  $args
  * @return DB_ORM_Mapper
  */
-    public function __map($name, $args = null) {
-      $r = $this->load($this->mappers[$name], $name);
-      if (method_exists($this, 'created_from_mapperset'))
-        $r->created_from_mapperset($this, $name);
-      return $r;
-    }
+	public function __map($name, $args = null) {
+	  $r = $this->load($this->mappers[$name], $name);
+	  if (method_exists($this, 'created_from_mapperset'))
+		$r->created_from_mapperset($this, $name);
+	  return $r;
+	}
 
 
 
@@ -2301,8 +2310,8 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  * @return DB_ORM_MapperSet
  */
   protected function load_mappers_from($module) {
-    Core::load($module);
-    return call_user_func(array(Core_Types::real_class_name_for($module), 'mappers'), $this);
+	Core::load($module);
+	return call_user_func(array(Core_Types::real_class_name_for($module), 'mappers'), $this);
   }
 
 /**
@@ -2310,15 +2319,15 @@ class DB_ORM_MapperSet extends DB_ORM_Mapper {
  * @return DB_ORM_Mapper
  */
   protected function load($mapper, $name) {
-    if (preg_match('{^(?:(.+)\.)?([a-zA-Z0-9]+|\*)$}', $mapper, $m)) {
-      if ($m[2] == '*') {
-        if ($m[1]) Core::load($m[1]);
-        return call_user_func(array(Core_Types::real_class_name_for($m[1]), 'mappers'), $this);
-      }
-      $m = Core::make($mapper, $this);
-      $m->option('__name', $name);
-      return $m;
-    }
+	if (preg_match('{^(?:(.+)\.)?([a-zA-Z0-9]+|\*)$}', $mapper, $m)) {
+	  if ($m[2] == '*') {
+		if ($m[1]) Core::load($m[1]);
+		return call_user_func(array(Core_Types::real_class_name_for($m[1]), 'mappers'), $this);
+	  }
+	  $m = Core::make($mapper, $this);
+	  $m->option('__name', $name);
+	  return $m;
+	}
   }
 
 }
@@ -2336,38 +2345,38 @@ abstract class DB_ORM_ConnectionMapper extends DB_ORM_MapperSet implements DB_OR
   protected $connections_by_tables = array();
   
   protected function pmap_connection() {
-    return $this->connections[$this->active_connection];
+	return $this->connections[$this->active_connection];
   }
   
   public function connection_for($table = null) {
-    if (!empty($this->connections_by_tables[$table]))
-      return $this->connections[$this->connections_by_tables[$table]];
-    return $this->pmap_connection();
+	if (!empty($this->connections_by_tables[$table]))
+	  return $this->connections[$this->connections_by_tables[$table]];
+	return $this->pmap_connection();
   }
   
   public function connection($name = 'default') {
-    return $this->connections[$name];
+	return $this->connections[$name];
   }
   
   public function activate_connection($name) {
-    $this->active_connection = $name;
-    return $this;
+	$this->active_connection = $name;
+	return $this;
   }
   
   public function reset_connection() {
-    $this->activate_connection = self::DEFAULT_CONNECTION_NAME;
-    return $this;
+	$this->activate_connection = self::DEFAULT_CONNECTION_NAME;
+	return $this;
   }
 
 
   public function tables(array $tables) {
-    $this->connections_by_tables = array_merge($this->connections_by_tables, $tables);
-    return $this;
+	$this->connections_by_tables = array_merge($this->connections_by_tables, $tables);
+	return $this;
   }
   
   public function table($table, $connaction_name) {
-    $this->connections_by_tables[$table] = $connaction_name;
-    return $this;
+	$this->connections_by_tables[$table] = $connaction_name;
+	return $this;
   }
 
 /**
@@ -2378,21 +2387,21 @@ abstract class DB_ORM_ConnectionMapper extends DB_ORM_MapperSet implements DB_OR
  * @return DB_ORM_ConnectionMapper
  */
   public function connect($connection, $name = self::DEFAULT_CONNECTION_NAME) {
-    $this->connections[$name] = ($connection instanceof DB_Connection) ?
-      $connection :
-      DB::Connection((string) $connection);
-    return $this;
+	$this->connections[$name] = ($connection instanceof DB_Connection) ?
+	  $connection :
+	  DB::Connection((string) $connection);
+	return $this;
   }
 
   public function __sleep() {
-    return array('active_connection', 'connections_by_tables');
+	return array('active_connection', 'connections_by_tables');
   }
 
   public function __wakeup() {
-    foreach (WS::env()->db as $name => $conn) {
-      $this->connections[$name] = $conn;
-    }
-    return $this;
+	foreach (WS::env()->db as $name => $conn) {
+	  $this->connections[$name] = $conn;
+	}
+	return $this;
   }
 
 }
@@ -2417,10 +2426,10 @@ abstract class DB_ORM_Entity
  * @param array $attrs
  */
   public function __construct(array $attrs = array(), $mapper = null) {
-    parent::__construct();
-    if ($mapper)
-      $this->mapper = $mapper;
-    $this->setup()->assign($attrs); }
+	parent::__construct();
+	if ($mapper)
+	  $this->mapper = $mapper;
+	$this->setup()->assign($attrs); }
 
 
 
@@ -2434,8 +2443,8 @@ abstract class DB_ORM_Entity
  * @return DB_ORM_Entity
  */
   protected function defaults(array $values) {
-    foreach ($values as $k => $v) $this[$k] = $v;
-    return $this;
+	foreach ($values as $k => $v) $this[$k] = $v;
+	return $this;
   }
 
 
@@ -2444,84 +2453,84 @@ abstract class DB_ORM_Entity
  * @return DB_ORM_Entity
  */
   public function assign(array $attrs) {
-    foreach ($attrs as $k => $v) $this->__set($k, $v);
-    return $this;
+	foreach ($attrs as $k => $v) $this->__set($k, $v);
+	return $this;
   }
 
   public function assign_attrs(array $attrs) {
-    foreach ($attrs as $k => $v) $this->set($k, $v);
-    return $this;
+	foreach ($attrs as $k => $v) $this->set($k, $v);
+	return $this;
   }
   
   public function id() {
-    if ($mapper = $this->get_mapper()) {
-      $key = $this->key();
-      return $this->$key;
-    }
-    return $this['id'];
+	if ($mapper = $this->get_mapper()) {
+	  $key = $this->key();
+	  return $this->$key;
+	}
+	return $this['id'];
   }
 
   public function is_phantom()
   {
-    $id = $this->id();
-    return empty($id);
+	$id = $this->id();
+	return empty($id);
   }
   
   public function key() {
-    if ($mapper = $this->get_mapper()) {
-      $key = $mapper->options['key'];
-      if (Core_Types::is_iterable($key))
-        return current($key);
-    }
-    return 'id';
+	if ($mapper = $this->get_mapper()) {
+	  $key = $mapper->options['key'];
+	  if (Core_Types::is_iterable($key))
+		return current($key);
+	}
+	return 'id';
   }
   
   protected function cache_dir_name() {
-      return '_cache';
+	  return '_cache';
   }
 
   public function cache_dir_path($p=false) {
-    $path = $this->homedir($p);
-    $path .= '/'.$this->cache_dir_name();
-    return $path;
+	$path = $this->homedir($p);
+	$path .= '/'.$this->cache_dir_name();
+	return $path;
   }
 
   protected function mnemocode() {
-    if ($this->mapper) {
-      if (isset($this->mapper->options['table'][0]))
-        return $this->mapper->options['table'][0];
-    }
-    return strtolower(get_class($this));
+	if ($this->mapper) {
+	  if (isset($this->mapper->options['table'][0]))
+		return $this->mapper->options['table'][0];
+	}
+	return strtolower(get_class($this));
   }
 
   protected function homedir_location($private=false) {
-    return ($private?'../':'') . Core::option('files_name') . '/' . $this->mnemocode();
+	return ($private?'../':'') . Core::option('files_name') . '/' . $this->mnemocode();
   }
 
   public function homedir($p=false) {
-    if ($this->id()==0) return false;
-    $private = false;
-    $path = false;
-    if ($p===true) $private = true;
-    if (is_string($p)) $path = $p;
+	if ($this->id()==0) return false;
+	$private = false;
+	$path = false;
+	if ($p===true) $private = true;
+	if (is_string($p)) $path = $p;
 
-    $dir = $this->homedir_location($private);
-    $id = $this->id();
-    $did = (int)floor($id/500);
-    $s1 = str_pad((string)$id, 4,'0',STR_PAD_LEFT);
-    $s2 = str_pad((string)$did,4,'0',STR_PAD_LEFT);
-    $dir = "$dir/$s2/$s1";
-    if ($path) $dir .= "/$path";
-    return $dir;
+	$dir = $this->homedir_location($private);
+	$id = $this->id();
+	$did = (int)floor($id/500);
+	$s1 = str_pad((string)$id, 4,'0',STR_PAD_LEFT);
+	$s2 = str_pad((string)$did,4,'0',STR_PAD_LEFT);
+	$dir = "$dir/$s2/$s1";
+	if ($path) $dir .= "/$path";
+	return $dir;
   }
   
   public function set_mapper($mapper) {
-    if ($mapper instanceof DB_ORM_SQLMapper) {
-      $class = Core_Types::real_class_name_for($mapper->options['classname']);
-      if ($this instanceof $class)
-        $this->mapper = $mapper;
-    }
-    return $this;
+	if ($mapper instanceof DB_ORM_SQLMapper) {
+	  $class = Core_Types::real_class_name_for($mapper->options['classname']);
+	  if ($this instanceof $class)
+		$this->mapper = $mapper;
+	}
+	return $this;
   }
   
   public function get_mapper() {return $this->mapper ? $this->mapper->spawn() : null;}
@@ -2541,40 +2550,40 @@ abstract class DB_ORM_Entity
   
   
   public function update() {
-    $args = func_get_args();
-    array_unshift($args, $this);
-    return Core::invoke(array($this->get_mapper(), 'update'), $args);
+	$args = func_get_args();
+	array_unshift($args, $this);
+	return Core::invoke(array($this->get_mapper(), 'update'), $args);
   }
   
   public function insert() {
-    $args = func_get_args();
-    array_unshift($args, $this);
-    return Core::invoke(array($this->get_mapper(), 'insert'), $args);
+	$args = func_get_args();
+	array_unshift($args, $this);
+	return Core::invoke(array($this->get_mapper(), 'insert'), $args);
   }
   
   public function delete() {
-    $args = func_get_args();
-    array_unshift($args, $this);
-    return Core::invoke(array($this->get_mapper(), 'delete'), $args);
+	$args = func_get_args();
+	array_unshift($args, $this);
+	return Core::invoke(array($this->get_mapper(), 'delete'), $args);
   }
 
   public function save() {
-    $args = func_get_args();
-    array_unshift($args, $this);
-    return Core::invoke(array($this->get_mapper(), 'save'), $args);
+	$args = func_get_args();
+	array_unshift($args, $this);
+	return Core::invoke(array($this->get_mapper(), 'save'), $args);
   }
   
   public function get($name, $method = null) {
-    $default = isset($this->attrs[(string) $name]) ? $this->attrs[(string) $name] : null;
-    return $method ? $this->dispatch_res($method, $default) : $default;
+	$default = isset($this->attrs[(string) $name]) ? $this->attrs[(string) $name] : null;
+	return $method ? $this->dispatch_res($method, $default) : $default;
   }
   
   public function set($name, $value, $method = null) {
-    $this->attrs[(string) $name] =  $value;
-    if ($method) { 
-        $this->dispatch($method, null, $value);
-    }
-    return $this;
+	$this->attrs[(string) $name] =  $value;
+	if ($method) { 
+		$this->dispatch($method, null, $value);
+	}
+	return $this;
   }
 
 
@@ -2583,14 +2592,14 @@ abstract class DB_ORM_Entity
  * @return mixed
  */
   public function offsetGet($index) {
-    switch (true) {
-      case method_exists($this, $name = "row_get_$index"):
-        return $this->$name();
-      case $index === '__class':
-        return Core_Types::real_class_name_for($this);
-      default:
-        return $this->get($index, $name);
-    }
+	switch (true) {
+	  case method_exists($this, $name = "row_get_$index"):
+		return $this->$name();
+	  case $index === '__class':
+		return Core_Types::real_class_name_for($this);
+	  default:
+		return $this->get($index, $name);
+	}
   }
 
 /**
@@ -2599,16 +2608,16 @@ abstract class DB_ORM_Entity
  * @return mixed
  */
   public function offsetSet($index, $value) {
-    switch (true) {
-      case method_exists($this, $name = "row_set_$index"):
-        $this->$name($value);
-        break;
-      case $index === '__class':
-        break;
-      default:
-        return $this->set($index, $value, $name);
-    }
-    return $this;
+	switch (true) {
+	  case method_exists($this, $name = "row_set_$index"):
+		$this->$name($value);
+		break;
+	  case $index === '__class':
+		break;
+	  default:
+		return $this->set($index, $value, $name);
+	}
+	return $this;
   }
 
 /**
@@ -2616,8 +2625,8 @@ abstract class DB_ORM_Entity
  * @return boolean
  */
   public function offsetExists($index) {
-    return (array_key_exists($index    , $this->attrs) ||
-            method_exists($this, "row_get_$index"));
+	return (array_key_exists($index    , $this->attrs) ||
+			method_exists($this, "row_get_$index"));
   }
 
 /**
@@ -2634,16 +2643,16 @@ abstract class DB_ORM_Entity
  */
   public function __get($property) {
 
-    switch ($property) {
-      case 'attrs':
-      case 'attributes':
-        return $this->attrs;
-      default:
-        if (method_exists($this, $method = "get_$property"))
-          return $this->$method();
-        else
-          return $this->get($property, $method);
-    }
+	switch ($property) {
+	  case 'attrs':
+	  case 'attributes':
+		return $this->attrs;
+	  default:
+		if (method_exists($this, $method = "get_$property"))
+		  return $this->$method();
+		else
+		  return $this->get($property, $method);
+	}
   }
 
 /**
@@ -2652,18 +2661,18 @@ abstract class DB_ORM_Entity
  * @return mixed
  */
   public function __set($property, $value) {
-    switch ($property) {
-      case 'attrs':
-        $this->attrs = $value;
-        return $this;
-      case 'attributes':
-        throw new Core_ReadOnlyPropertyException($property);
-      default:
-        if (method_exists($this, $method = "set_$property"))
-          {$this->$method($value); return $this;}
-        else
-          return $this->set($property, $value, $method);
-    }
+	switch ($property) {
+	  case 'attrs':
+		$this->attrs = $value;
+		return $this;
+	  case 'attributes':
+		throw new Core_ReadOnlyPropertyException($property);
+	  default:
+		if (method_exists($this, $method = "set_$property"))
+		  {$this->$method($value); return $this;}
+		else
+		  return $this->set($property, $value, $method);
+	}
   }
 
 /**
@@ -2671,26 +2680,26 @@ abstract class DB_ORM_Entity
  * @return boolean
  */
   public function __isset($property) {
-    switch ($property) {
-      case 'attrs':
-      case 'attributes':
-        return true;
-      default:
-        return method_exists($this, "get_$property") || isset($this[$property]);
-    }
+	switch ($property) {
+	  case 'attrs':
+	  case 'attributes':
+		return true;
+	  default:
+		return method_exists($this, "get_$property") || isset($this[$property]);
+	}
   }
 
 /**
  * @param string $property
  */
   public function __unset($property) {
-    switch ($property) {
-      case 'attrs':
-      case 'attributes':
-        throw new Core_UndestroyablePropertyException($property);
-      default:
-        throw new Core_MissingPropertyException($property);
-    }
+	switch ($property) {
+	  case 'attrs':
+	  case 'attributes':
+		throw new Core_UndestroyablePropertyException($property);
+	  default:
+		throw new Core_MissingPropertyException($property);
+	}
   }
 
 
@@ -2700,11 +2709,11 @@ abstract class DB_ORM_Entity
  * @return mixed
  */
   public function  __call($method, $args) {
-    switch (count($args)) {
-      case 1: return $this->dispatch_res($method, null, null, $args[0]);
-      case 2: return $this->dispatch_res($method, null, null, $args[0], $args[1]);
-      default: return $this->dispatch_res($method, null, null);
-    }
+	switch (count($args)) {
+	  case 1: return $this->dispatch_res($method, null, null, $args[0]);
+	  case 2: return $this->dispatch_res($method, null, null, $args[0], $args[1]);
+	  default: return $this->dispatch_res($method, null, null);
+	}
   }
 
 
@@ -2713,36 +2722,36 @@ abstract class DB_ORM_Entity
  * @return Iterator
  */
   //public function getIterator() {
-    //return new ArrayIterator($this->attrs);
+	//return new ArrayIterator($this->attrs);
   //}
 
   public function as_string() {
-    $res = '';
-    foreach(array('title', 'name', 'id') as $name)
-      if (!empty($this[$name])) {
-        $res = $this[$name];
-        break;
-      }
-    return (string) $res;
+	$res = '';
+	foreach(array('title', 'name', 'id') as $name)
+	  if (!empty($this[$name])) {
+		$res = $this[$name];
+		break;
+	  }
+	return (string) $res;
   }
   
   public function __toString() {
-    return $this->as_string();
+	return $this->as_string();
   }
 
   public function __sleep() {
-    if ($this->mapper && $name = $this->mapper->option('__name')) {
-      $this->attrs['__mapper_name'] = $name;
-    }
-    return array('attrs', 'enable_dispatch', 'dispatcher');
+	if ($this->mapper && $name = $this->mapper->option('__name')) {
+	  $this->attrs['__mapper_name'] = $name;
+	}
+	return array('attrs', 'enable_dispatch', 'dispatcher');
   }
 
   public function __wakeup() {
-    if (isset($this->attrs['__mapper_name'])) {
-      $name = $this->attrs['__mapper_name'];
-      $this->set_mapper(WS::env()->orm->$name);
-    }
-    // $this->after_find();
+	if (isset($this->attrs['__mapper_name'])) {
+	  $name = $this->attrs['__mapper_name'];
+	  $this->set_mapper(WS::env()->orm->$name);
+	}
+	// $this->after_find();
   }
 
 }

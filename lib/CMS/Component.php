@@ -32,18 +32,25 @@ class CMS_Component implements Core_ModuleInterface {
 	}
 
 	public function config($name) {
-		if (!empty($this->cconfig[$name]))
+		if (!empty($this->cconfig[$name])) {
 			return $this->cconfig[$name];
+		}
 		$config = null;
 		$file = $this->dir() . "/{$this->config_dir}/$name.php";
-		if (is_file($file))
+		if (is_file($file)) {
 			$config = include $file;
+		}
 		$file = $this->dir() . "/{$this->user_config_dir}/$name.php";
 		if (is_file($file)) {
 			$user_data = include $file;
 			$config = Core_Arrays::deep_merge_update($config, (array) $user_data);
 		}
-		return $this->cconfig[$name] = (object) $config;
+		$result = (object) $config;
+		$method = "config_$name";
+		if (method_exists($this, $method)) {
+			$result = $this->$method($result);
+		}
+		return $this->cconfig[$name] = $result;
 	}
 
 	public function filepath($to) {
@@ -69,7 +76,7 @@ class CMS_Component implements Core_ModuleInterface {
 	public function process_schema() {
 		$schema = $this->config('schema');
 		$fields = $this->config('fields');
-		$cache_key = md5(serialize($schema) . serialize($fields));
+		$cache_key = md5('cms:component:'.serialize($schema) . serialize($fields));
 		if ($this->cache->has($cache_key)) {
 			return $this;
 		}
