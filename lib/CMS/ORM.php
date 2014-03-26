@@ -63,6 +63,11 @@ class CMS_ORM_Root extends DB_ORM_ConnectionMapper {
 		if (is_callable($class)) return call_user_func($class,$this);
 		return parent::__map($name);
 	}
+	
+	public function add($name,$class)
+	{
+		return $this->submapper($name,$class);
+	}
 
 }
 
@@ -81,8 +86,8 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 
 	public function setup_config()
 	{
-		$fields = $this->fields();
-		$schema = $this->schema();
+		$fields = (array) $this->fields();
+		$schema = (array) $this->schema();
 		if (!empty($fields) || !empty($schema)) {
 			Core::load('CMS.Fields');
 			$this
@@ -182,7 +187,7 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 			if (is_callable($data)) {
 				$this->fields_data = call_user_func($data);
 			} elseif (is_array($data)) {
-				$this->fields_data = array_merge_recursive($this->fields_data, $data);
+				$this->fields_data = array_replace_recursive($this->fields_data, $data);
 			} elseif (is_string($data)) {
 				$module = $data;
 				$method = 'fields';
@@ -203,9 +208,8 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 					break;
 				}
 			}
-			$schema = CMS_Fields::fields_to_schema($this->fields_data);
-			if (!empty($schema)) {
-				$columns = array_keys($schema['columns']);
+			$columns = CMS_Fields::fields_to_columns($this->fields_data);
+			if (!empty($columns)) {
 				$this->columns($columns);
 			}
 			return $this;
@@ -270,7 +274,7 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 		$name = $this->__name();
 		$c = $this->component();
 		$data = $c && $c->config('fields') && isset($c->config('fields')->$name) ? $c->config('fields')->$name : array();
-		return $data ? array_merge_recursive($this->fields_data, $data) : array();
+		return $data ? array_replace_recursive($this->fields_data, $data) : array();
 	}
 
 	public function schema()
@@ -280,7 +284,7 @@ class CMS_ORM_Mapper extends DB_ORM_SQLMapper {
 		$component = $this->component();
 		$data = $component && $component->config('schema') && isset($component->config('schema')->$name) ?
 			$component->config('schema')->$name : array();
-		return $data ? array_merge_recursive($data, $schema) : $schema;
+		return $data ? array_replace_recursive($data, $schema) : $schema;
 	}
 
 }
@@ -306,9 +310,13 @@ class CMS_ORM_Entity extends DB_ORM_Entity implements DB_ORM_AttrEntityInterface
 	{
 		parent::setup();
 		if ($this->mapper) {
-			$fields = $this->mapper->schema_fields();
+			$fields = $this->mapper->fields();
+			$columns = $this->mapper->options['columns'];
 			if (is_array($fields)) {
 				foreach($fields as $field => $data) {
+					if (!in_array($field, $columns)) {
+						continue;
+					}
 					$value = '';
 					if (isset($data['init_value'])) {
 						$value = $data['init_value'];
@@ -366,7 +374,7 @@ class CMS_ORM_Entity extends DB_ORM_Entity implements DB_ORM_AttrEntityInterface
 		$out = array();
 		foreach($this->all_fields() as $name => $data) {
 			$type = CMS_Fields::type($data);
-			$out += $type->serialized($name,$data);
+			$out = array_merge($out,$type->serialized($name,$data));
 		}
 		return $out;
 	}
@@ -514,14 +522,15 @@ class CMS_ORM_Entity extends DB_ORM_Entity implements DB_ORM_AttrEntityInterface
 
 	public function __attrs($flavor = array())
 	{
-		if (is_null(self::$__attrs)) {
+		if (is_null(static::$__attrs)) {
+			static::$__attrs = Object::AttrList();
 			if ($discover = $this->attrs_discover()) {
-				self::$__attrs = $discover->discover($this, $flavor);
+				static::$__attrs = $discover->discover($this, $flavor);
 			} else {
-				self::$__attrs = array();
+				static::$__attrs = array();
 			}
 		}
-		return self::$__attrs;
+		return static::$__attrs;
 		
 	}
 }

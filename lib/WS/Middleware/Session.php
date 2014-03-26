@@ -37,16 +37,17 @@ class WS_Middleware_Session_Service extends WS_MiddlewareService {
       return $this->application->run($env);
     }
     $session = $env->request->session();
-    $env->flash = Net_HTTP_Session::Flash(
-      (isset($session['flash']) && is_array($session['flash'])) ? $session['flash'] : array());
+    $env->flash = Net_HTTP_Session::Flash($session);
 
     try {
       $result = $this->application->run($env);
     } catch(Exception $e) {
       $error = $e;
     }
-    $session['flash'] = $env->flash->later;
-    //$session->commit();
+    $value = $env->flash->later;
+    if ($value || $env->flash->is_init()) {
+      $session['flash'] = $value;
+    }
 
     if ($error) throw $error;
     else        return $result;

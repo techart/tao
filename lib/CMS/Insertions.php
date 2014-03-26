@@ -153,7 +153,7 @@ class CMS_Insertions extends CMS_Insertions_Base implements Core_ModuleInterface
 
 		if (!CMS::layout_view()) return '';
 
-		Core::load('Templates.HTML.Maps');
+		Core::load('Templates.HTML.Helpers.Maps');
 		$parms = explode(';', $parms);
 		$type = trim($parms[0]);
 		$map_id = trim($parms[1]);

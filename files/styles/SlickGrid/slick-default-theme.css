@@ -5,6 +5,13 @@ No built-in (selected, editable, highlight, flashing, invalid, loading, :focus) 
 classes should alter those!
 */
 
+.attaches-list .slick-column-name {
+  color:#2B343B;
+  font-weight: normal;
+}
+
+
+
 .slick-header-columns {
   background-color: #888888;
   background: linear-gradient(#bbb, #555);

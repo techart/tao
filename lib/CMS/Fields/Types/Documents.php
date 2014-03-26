@@ -11,6 +11,8 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 	protected $last_upload_files = array();
 	protected $filters = array();
 	protected $default_mnemocode_field =  array('mnemocode' => array('fieldLabel' => 'Код'));
+
+	protected $files_data = array();
 	
 	public function get_add_file_text($name, $data) {
 		return CMS::lang()->_common->ta_adddoc;
@@ -76,12 +78,19 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 	
 	protected function update_files_data($files, $name, $data, $item) {
 		$files['files'] = array_values($files['files']);
+		if ($item && $item->id()) {
+			$key = $name . '-' . $item->id();
+			if (isset($this->files_data[$key])) {
+				$this->files_data[$key] = $files;
+			}
+		}
 		$file = IO_FS::File($this->files_data_path($name, $data, $item));
 		$file->update(serialize($files));
 		$file->set_permission();
 	}
 	
 	protected function add_file_to_data($file, $name, $data, $item) {
+		$file = reset($this->on_add_files(array($file), $item, $name, $data));
 		$files = $this->files_data($name, $data, $item);
 		$find = false;
 		if (isset($files['files']))
@@ -96,7 +105,21 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 		return $this;
 	}
 
+	protected function on_add_files($files, $item, $name, $data)
+	{
+		if (isset($data['caption_as_filename']) && $data['caption_as_filename']) {
+			foreach ($files as $key => $value) {
+				$files[$key]['caption'] = $value['name'];
+			}
+		}
+		if (isset($data['on_add_files'])) {
+			$files = call_user_func_array($data['on_add_files'], array($files, $item, $name, $data));
+		}
+		return $files;
+	}
+
 	protected function add_files_to_data($files, $name, $data, $item) {
+		$files = $this->on_add_files($files, $item, $name, $data);
 		$dfiles = $this->files_data($name, $data, $item);
 		foreach ($files as $f)
 			$dfiles['files'][] = $f;
@@ -125,6 +148,10 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 			$i_id = $item->id();
 			if (empty($i_id)) return $fdata;
 		}
+		$key = $name . '-' . $i_id;
+		if (isset($this->files_data[$key])) {
+			return $this->files_data[$key];
+		}
 		$file = IO_FS::File($this->files_data_path($name, $data, $item));
 		if ($file->exists()) {
 			$fdata = unserialize($file->load());
@@ -144,7 +171,7 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 		if (isset($fdata['files']) && !empty($fdata['files']) && !empty($this->filters))
 			$fdata['files'] = array_filter($fdata['files'], array($this, 'filter_callback'));
 
-		return $fdata;
+		return $this->files_data[$key] = $fdata;
 	}
 
 	protected function filter_callback($fd) {
@@ -218,6 +245,11 @@ class CMS_Fields_Types_Documents_Base extends CMS_Fields_Types_Attaches {
 		$ext = pathinfo($filename, PATHINFO_EXTENSION);
 		$path = $name . "-" . time() . '.' . $ext;
 		if (!$this->validate_path($path)) return false;
+		return $path;
+	}
+
+	protected function real_uploaded_filename($name, $data, $file) { 
+		$path = parent::real_uploaded_filename($name, $data, $file);
 		return $this->last_upload_files[] = $path;
 	}
 
@@ -252,7 +284,7 @@ class CMS_Fields_Types_Documents extends CMS_Fields_Types_Documents_Base impleme
 	
 	protected function stdunset($data) {
 		$res = parent::stdunset($data);
-		return $this->punset($res, 'extend_doc_fields', 'doc_fields', 'mnemocode');
+		return $this->punset($res, 'extend_doc_fields', 'doc_fields', 'mnemocode', 'on_add_files', 'caption_as_filename');
 	}
 	
 	protected function preprocess($t, $name, $data) {

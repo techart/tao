@@ -26,7 +26,7 @@ class Net_HTTP_Session implements Core_ModuleInterface {
 /**
  * @return WS_Session_Store
  */
-  static public function Flash(array $now = array()) { return new Net_HTTP_Session_Flash($now); }
+  static public function Flash($now = array(), $name = 'flash') { return new Net_HTTP_Session_Flash($now, $name); }
 
 }
 
@@ -37,47 +37,71 @@ class Net_HTTP_Session implements Core_ModuleInterface {
 class Net_HTTP_Session_Store
   implements Net_HTTP_SessionInterface,
              Core_PropertyAccessInterface,
-             Core_IndexedAccessInterface {
+             Core_IndexedAccessInterface
+{
 
+  protected $started = false;
 
-/**
- */
-  public function __construct() {
+  protected function start_session()
+  {
+    if ($this->started || session_id() != '') {
+      return;
+    }
+    $this->started = true;
     session_start();
   }
-
-
 
 /**
  * @param string $name
  * @param  $default
  * @return mixed
  */
-  public function get($name, $default = null) { return isset($this[$name]) ? $this[$name] : $this[$name] = $default; }
+  public function get($name, $default = null)
+  {
+    $this->start_session();
+    return isset($this[$name]) ? $this[$name] : $this[$name] = $default;
+  }
 
 /**
  * @param string $name
  * @param  $value
  * @return this
  */
-  public function set($name, $value) { $this[$name] = $value; return $this; }
+  public function set($name, $value)
+  {
+    $this->start_session();
+    $this[$name] = $value; return $this;
+  }
 
 /**
  * @param string $name
  * @return boolean
  */
-  public function exists($name) {return isset($this[$name]); }
+  public function exists($name)
+  {
+    $this->start_session();
+    return isset($this[$name]);
+  }
 
 /**
  * @param string $name
  * @return boolean
  */
-  public function remove($name) {unset($this[$name]); return $this;}
+  public function remove($name)
+  {
+    $this->start_session();
+    unset($this[$name]);
+    return $this;
+  }
 
 /**
  * @return void
  */
-  public function commit() { session_commit(); }
+  public function commit()
+  {
+    $this->start_session();
+    session_commit();
+  }
 
 
 
@@ -86,25 +110,42 @@ class Net_HTTP_Session_Store
  * @param  $value
  * @return mixed
  */
-  public function offsetSet($index, $value) { $_SESSION[$index] = $value; return $this; }
+  public function offsetSet($index, $value)
+  {
+    $this->start_session();
+    $_SESSION[$index] = $value;
+    return $this;
+  }
 
 /**
  * @param string $index
  * @return mixed
  */
-  public function offsetGet($index) { return $_SESSION[$index]; }
+  public function offsetGet($index)
+  {
+    $this->start_session();
+    return $_SESSION[$index];
+  }
 
 /**
  * @param string $index
  * @return boolean
  */
-  public function offsetExists($index) { return isset($_SESSION[$index]); }
+  public function offsetExists($index)
+  {
+    $this->start_session();
+    return isset($_SESSION[$index]);
+  }
 
 
 /**
  * @param string $index
  */
-  public function offsetUnset($index) { unset($_SESSION[$index]); }
+  public function offsetUnset($index)
+  {
+    $this->start_session();
+    unset($_SESSION[$index]);
+  }
 
 
 
@@ -112,12 +153,13 @@ class Net_HTTP_Session_Store
  * @param string $property
  * @return mixed
  */
-  public function __get($property) {
+  public function __get($property)
+  {
     switch ($property) {
-      case 'id':           return session_id();
-      case 'name':         return session_name();
-      case 'cookie_parms': return session_get_cookie_params();
-      case 'expire':       return session_cache_expire();
+      case 'id':           $this->start_session(); return session_id();
+      case 'name':         $this->start_session(); return session_name();
+      case 'cookie_parms': $this->start_session(); return session_get_cookie_params();
+      case 'expire':       $this->start_session(); return session_cache_expire();
       default:
         throw new Core_MissingPropertyException($property);
     }
@@ -128,7 +170,8 @@ class Net_HTTP_Session_Store
  * @param  $value
  * @return mixed
  */
-  public function __set($property, $value) {
+  public function __set($property, $value)
+  {
     switch ($property) {
       case 'id': 
       case 'name': 
@@ -144,7 +187,8 @@ class Net_HTTP_Session_Store
  * @param string $property
  * @return boolean
  */
-  public function __isset($property) {
+  public function __isset($property)
+  {
     switch ($property) {
       case 'id':
       case 'name': 
@@ -159,7 +203,8 @@ class Net_HTTP_Session_Store
 /**
  * @param string $property
  */
-  public function __unset($property) {
+  public function __unset($property)
+  {
     throw $this->__isset($property) ?
       new Core_UndestroyablePropertyException($property) :
       new Core_MissingPropertyException($property);
@@ -176,40 +221,74 @@ class Net_HTTP_Session_Flash
 
   protected $now;
   protected $later;
+  protected $object;
+  protected $name;
+  protected $init = false;
 
 
 /**
  */
-  public function __construct($now = array()) {
-    $this->now = $now;
+  public function __construct($object = array(), $name = 'flash')
+  {
+    $this->object = $object;
+    $this->name = $name;
     $this->later = array();
   }
 
+  protected function init()
+  {
+    if ($this->init) {
+      return $this;
+    }
+    $this->now = $this->object[$this->name];
+    $this->init = true;
+    return $this;
+  }
+
+  public function is_init()
+  {
+    return $this->init;
+  }
 
 
 /**
  * @param string $index
  * @return mixed
  */
-  public function offsetGet($index) { return isset($this->now[$index]) ? $this->now[$index] : null; }
+  public function offsetGet($index)
+  {
+    $this->init();
+    return isset($this->now[$index]) ? $this->now[$index] : null;
+  }
 
 /**
  * @param string $index
  * @param  $value
  * @return mixed
  */
-  public function offsetSet($index, $value) { $this->later[$index] = $value; return $this; }
+  public function offsetSet($index, $value)
+  {
+    $this->later[$index] = $value;
+    return $this;
+  }
 
 /**
  * @param string $index
  * @return boolean
  */
-  public function offsetExists($index) { return array_key_exists($index, $this->now); }
+  public function offsetExists($index)
+  {
+    $this->init();
+    return array_key_exists($index, $this->now);
+  }
 
 /**
  * @param string $index
  */
-  public function offsetUnset($index) { unset($this->later[$index]); }
+  public function offsetUnset($index)
+  {
+    unset($this->later[$index]);
+  }
 
 
 
@@ -220,6 +299,8 @@ class Net_HTTP_Session_Flash
   public function __get($property) {
     switch ($property) {
       case 'now':
+        $this->init();
+        return $this->$property;
       case 'later':
         return $this->$property;
       default:
@@ -241,6 +322,8 @@ class Net_HTTP_Session_Flash
   public function __isset($property) {
     switch ($property) {
       case 'now':
+        $this->init();
+        return isset($this->$property);
       case 'later':
         return isset($this->$property);
       default:

@@ -728,7 +728,7 @@ class IO_FS_File
  * @return mixed
  */
   public function update($data, $flags = 0) {
-    $res = file_put_contents($this->path, $data, $flags);
+    $res = file_put_contents($this->path, $data, (int) $flags);
     $this->set_permission();
     return $res;
   }
@@ -909,7 +909,7 @@ class IO_FS_FileStream
  * @param int $whence
  * @return int
  */
-  public function seek($offset, $whence) {
+  public function seek($offset, $whence = SEEK_SET) {
     return @fseek($this->id, $offset, $whence);
   }
 
@@ -1000,7 +1000,7 @@ class IO_FS_Dir
       case 'files':
         throw new Core_ReadOnlyObjectException($property);
       default:
-        return parent::__set($property);
+        return parent::__set($property, $value);
     }
   }
 

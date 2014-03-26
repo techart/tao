@@ -17,7 +17,7 @@ class Service_Google_API implements Core_ConfigurableModuleInterface {
 	static protected $stdin;
 	static protected $options = array('lib_path' => '../vendor/google-api-php-client/', 'cache_path' => 'fs://../cache/google_api');
 
-	static function initialize(array $options = array()) {
+	public static function initialize(array $options = array()) {
 		self::options($options);
 		if ( !class_exists('Google_Client') && set_include_path(get_include_path() . PATH_SEPARATOR . self::option('lib_path').'src/')) {
 			if (!@include_once('Google_Client.php')) {
@@ -28,23 +28,30 @@ class Service_Google_API implements Core_ConfigurableModuleInterface {
 		self::$stdin = IO::stdin();
 	}
 
-	static function options(array $options = array()) {
+	public static function options(array $options = array()) {
 		Core_Arrays::deep_merge_update_inplace(self::$options, $options);
 		return self::$options;
 	}
 
-	static function option($name, $value = null) {
+	public static function option($name, $value = null) {
 		if (is_null($value)) {
 			return self::$options[$name];
 		}
 		return self::$options[$name] = $value;
 	}
 
-	static function Analytics() {
-		if (!class_exists('Google_AnalyticsService') && !@include_once('contrib/Google_AnalyticsService.php')) {
+
+	public static function Analytics($console_app = true) {
+		if (! @include_once('contrib/Google_AnalyticsService.php')) {
 			throw new Service_Google_API_ClientLibraryModuleNotFoundException('src/contrib/Google_AnalyticsService.php', self::option('lib_path'));
 		}
-		return new Service_Google_API_Analytics(self::$cache, self::$stdin);
+
+		if ($console_app === true) {
+			$service = new Service_Google_API_Analytics(&self::$cache, &self::$stdin);
+		} else {
+			$service = new Service_Google_API_Analytics(&self::$cache, null);
+		}
+		return $service;
 	}
 
 }
@@ -59,14 +66,13 @@ abstract class Service_Google_API_AbstractService {
 	protected $client_class_name = 'Service_Google_API_AbstractClient';
 	protected $cache_subfolder = 'base';
 
-	function __construct(&$cache, &$stdin) {
+	public function __construct($cache, $stdin) {
 		$this->cache = $cache;
 		$this->stdin = $stdin;
 	}
 
-	function add_client($name, $auth_inf, $write_to_cache = false) {
-		// creating new class $client_class_name
-		$this->clients[$name] = new $this->client_class_name($name, $auth_inf, $this);
+	public function add_client($name, $auth_inf, $write_to_cache = false) {
+		$this->clients[$name] = $this->make_client($name, $auth_inf);
 		$this->current_client = &$this->clients[$name];
 		$this->current_client->authorizate($this->stdin);
 		$token = $this->current_client->get_token();
@@ -76,9 +82,8 @@ abstract class Service_Google_API_AbstractService {
 		return $this->current_client;
 	}
 
-	function use_client($name, $auth_inf, $token = null) {
-		// creating new class $client_class_name
-		$this->clients[$name] = new $this->client_class_name($name, $auth_inf, $this);
+	public function use_client($name, $auth_inf, $token = null) {
+		$this->clients[$name] = $this->make_client($name, $auth_inf);
 		$this->current_client = &$this->clients[$name];
 
 		if ($token == null) {
@@ -86,18 +91,33 @@ abstract class Service_Google_API_AbstractService {
 				$token = $this->cache->get($this->cache_subfolder.":".$name);
 			}
 			else {
-				throw new Service_Google_API_TokenNotFoundException($name);
+				$result = $this->current_client->authorizate($this->stdin);
+				if (is_bool($result)!==true) {
+					$token = $this->current_client->get_token();
+					$this->write_to_cache($name, $token);
+					
+					$this->clients[$name] = $this->make_client($name, $auth_inf);
+					$this->current_client = &$this->clients[$name];
+				} else {
+					die;
+				}
 			}
 		}
 		$this->current_client->prepare($token);
 		return $this->current_client;
 	}
 
-	function write_to_cache($name, $token) {
+	public function make_client($name, $auth_inf) {
+		// creating new class $client_class_name
+		$classname = $this->client_class_name;
+		return new $classname($name, $auth_inf, $this);
+	} 
+
+	public function write_to_cache($name, $token) {
 		$this->cache->set($this->cache_subfolder.":".$name, $token);
 	}
 
-	function get_client($name = null) {
+	public function get_client($name = null) {
 		$client = null;
 		if ($name === null) {
 			$client = $this->current_client;
@@ -110,7 +130,7 @@ abstract class Service_Google_API_AbstractService {
 		return $client;
 	}
 
-	function get_client_names() {
+	public function get_client_names() {
 		return array_keys($this->clients);
 	}
 
@@ -125,15 +145,16 @@ abstract class Service_Google_API_AbstractClient {
 
 	protected $handler;
 
-	protected $scope = null;
+	protected $scope;
 
-	function __construct($name, $auth_inf, $handler) {
+	public function __construct($name, $auth_inf, $handler) {
 		$this->name = $name;
 		$this->client = new Google_Client();
 		$this->client->setClientId($auth_inf['id']);
 		$this->client->setClientSecret($auth_inf['secret']);
 		$this->client->setRedirectUri($auth_inf['redirect_uri']);
 		$this->client->setDeveloperKey($auth_inf['developer_key']);
+		$this->init_scope();
 
 		$this->client->setScopes(array(
 			$this->scope
@@ -142,22 +163,28 @@ abstract class Service_Google_API_AbstractClient {
 		$this->handler = $handler;
 	}
 
-	function get_name() {
+	abstract protected function init_scope();
+
+	public function get_name() {
 		return $this->name;
 	}
 
-	function authorizate($stdin) {
-		$authUrl = $this->client->createAuthUrl();
+	public function authorizate($stdin) {
+		$auth_code = null;
+		if (!is_null($stdin)) {
+			$authUrl = $this->client->createAuthUrl();
 
-		print "Please visit:\n$authUrl\n\n";
-		print "Please enter the auth code:\n";
-		$auth_code = $stdin->read_line();
+			print "Please visit:\n$authUrl\n\n";
+			print "Please enter the auth code:\n";
+			$auth_code = $stdin->read_line();
 
- 		$_GET['code'] = $auth_code;
- 		$this->access_token = $this->client->authenticate();
+			//$_GET['code'] = $auth_code;
+		}
+ 		$this->access_token = $this->client->authenticate($auth_code);
+		return $this->access_token;
 	}
 
-	function prepare($token) {
+	public function prepare($token) {
 		$this->client->setAccessToken($token);
 		$this->client->setUseObjects(true);
 
@@ -171,7 +198,7 @@ abstract class Service_Google_API_AbstractClient {
 		}
 	}
 
-	function refresh_access_token($force = false) {
+	public function refresh_access_token($force = false) {
 		if ($this->client->getAuth()->isAccessTokenExpired()||$force) {
 			$this->client->getAuth()->refreshToken($this->client->getAuth()->token['refresh_token']);
 		}
@@ -180,27 +207,27 @@ abstract class Service_Google_API_AbstractClient {
 	/**
 	 * @deprecated Вместо использования этого метода рекомендуется вызывать метод refresh_access_token(). Обновленный токен будет доступен через метод get_token().
 	 */
-	function get_refreshed_access_token($refreshToken) {
+	public function get_refreshed_access_token($refreshToken) {
 		Google_Client::$auth->refreshToken($refreshToken);
 		return json_encode(Google_Client::$auth->token);
 	}
 
-	function set_token($token, $write_to_cache = false) {
+	public function set_token($token, $write_to_cache = false) {
 		$this->client->setAccessToken($token);
 		if ($write_to_cache) {
 			$this->handler->write_to_cache($this->name, $this->get_token());
 		}
 	}
 
-	function get_token() {
+	public function get_token() {
 		return $this->client->getAccessToken();
 	}
 
-	function native() {
+	public function native() {
 		return $this->service;
 	}
 
-	function __get($property) {
+	public function __get($property) {
 		switch ($property) {
 		case 'access_token':
 		case 'client':
@@ -212,7 +239,7 @@ abstract class Service_Google_API_AbstractClient {
 		}
 	}
 
-	function __set($property, $value) {
+	public function __set($property, $value) {
 		throw new Core_ReadOnlyObjectException($this);
 	}
 

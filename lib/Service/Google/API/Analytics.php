@@ -15,7 +15,9 @@ class Service_Google_API_Analytics extends Service_Google_API_AbstractService im
 
 class Service_Google_API_Analytics_Client extends Service_Google_API_AbstractClient {
 
-	protected $scope = 'https://www.googleapis.com/auth/analytics';
+	protected function init_scope() {
+		$this->scope = 'https://www.googleapis.com/auth/analytics';
+	}
 
 	function get_firstprofile_id() {
 		$accounts = $this->service->management_accounts->listManagementAccounts();

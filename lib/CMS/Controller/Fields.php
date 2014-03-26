@@ -176,6 +176,11 @@ class CMS_Controller_Fields extends CMS_Controller {
 		return $url;
 	}
 
+	public function schema_fields()
+	{
+		return array();
+	}
+
 	protected $upload_fields = array();
 	protected $form = false;
 
@@ -321,7 +326,7 @@ class CMS_Controller_Fields extends CMS_Controller {
 				'homedir' => $this->item_homedir($item),
 				'private_homedir' => $this->item_homedir($item,true),
 				'controller' => $this,
-				'form' => $form,
+				'form' => $this->form,
 				'form_fields' => $this->filtered_form_fields,
 		);
 

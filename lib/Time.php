@@ -202,6 +202,55 @@ class Time implements Core_ModuleInterface
 	{
 		return Time_DateTime::parse($string, $format);
 	}
+	
+	/**
+	 * Возвращает массив из двух дат в sql-datetime-форматеб которым соответствуют переданные значения.
+	 * Используется для формирования sql-запроса при выборке за год, месяц или день
+	 * 
+	 * @params int $year год
+	 * @params int $month месяц (не обязателен)
+	 * @params int $day день (не обязателен)
+	 * 
+	 * @return array
+	 */
+	public static function between($year,$month=false,$day=false) {
+		$t1 = "{$year}-01-01 00:00:00";
+		$t2 = "{$year}-12-31 23:59:59";
+		if ($month) {
+			$smonth = $month<10? "0$month" : "$month";
+			$numdays = date('t',mktime(0,0,0,$month,1,$year));
+			$t1 = "{$year}-{$smonth}-01 00:00:00";
+			$t2 = "{$year}-{$smonth}-{$numdays} 23:59:59";
+			if ($day) {
+				$sday = $day<10? "0$day" : "$day";
+				$t1 = "{$year}-{$smonth}-{$sday} 00:00:00";
+				$t2 = "{$year}-{$smonth}-{$sday} 23:59:59";
+			}
+		}
+		return array($t1,$t2);
+	}
+	
+	/**
+	 * Производит разбор строки с датой.
+	 * Возвращает массив из года, месяца и дня.
+	 * 
+	 * @params string $date дата
+	 * 
+	 * @return array
+	 */
+	public static function year_month_day($date)
+	{
+		if ($m = Core_Regexps::match_with_results('{^(\d+)-(\d+)-(\d+)}',$date)) {
+			return array((int)$m[1],(int)$m[2],(int)$m[3]);
+		}
+		if ($m = Core_Regexps::match_with_results('{^(\d+)-(\d+)}',$date)) {
+			return array((int)$m[1],(int)$m[2],false);
+		}
+		if ($m = Core_Regexps::match_with_results('{^(\d+)}',$date)) {
+			return array((int)$m[1],false,false);
+		}
+		return array(false,false,false);
+	}
 }
 
 

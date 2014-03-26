@@ -19,6 +19,52 @@ class Mail_Message implements Core_ModuleInterface {
 
   const VERSION = '0.2.5';
 
+  protected static $options = array(
+    'transport' => 'php',
+    'transport_classes' => array(
+      'sendmail' => 'Mail.Transport.Sendmail.Sender',
+      'php' => 'Mail.Transport.PHP.Sender',
+    )
+  );
+
+  public static function initialize($options = array())
+  {
+    self::options($options);
+  }
+
+  public static function options($options = array())
+  {
+    self::$options = array_replace_recursive(self::$options, $options);
+    return self::$options;
+  }
+
+  public static function option($name)
+  {
+    return self::$options[$name];
+  }
+
+  public static function transport($name = null)
+  {
+    if (is_null($name)) {
+      $name = self::option('transport');
+    }
+    $classes = self::option('transport_classes');
+    if (!isset($classes[$name])) {
+      return null;
+    }
+    $class = $classes[$name];
+    Core::autoload($class);
+    return Core::make($class);
+  }
+
+  public static function send($msg, $transport = null)
+  {
+    $transport = self::transport($transport);
+    if ($transport) {
+      $transport->send($msg);
+    }
+  }
+
 
 /**
  * фабричный метод, возвращает объект класса Mail.Message.Field
@@ -861,6 +907,11 @@ class Mail_Message_Message
     }
   }
 
+
+  public function send($transport = null)
+  {
+    return Mail_Message::send($this, $transport);
+  }
 
 
 /**

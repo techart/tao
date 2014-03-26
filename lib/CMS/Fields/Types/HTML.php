@@ -4,7 +4,7 @@
  */
 
 
-Core::load('CMS.Fields.Types.ImageList', 'CMS.Redactor');
+Core::load('CMS.Fields.Types.ImageList', 'CMS.Redactor', 'Text.Process');
 
 class CMS_Fields_Types_HTML extends CMS_Fields_Types_ImageList implements Core_ModuleInterface {
   const VERSION = '0.1.0';
@@ -38,5 +38,14 @@ class CMS_Fields_Types_HTML extends CMS_Fields_Types_ImageList implements Core_M
   protected function stdunset($data) {
     $res = parent::stdunset($data);
     return $this->punset($res, 'widget', 'redactor', 'imagelist', 'images fields', 'add images', 'valid images extensions', 'allow images field types');
+  }
+
+  public function assign_to_object($form, $object, $name, $data)
+  {
+    parent::assign_to_object($form, $object, $name, $data);
+    $value = $object[$name];
+    if (!empty($value)) {
+      $object[$name] = Text_Process::process($value, 'htmlpurifier');
+    }
   }
 }

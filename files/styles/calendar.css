@@ -1,0 +1,114 @@
+.calendar-informer {
+	position: relative;
+	width: 215px;
+}
+
+	.calendar-informer-header {
+		background-image: url(/tao/images/icons/calendar.png);
+		background-repeat: no-repeat;
+		padding: 2px 2px 2px 20px;
+		position: relative;
+	}
+
+		.calendar-informer-header span,.calendar-informer-header a {
+			font-size: 14px;
+			color: #444;
+			text-decoration: none;
+		}
+		
+		.calendar-informer-button {
+			position: absolute;
+			top: 0px;
+			width: 16px;
+			height: 16px;
+			background-repeat: no-repeat;
+			cursor: pointer;
+		}
+		
+		.calendar-informer-button-left {
+			right: 20px;
+			background-image: url(/tao/images/icons/navigation-180-button.png);
+		}
+		
+		.calendar-informer-button-right {
+			right: 0px;
+			background-image: url(/tao/images/icons/navigation-000-button.png);
+		}
+
+	.calendar-informer-weeks {
+		border: 1px solid #ccc;
+		height: 100%;
+		overflow: hidden;
+		padding: 2px 2px 2px 1px;
+	}
+	
+		.calendar-informer-weeks-headers {
+		}
+	
+			.calendar-informer-weeks-headers span {
+				display: block;
+				float: left;
+				font-size: 11px;
+				color: #484;
+				text-align: center;
+				width: 30px;
+				height: 16px;
+			}
+		
+		.calendar-informer-week {
+			float: none;
+			clear: both;
+			position: relative;
+			height: 23px;
+		}
+		
+		.calendar-informer-day {
+			display: block;
+			background-color: #eee;
+			margin: 1px;
+			position: absolute;
+			top: 0;
+		}
+		
+			.calendar-informer-day-1 { left: 0px; }
+			.calendar-informer-day-2 { left: 30px;}
+			.calendar-informer-day-3 { left: 60px;}
+			.calendar-informer-day-4 { left: 90px;}
+			.calendar-informer-day-5 { left: 120px;}
+			.calendar-informer-day-6 { left: 150px;}
+			.calendar-informer-day-7 { left: 180px;}
+		
+		.calendar-informer-holiday {
+			background-color: #ecc;
+		}
+		
+			.calendar-informer-day span, .calendar-informer-day a {
+				display: block;
+				border: 1px solid #eee;
+				padding: 3px 3px;
+				text-align: right;
+				text-decoration: none;
+				width: 21px;
+				font-size: 12px;
+			}
+			
+			.calendar-informer-holiday a,.calendar-informer-holiday span {
+				border: 1px solid #ecc;
+			}
+			
+			.calendar-informer-day-current span, .calendar-informer-day-current a {
+				border: 1px solid #800;
+			}
+			
+			.calendar-informer-day span {
+				color: #777;
+			}
+			
+			.calendar-informer-day a {
+				color: #005;
+			}
+			
+			.calendar-informer-day a:hover {
+				border: 1px solid #888;
+			}
+	

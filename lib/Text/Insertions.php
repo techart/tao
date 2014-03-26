@@ -103,23 +103,22 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
   }
   
   public function process($content, $args = array()) {
-    $this->args = $args;
+    $this->args = array_merge($this->args, $args);
     $result = preg_replace_callback($this->get_pattern(), array($this,'replace_callback'), $content);
-    $this->args = array();
     return $result;
   }
   
   protected function replace_callback($m) {
     $name = $this->standartizate_name($m[1]);
     list($str, $args) = $this->standartizate_parms($m[2]);
-    $result = $this->replace($name, $str, $args);
+    $result = $this->replace($name, $str, $args, $m[0]);
     if (!empty($result)) {
       //$result = " $result ";
     }
     return $result;
   }
 
-  protected function replace($name, $str, $args)
+  protected function replace($name, $str, $args, $original_str)
   {
     $res = null;
     Events::call("cms.insertions.$name", $str, $res, $args);
@@ -136,7 +135,7 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
         return $res;
       }
     }
-    return "%{$name}{{$str}}";
+    return $original_str;
   }
 
   protected function standartizate_parms($str)
@@ -210,9 +209,12 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
   {
     $res = explode($delim, $parms);
     foreach ($res as $key => $value) {
-      $res[$key] = trim($value, " \t,\n\r");
+      $value = trim($value, " \t,\n\r");
+      if ($value !== '') {
+        $res[$key] = $value;
+      }
     }
-    return array_values(array_filter($res));
+    return array_values($res);
   }
 
   protected function fallback($name, $parms, $args)
@@ -226,10 +228,11 @@ class Text_Insertions_Filter implements Text_Insertions_FilterInterface {
         'request' => WS::env()->request,
         'args' => $parms,
         'args_array' => $args,
+        'insertion_name' => $name,
       );
       Events::call("cms.insertions.template.$name", $template, $args);
       if (isset($this->args['layout'])) {
-        return $this->args['layout']->partial($template, $args);
+        return $this->args['layout']->root->partial($template, $args);
       }
       return Templates::HTML($template)->with($args)->render();
     }

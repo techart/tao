@@ -405,6 +405,7 @@ class Navigation_SetState implements IteratorAggregate {
   
   public function add_filter($name, $value) {
     $this->filters[$name] = $value;
+    return $this;
   }
 
   public function level($n) {
@@ -447,11 +448,12 @@ class Navigation_SetState implements IteratorAggregate {
   }
 
   protected function filter_links($link) {
+    $result = true;
     foreach ($this->filters as $f => $v) {
       $linkv = isset($link->$f) ? $link->$f : false;
-      return $linkv == $v;
+      $result = $result && $linkv == $v;
     }
-    return true;
+    return $result;
   }
 
   public function count() {

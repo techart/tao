@@ -68,6 +68,11 @@ class CMS_ORM_FrontMapper extends CMS_ORM_Mapper {
 		}
 		return $this->where('isactive=1');
 	}
+	
+	protected function map_published()
+	{
+		return $this->where('isactive=1');
+	}
 
 	public  function group_admins() {
 		return 'admin';

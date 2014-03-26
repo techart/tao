@@ -3,6 +3,8 @@
  * @package CMS\Fields\Types\Image
  */
 
+Core::load('CMS.Images');
+
 
 class CMS_Fields_Types_Image extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 
@@ -591,22 +593,17 @@ class CMS_Fields_Types_Image_Preset {
 	public static $config = 'gallery';
 
 	static public function parse_mods($value) {
-		$res = array();
-		if (empty($value)) return $res;
-		if (is_array($value)) {
-			$res = $value;
-		} else {
-			$mods = explode(';', $value);
-			foreach ($mods as $mod) {
-				if (preg_match("{([^(]+)(\(([^)]*)\))?}i", $mod, $m)) {
-					$method = $m[1];
-					$args_str = $m[3];
-					$args = explode(',', $args_str);
-					$res[$method] = $args;
-				}
-			}
+		return CMS_Images::parse_modifiers($value);
+	}
+
+	public static function apply_mods($object, $mods)
+	{
+		foreach ($mods as $method => $data) {
+			$action = isset($data['action']) ? $data['action'] : $method;
+			unset($data['action']);
+			$args = $data;
+			call_user_func_array(array($object, $action),  $args);
 		}
-		return $res;
 	}
 
 	static public function upload_resize($name, $data, $new_file) {
@@ -616,8 +613,7 @@ class CMS_Fields_Types_Image_Preset {
 			if (!empty($mods)) {
 				Core::load('CMS.Images');
 				$im = CMS_Images::Image($new_file);
-				foreach ($mods as $method => $args)
-					call_user_func_array(array($im, $method), $args);
+				self::apply_mods($im, $mods);
 				$im->save($new_file);
 				IO_FS::File($new_file)->set_permission();
 			}
@@ -632,9 +628,7 @@ class CMS_Fields_Types_Image_Preset {
 		} else {
 			$mods = self::parse_mods($pname);
 		}
-		foreach($mods as $method => $args) {
-			call_user_func_array(array($container, $method), $args);
-		}
+		self::apply_mods($container, $mods);
 		return $container;
 	}
 

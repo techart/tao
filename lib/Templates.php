@@ -120,11 +120,20 @@ class Templates implements Core_ConfigurableModuleInterface {
     return $res;
   }
 
-  static public function add_path($path) {
-    if (!in_array($path, self::option('templates_root')))
-      array_unshift(self::$options['templates_root'], $path);
+  public static function add_path($path, $position = 1)
+  {
+    $paths = self::option('templates_root');
+    Core_Arrays::put($paths, $path, $position);
+    $paths = array_unique($paths);
+    self::option('templates_root', $paths);
+    return $paths;
   }
 
+  public static function add_asset_path($path, $position = 1)
+  {
+    Core::load('Templates.HTML');
+    Templates_HTML::append_assets_path($path, $position);
+  }
 
 /**
  * Фабричный метод, возвращает объект класса Templates.HTML.Template

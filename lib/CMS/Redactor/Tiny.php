@@ -30,8 +30,8 @@ class CMS_Redactor_Tiny extends CMS_Redactor_AbstractEditor implements Core_Modu
 	protected function libraries_files()
 	{
 		return array(
-			array('name' => 'editors/tiny_mce/jquery.tinymce.js', 'type' => 'lib', 'weight' => -1),
-			array('name' => 'editors/tiny_mce/tiny_mce.js', 'type' => 'lib', 'weight' => -2)
+			array('name' => '/editors/tiny_mce/jquery.tinymce.js', 'type' => 'lib', 'weight' => -1),
+			array('name' => '/editors/tiny_mce/tiny_mce.js', 'type' => 'lib', 'weight' => -2)
 		);
 	}
 

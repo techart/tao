@@ -24,11 +24,15 @@ class CMS_Fields_Types_Select extends CMS_Fields_AbstractField implements Core_M
 			foreach($langs as $lang => $ldata) {
 				$form->select($this->name_lang($name,$lang), $items);
 			}
-			return $form;
 		}
 		else {
-			return $form->select($name, $items);
+			$form->select($name, $items);
+			if (isset($data['value'])) {
+				$form[$name] = $data['value'];
+			}
 		}
+
+		return $form;
 	}
 	
 

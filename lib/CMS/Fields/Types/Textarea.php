@@ -29,7 +29,10 @@ class CMS_Fields_Types_Textarea extends CMS_Fields_AbstractField implements Core
 		$template->use_scripts(CMS::stdfile_url('scripts/jquery/tabby.js'));
 		parent::preprocess($template, $name, $data);
 		$parms = $template->parms;
-		$template->update_parm('tagparms', array('class' => 'use-tab-key'));
+		$class = isset($parms['tagparms']['class']) ? $parms['tagparms']['class'] : '';
+		$class .= ' use-tab-key';
+		$class = trim($class);
+		$template->update_parm('tagparms', array('class' => $class));
 		if (empty($parms['tagparms']['style'])) {
 			$template->update_parm('tagparms', array('style' => 'width: 300px;height:100px;'));
 		}

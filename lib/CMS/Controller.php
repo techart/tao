@@ -171,7 +171,7 @@ class CMS_Mapper extends WebKit_Controller_AbstractMapper {
 			}
 
 			if (isset($info['host'])) {
-				$host = strtolower(trim($host));
+				$host = strtolower(trim($info['host']));
 				if ($host!='') {
 					if ($host[0]=='{') {
 						if (!Core_Regexps::match($host,strtolower($request->host)))  $matched = false;

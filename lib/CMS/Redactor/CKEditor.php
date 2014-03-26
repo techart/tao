@@ -29,7 +29,7 @@ class CMS_Redactor_CKEditor extends CMS_Redactor_AbstractEditor implements Core_
 	protected function libraries_files()
 	{
 		return array(
-			array('name' => 'editors/ckeditor/ckeditor.js', 'type' => 'lib', 'weight' => -1)
+			array('name' => '/editors/ckeditor/ckeditor.js', 'type' => 'lib', 'weight' => -1)
 		);
 	}
 

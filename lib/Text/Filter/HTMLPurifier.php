@@ -27,6 +27,7 @@ class Text_Filter_HTMLPurifier implements Core_ModuleInterface, Text_Process_Pro
 		}
 		try {
 			$value = '<?xml version="1.0" encoding="utf-8"?>' . trim(str_replace("\n", ' ', $string));
+			$value = preg_replace('{\s*</}', '</', $value);
 			$doc = new DOMDocument();
 			@$doc->loadHTML($value);
 			$xpath = new DOMXPath($doc);

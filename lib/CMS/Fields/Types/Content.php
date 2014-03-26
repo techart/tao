@@ -159,6 +159,14 @@ class CMS_Fields_Types_Content  extends CMS_Fields_Types_ImageList implements Co
 		}
 		return !empty($formats) ? $formats : array('html' => $s);
 	}
+
+	public function clear_value($value, $format = 'html')
+	{
+		if ($format == 'html') {
+			return Text_Process::process($value, 'htmlpurifier');
+		}
+		return $value;
+	}
 	
 	public function assign_to_object($form,$object,$name,$data) {
 		$value = '';
@@ -170,6 +178,7 @@ class CMS_Fields_Types_Content  extends CMS_Fields_Types_ImageList implements Co
 							in_array($fcode, array_keys($formats))) {
 					$flname = $this->name_lang($this->get_format_name($name, $fcode), $lang);
 					$fvalue = $form[$flname];
+					$fvalue = $this->clear_value($fvalue, $fcode);
 					if (!empty($fvalue)) {
 						$value .= "%LANG{{$lang}}" . "%FORMAT{{$fcode}}" . $fvalue . '%ENDFORMAT';
 					}
@@ -181,6 +190,7 @@ class CMS_Fields_Types_Content  extends CMS_Fields_Types_ImageList implements Co
 							in_array($fcode, array_keys($formats))) {
 				$fname = $this->get_format_name($name, $fcode);
 				$fvalue = $form[$fname];
+				$fvalue = $this->clear_value($fvalue, $fcode);
 				$value .= "%FORMAT{{$fcode}}" . $fvalue . '%ENDFORMAT';
 			}
 		}

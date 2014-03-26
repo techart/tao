@@ -26,7 +26,7 @@ class CMS_Images implements Core_ModuleInterface {
 
 
 	static function Image($file=false) {
-		$class = 'CMS.Image.GD';
+		$class = 'CMS.Images.GD';
 		if (self::$class) $class = self::$class;
 		//else if (class_exists('Imagick')) $class = 'CMS.Image.Imagick';
 		$im = Core::make($class);
@@ -70,7 +70,13 @@ class CMS_Images implements Core_ModuleInterface {
 	static function parse_modifiers($s)
 	{
 		$out = array();
-		foreach(explode(';',$s) as $mod) {
+		if (empty($s)) {
+			return $out;
+		}
+		if (is_array($s)) {
+			return $s;
+		}
+		foreach(explode(';', (string) $s) as $mod) {
 			if ($m = self::parse_modifier($mod)) {
 				$out[] = $m;
 			}
@@ -110,6 +116,12 @@ class CMS_Images implements Core_ModuleInterface {
 						return array('action' => $action, 'width' => $w, 'height' => $h, 'color' => $color);
 					}
 				}
+			}
+			if (preg_match('{^([a-z_]+)(\(([^)]*)\))?$}i', $s, $m)) {
+				$method = $m[1];
+				$args_str = $m[3];
+				$args = array_filter(explode(',', $args_str));
+				return array_merge($args, array('action' => $method));
 			}
 		}
 		return false;
@@ -174,7 +186,7 @@ class CMS_Images implements Core_ModuleInterface {
 
 
 
-class CMS_Image {
+class CMS_Images_Image {
 
 	protected $ih = false;
 	protected $loaded_format = false;
@@ -301,7 +313,7 @@ class CMS_Image {
 
 	public function modify($mods = array()) {
 		if (!$this->ih) return $this;
-		foreach($mods as $mod) {
+		foreach($mods as  $name => $mod) {
 			if (isset($mod['action'])) {
 				$action = $mod['action'];
 
@@ -330,6 +342,8 @@ class CMS_Image {
 					$wparms = $mod['parms'];
 					$this->watermark($wimage,$wparms);
 				}
+			} else if (is_array($mod)) {
+				call_user_func_array(array($this, $name), $mod);
 			}
 		}
 		return $this;
@@ -343,10 +357,20 @@ class CMS_Image {
 		return $this;
 	}
 
+	protected function is_stretch($w,$h)
+	{
+		$_w = $this->width();
+		$_h = $this->height();
+		if (($w>=$_w||0==$w)&&($h>=$_h||0==$h)) {
+			return true;
+		}
+		return false;
+	}
+
 }
 
 
-class CMS_Image_GD extends CMS_Image {
+class CMS_Images_GD extends CMS_Images_Image {
 
 	public function load($file) {
 
@@ -463,9 +487,11 @@ class CMS_Image_GD extends CMS_Image {
 	}
 
 	public function fit($w,$h) {
+		if ($this->is_stretch($w, $h)) {
+			return $this;
+		}
 		$_w = $this->width();
 		$_h = $this->height();
-		if (($w>=$_w||0==$w)&&($h>=$_h||0==$h)) return $this;
 
 		$nw = $_w;
 		$nh = $_h;
@@ -516,6 +542,9 @@ class CMS_Image_GD extends CMS_Image {
 	}
 	
 	public function crop($w,$h) {
+		if ($this->is_stretch($w, $h)) {
+			return $this;
+		}
 		return $this->resize_prop($w,$h);
 	}
 	
@@ -610,11 +639,12 @@ class CMS_Image_GD extends CMS_Image {
 		
 		return $this;
 	}
-
 }
 
+class CMS_Image_GD extends CMS_Images_GD {}
 
-class CMS_Image_Imagick extends CMS_Image {
+
+class CMS_Images_Imagick extends CMS_Images_Image {
 
 	public function load($file) {
 
@@ -640,6 +670,9 @@ class CMS_Image_Imagick extends CMS_Image {
 	}
 
 	public function fit($w,$h,$fit=true) {
+		if ($this->is_stretch($w, $h)) {
+			return $this;
+		}
 		return $this->resize($w,$h,true);
 	}
 
@@ -653,6 +686,9 @@ class CMS_Image_Imagick extends CMS_Image {
 	}
 
 	public function crop($w,$h) {
+		if ($this->is_stretch($w, $h)) {
+			return $this;
+		}
 		if ($w==0||$h==0) return $this;
 		
 		$nw = $this->width();
@@ -752,4 +788,6 @@ class CMS_Image_Imagick extends CMS_Image {
 		return $this;
 	}
 }
+
+class CMS_Image_Imagick extends CMS_Images_Imagick {}
 

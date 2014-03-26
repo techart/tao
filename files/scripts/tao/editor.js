@@ -32,9 +32,17 @@ TAO.editor.plugins.tiny = function()
 		get : function(selector)
 		{
 			var id = $(selector).attr('id');
-			if (typeof tinyMCE != 'undefined') {
+			if (typeof tinyMCE != 'undefined' && tinyMCE.majorVersion <= this.getVersion()) {
 				return tinyMCE.get(id);
 			}
+		},
+		getName: function()
+		{
+			return 'tiny';
+		},
+		getVersion : function()
+		{
+			return 3;
 		},
 		has : function (selector)
 		{
@@ -43,9 +51,10 @@ TAO.editor.plugins.tiny = function()
 		},
 		attach : function(selector, options)
 		{
+			var name = this.getName();
 			var editor = this.get(selector);
 			if (!$.isEmptyObject(editor)) return editor;
-			options = $.extend(true, {}, TAO.settings.editor.tiny, options);
+			options = $.extend(true, {}, TAO.settings.editor[name], options);
 			return this.create(selector, options);
 
 		},
@@ -190,7 +199,14 @@ TAO.editor.plugins.nicedit = function()
 
 		create : function(id, options) {
 			if (typeof nicEditor != 'undefined') {
-				return new nicEditor(options).panelInstance(id, {hasPanel : true});
+				var ins = new nicEditor(options).panelInstance(id, {hasPanel : true});
+				var elm = $('#'+id).prev().find('.nicEdit-main').get(0);
+				elm.addEventListener('keypress', function(ev){
+					if(ev.keyCode == '13') {
+						document.execCommand('formatBlock', false, 'p');
+					}
+				}, false);
+				return ins;
 			}
 			return null;
 		},

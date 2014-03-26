@@ -77,6 +77,27 @@ class CMS_Fields_Types_Array extends CMS_Fields_AbstractField implements Core_Mo
 
 }
 
+/**
+ * Class CMS_Fields_Types_Array_ValueContainer
+ *
+ * @property CMS_Fields_Types_Array $type
+ */
+class CMS_Fields_Types_Array_ValueContainer extends CMS_Fields_ValueContainer implements Core_ModuleInterface
+{
+	/**
+	 * Устанавливает значение поля из массива
+	 *
+	 * @param array|Traversable $value
+	 *
+	 * @return $this
+	 */
+	public function set($value)
+	{
+		$this->item->{$this->name} = $value;
+		$this->item->{$this->type->field_src_name($this->name, $this->data)} = CMS::unparse_parms($value);
+		return $this;
+	}
+}
 
 class CMS_Fields_Types_Array_Test extends Validation_AbstractTest {
 

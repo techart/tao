@@ -1,0 +1,18 @@
+<?php 
+$this->no_layout();
+$year = isset($_GET['year'])?(int)$_GET['year']:date('Y');
+$month = isset($_GET['month'])?(int)$_GET['month']:date('m');
+$day = isset($_GET['day'])?(int)$_GET['day']:false;
+$component = isset($_GET['component'])?$_GET['component']:false;
+
+$component = preg_replace('{[^a-z0-9_]+}','',$component);
+
+print "%calendar{year={$year},month={$month}";
+if ($day) print ",day={$day},";
+if ($component) print ",component={$component},";
+print "}";
+?>
+
+
+
+

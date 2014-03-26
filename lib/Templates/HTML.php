@@ -8,7 +8,7 @@
  * @version 0.2.2
  */
 
-Core::load('Templates', 'Object', 'Cache', 'Text.Insertions', 'Templates.HTML.Preprocess', 'Templates.HTML.Includes');
+Core::load('Templates', 'Object', 'Cache', 'Text.Insertions', 'Templates.HTML.Assets.Preprocess', 'Templates.HTML.Assets');
 
 /**
  * @package Templates\HTML
@@ -21,11 +21,13 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
   static protected $meta;
   
   static protected $scripts_settings = array();
+
+  protected static $cached_paths = array();
   
   
   static protected $options = array(
     'template_class' => 'Templates.HTML.Template',
-    'paths' => array('css' => 'styles', 'js' => 'scripts', '_fallback' => 'image'),
+    'paths' => array('css' => 'styles', 'js' => 'scripts', '_fallback' => 'images'),
     'assets' => array('', '/tao'),
     'copy_dir' => 'copy',
     'extern_file_prefix' => 'file://',
@@ -48,10 +50,10 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     self::$helpers = Object::Aggregator()->fallback_to(Templates::helpers());
     foreach(self::$options as $k => $v) self::$options[$k] = str_replace('%files%',Core::option('files_name'),$v);
     self::options($options);
-    self::use_helper('forms', 'Templates.HTML.Forms');
-    self::use_helper('tags', 'Templates.HTML.Tags');
-    self::use_helper('assets', 'Templates.HTML.Assets');
-    self::use_helper('maps', 'Templates.HTML.Maps');
+    self::use_helper('forms', 'Templates.HTML.Helpers.Forms');
+    self::use_helper('tags', 'Templates.HTML.Helpers.Tags');
+    self::use_helper('assets', 'Templates.HTML.Helpers.Assets');
+    self::use_helper('maps', 'Templates.HTML.Helpers.Maps');
   }
 
 
@@ -96,8 +98,9 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
  */
   static public function use_helpers() {
     $args = Core::normalize_args(func_get_args());
-    foreach ($args as $k => $v)
-      if ($v instanceof Templates_HelperInterface) self::$helpers->append($v, $k);
+    foreach ($args as $k => $v) {
+      self::$helpers->append($v, $k);
+    }
   }
 
 /**
@@ -128,7 +131,6 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
   static public function join_scripts($v = true) {
     self::option('join_scripts', $v);
   }
- ///     </body>
 
   static public function is_url($path) {
     return preg_match('{^(http|https|ftp):}', $path);
@@ -141,6 +143,15 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     return self::path('js', $path, $copy);
   }
 
+  public static function append_assets_path($path, $position = 1)
+  {
+    $paths = self::option('assets');
+    Core_Arrays::put($paths, $path, $position);
+    $paths = array_unique($paths);
+    self::option('assets', $paths);
+    return $paths;
+  }
+
 /**
  * @param stirng $path
  */
@@ -148,32 +159,45 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
     return self::path('css', $path, $copy);
   }
 
+  public function reset_paths_cache()
+  {
+    self::$cached_paths = array();
+  }
+
   public static function path($type, $path, $copy = true)
   {
+    $rc = Events::call('templates.asset.path', $type, $path, $copy);
+    if (!is_null($rc)) {
+      return $rc;
+    }
+    $key = "$type;$path;$copy";
+    if (isset(self::$cached_paths[$key])) {
+      return self::$cached_paths[$key];
+    }
     $path = self::extern_filepath($path, $copy);
     if (Templates::is_absolute_path($path) || self::is_url($path)) {
-      return $path;
+      return self::$cached_paths[$key] = $path;
     }
     $urls = array();
     foreach (self::option('assets') as $asset) {
+      if ($asset[0] == '.') {
+        $asset = self::option('extern_file_prefix') . $asset;
+      }
       $url = sprintf("%s/%s/%s", $asset, self::option("{$type}_dir") , $path);
+      $url = self::extern_filepath($url, $copy);
       $urls[] = $url;
       $file = ".{$url}";
       if (is_file($file)) {
-        return $url;
+        return self::$cached_paths[$key] = $url;
       }
     }
     if (Core::option('deprecated')) {
       $file = Core::tao_deprecated_file('files/'. self::option("{$type}_dir") . '/' . $path);
       if (is_file($file)) {
-        return self::extern_filepath(self::option('extern_file_prefix') . $file, $copy);
+        return self::$cached_paths[$key] = self::extern_filepath(self::option('extern_file_prefix') . $file, $copy);
       }
     }
-    $rc = Events::call('templates.asset.path', $type, $path, $copy);
-    if (!is_null($rc)) {
-      return $rc;
-    }
-    return $urls[0];
+    return self::$cached_paths[$key] = null;
   }
 
 /**
@@ -207,6 +231,8 @@ class Templates_HTML implements Core_ConfigurableModuleInterface  {
         if (($mtime > $mtime_exists && IO_FS::cp($res, $path)) || IO_FS::exists($path)) {
           return '/' . ltrim($path, '.');
         }
+      } else {
+        return $res;
       }
     }
     return $file;
@@ -275,6 +301,7 @@ class Templates_HTML_Template
   protected $spawn_from;
   protected $scripts_settings = array();
   protected $enable_less = true;
+  protected $enable_scss = true;
   protected $no_duplicates = array();
   protected $partial_paths = array();
   protected $use_onpage_to_file = array('js' => false, 'css' => false);
@@ -294,11 +321,16 @@ class Templates_HTML_Template
   }
 
   public function setup($js_agregator = null, $css_agregator = null) {
-    $this->agregators['js'] = ($js_agregator instanceof Templates_HTML_Includes_AgregatorInterface) ?
-      $js_agregator : Templates_HTML_Includes::agregator(array(), 'js');
-    $this->agregators['css'] = ($css_agregator instanceof Templates_HTML_Includes_AgregatorInterface) ?
-      $css_agregator : Templates_HTML_Includes::agregator(array(), 'css');
-    if ($this->enable_less) $this->enable_less();
+    $this->agregators['js'] = ($js_agregator instanceof Templates_HTML_Assets_AgregatorInterface) ?
+      $js_agregator : Templates_HTML_Assets::agregator(array(), 'js');
+    $this->agregators['css'] = ($css_agregator instanceof Templates_HTML_Assets_AgregatorInterface) ?
+      $css_agregator : Templates_HTML_Assets::agregator(array(), 'css');
+    if ($this->enable_less) {
+      $this->enable_less();
+    }
+    if ($this->enable_scss) {
+      $this->enable_scss();
+    }
     $this->join_scripts(Templates_HTML::option('join_scripts'));
     $this->join_styles(Templates_HTML::option('join_styles'));
   }
@@ -339,9 +371,21 @@ class Templates_HTML_Template
     return $this;
   }
 
+  public function enable_scss() {
+    if (!$this->agregators['css']->get_preprocessor('scss')) {
+      $this->agregators['css']->add_preprocessor('scss', 'Templates.HTML.Assets.Preprocess.SCSS');
+    }
+    return $this;
+  }
+  
+  public function disable_scss() {
+    $this->agregators['css']->remove_preprocessor('scss');
+    return $this;
+  }
+
   public function enable_less() {
     if (!$this->agregators['css']->get_preprocessor('less'))
-    $this->agregators['css']->add_preprocessor('less', Templates_HTML_Preprocess::less());
+    $this->agregators['css']->add_preprocessor('less', 'Templates.HTML.Assets.Preprocess.LESS');
     return $this;
   }
   
@@ -352,8 +396,8 @@ class Templates_HTML_Template
 
   public function minify_styles($v = true) {
     if ($v) {
-      Core::load('Templates.HTML.Postprocess');
-      $this->agregators['css']->add_postprocessor('minify', Templates_HTML_Postprocess::MinifyCSS());
+      Core::load('Templates.HTML.Assets.Postprocess');
+      $this->agregators['css']->add_postprocessor('minify', Templates_HTML_Assets_Postprocess::MinifyCSS());
     }
     else {
       $this->agregators['css']->remove_postprocessor('minify');
@@ -363,8 +407,8 @@ class Templates_HTML_Template
 
   public function minify_scripts($v = true) {
     if ($v) {
-      Core::load('Templates.HTML.Postprocess');
-      $this->agregators['js']->add_postprocessor('minify', Templates_HTML_Postprocess::MinifyJS());
+      Core::load('Templates.HTML.Assets.Postprocess');
+      $this->agregators['js']->add_postprocessor('minify', Templates_HTML_Assets_Postprocess::MinifyJS());
     }
     else {
       $this->agregators['js']->remove_postprocessor('minify');
@@ -377,14 +421,28 @@ class Templates_HTML_Template
     return $this;
   }
 
+  public function join_styles_group()
+  {
+    $args = func_get_args();
+    call_user_func_array(array($this->agregators['css'], 'join_group'), $args);
+    return $this;
+  }
+
+  public function join_scripts_group()
+  {
+    $args = func_get_args();
+    call_user_func_array(array($this->agregators['js'], 'join_group'), $args);
+    return $this;
+  }
+
   public function join_styles($v = true) {
-      $this->agregators['css']->join($v);
-      return $this;
+    $this->agregators['css']->join($v);
+    return $this;
   }
 
   public function join_scripts($v = true) {
-      $this->agregators['js']->join($v);
-      return $this;
+    $this->agregators['js']->join($v);
+    return $this;
   }
 
   public function no_join() {
@@ -563,8 +621,8 @@ class Templates_HTML_Template
 
   public function copy($name, $with_content = true)
   {
-    $res = is_object($name) ? $name : Templates_HTML::Template($name);
-    $res->agregators = $this->agregators;
+    $res = is_object($name) ? $name : Templates_HTML::Template($name, array(), $this->agregators['js'], $this->agregators['css']);
+    // $res->agregators = $this->agregators;
     $res->helpers = $this->helpers;
     $res->no_duplicates = $this->no_duplicates;
     if ($with_content) {
@@ -700,7 +758,7 @@ class Templates_HTML_Template
  * @return string
  */
   public function partial($__name, $__params = array()) {
-    Events::call('templates.partial', $this, $_name, $__params);
+    Events::call('templates.partial', $this, $__name, $__params);
     extract(array_merge($this->get_parms(), $__params));
 
     if (IO_FS::exists($__path = $this->get_partial_path($__name))) {
@@ -891,8 +949,7 @@ class Templates_HTML_Template
   
   protected function add_timestamp($link) {
     $ts = @filemtime('./' . ltrim($link, '/'));
-    $is_joined = Core_Strings::starts_with($link, Templates_HTML_Includes::option('join_dir'));
-    return !empty($ts) && !$is_joined ?
+    return !empty($ts) ?
       sprintf(Templates_HTML::option('timestamp_pattern'), $link, $ts) :
       $link;
   }
@@ -934,7 +991,7 @@ class Templates_HTML_Template
       case $property == 'no_duplicates':
         if (!empty($this->$property)) return $this->$property;
         if (!$this->is_root && !empty($this->root->$property)) return $this->root->$property;
-        if ($this->spawn_from) var_dump($this->spawn_from->name);
+        // if ($this->spawn_from) var_dump($this->spawn_from->name);
         if ($this->spawn_from) return $this->spawn_from->$property;
         return null;
       case in_array($property, array('agregators', 'include_meta', 'allow_filtering', 'content', 'scripts_settings')):
@@ -991,7 +1048,7 @@ class Templates_HTML_Template
         $names = explode('_', $property);
         return isset($this->agregators[$names[0]]);
       default:
-        return parent::__set($property, $value);
+        return parent::__isset($property);
     }
   }
 
@@ -1009,7 +1066,7 @@ class Templates_HTML_Template
         unset($this->agregators[$names[0]]);
         return $this;
       default:
-        return parent::__set($property, $value);
+        return parent::__unset($property);
     }
   }
 

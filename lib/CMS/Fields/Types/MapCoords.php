@@ -4,7 +4,7 @@
  */
 
 
-Core::load('Templates.HTML.Maps');
+Core::load('Templates.HTML.Helpers.Maps');
 
 class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Core_ModuleInterface {
 
@@ -24,43 +24,32 @@ class CMS_Fields_Types_MapCoords extends CMS_Fields_AbstractField implements Cor
 	);
 
 	public function view_value($value,$name,$data) {
-		if (isset($data['sqltypes'])) {
-			$fields_names = array_slice((array)$data['sqltypes'], 0, 3);
-			switch (count($this->check_schema($data))) {
-				case 0:
-					$val_string = "";
-					$view_value = parent::view_value($value,$name,$data);
-					break;
-				case 1:
-					$val_string = $value[$fields_names[0]];
-					$view_value = $this->floatize_string($val_string);
-					break;
-				case 2:
-					$view_value = null;
-					if (!is_null($value[$fields_names[0]])) {
-						$val_string = $value[$fields_names[0]].';'.$value[$fields_names[1]];
-						$view_value = $this->floatize_string($val_string);
-					}
-					break;
-				case 3:
-					$view_value = null;
-					if (!is_null($value[$fields_names[0]])) {
-						$val_string = $value[$fields_names[0]].';'.$value[$fields_names[1]].';'.$value[$fields_names[2]];
-						$view_value = $this->floatize_string($val_string);
-					}
-					break;
-			}
-		}
-		else {
-			$view_value = parent::view_value($value,$name,$data);
+		switch (count($this->check_schema($data))) {
+			case 0:
+				$view_value = parent::view_value($value,$name,$data);
+				break;
+			case 1:
+				$view_value = $this->floatize_string($value[$this->schema[0]]);
+				break;
+			case 2:
+				$view_value = $this->floatize_string($value[$this->schema[0]].';'.$value[$this->schema[1]]);
+				break;
+			case 3:
+				$view_value = $this->floatize_string($value[$this->schema[0]].';'.$value[$this->schema[1]].';'.$value[$this->schema[2]]);
+				break;
 		}
 		return $view_value;
 	}	
 
 	public function check_schema($data) {
 		if (isset($data['schema'])) {
-			$func = create_function('$el', 'return $el["name"];');
-			$this->schema = array_map($func, $data['schema']['columns']);
+			$keys = array_keys($data['schema']['columns']);
+			if (is_numeric(reset($keys))) {
+				$keys = array_map(function($column) {
+					return $column['name'];
+				}, $data['schema']['columns']);
+			}
+			$this->schema = $keys;
 		}
 		else {
 			if (isset($data['sqltypes'])) {

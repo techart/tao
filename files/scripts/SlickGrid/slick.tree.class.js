@@ -43,9 +43,13 @@ TAO.require(['tao/oop', 'SlickGrid/slick.table'], function() {
         }
       }
 
+      function buildUrl(name) {
+        return this.url + name + "/" + window.location.search;
+      }
+
       function remoteOptions() {
         var self = this;
-        var url = self.url + "options/";
+        var url = self.buildUrl("options");
         return $.ajax({
           url: url,
           dataType: 'json',
@@ -66,9 +70,10 @@ TAO.require(['tao/oop', 'SlickGrid/slick.table'], function() {
 
       function remoteColumns() {
         var self = this;
+        var url = self.buildUrl("columns");
         resp = $.ajax({
-          url: self.url + "columns/",
-          dataType: "json",
+          url: url,
+          dataType: "json"
           // async: false
         });
         var classes = ['editor', 'formatter'];
@@ -464,7 +469,8 @@ TAO.require(['tao/oop', 'SlickGrid/slick.table'], function() {
         deleteAction : deleteAction,
         defaultColumns: defaultColumns,
         onBeforeMoveRows: onBeforeMoveRows,
-        onMoveRows: onMoveRows
+        onMoveRows: onMoveRows,
+        buildUrl: buildUrl
 
       };
 

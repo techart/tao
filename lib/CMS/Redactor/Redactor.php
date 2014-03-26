@@ -29,8 +29,8 @@ class CMS_Redactor_Redactor extends CMS_Redactor_AbstractEditor implements Core_
 	protected function libraries_files()
 	{
 		return array(
-			array('name' => 'editors/redactor/redactor.js', 'type' => 'lib', 'weight' => -1),
-			array('name' => '/scripts/editors/redactor/redactor.css')
+			array('name' => '/editors/redactor/redactor.js', 'type' => 'lib', 'weight' => -1),
+			array('name' => '/editors/redactor/redactor.css')
 		);
 	}
 	

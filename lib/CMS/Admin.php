@@ -28,7 +28,7 @@ class CMS_Admin implements Core_ModuleInterface {
 	
 	static $lang = 'ru';
 	
-	static $logo = '/image/admin/logo.gif';
+	static $logo = '/images/admin/logo.gif';
 	static $stdstyles = array();
 
 	static $jquery = false;
@@ -43,15 +43,7 @@ class CMS_Admin implements Core_ModuleInterface {
 		CMS::$admin = self::$path;
 		//if (!self::$jquery) self::$jquery = CMS::stdfile_url('scripts/jquery-1.4.2.js');
 		if (!self::$jquery) self::$jquery = '/tao/scripts/jquery.js';
-		$session = WS::env()->request->session();
-		if (isset($session['admin/site'])) { 
-			self::$site = $session['admin/site']; 
-		} 
-		
-		else { 
-			self::$site = CMS::$defsite; 
-			$session['admin/site'] = self::$site; 
-		} 
+		self::$site = CMS::$defsite;
 	} 
 	
 	
@@ -81,23 +73,14 @@ class CMS_Admin implements Core_ModuleInterface {
  * @param string $site
  */
 	static function set_site($site) { 
-		$session = WS::env()->request->session();
 		self::$site = $site; 
-		$session['admin/site'] = $site; 
 	} 
 	
 /**
  * @return string
  */
 	static function get_site() { 
-		$session = WS::env()->request->session();
-		if (isset($session['admin/site'])) { 
-			return $session['admin/site']; 
-		} 
-		
-		else { 
-			return CMS::$defsite; 
-		} 
+		return self::$site;
 	} 
 	
 	
@@ -118,7 +101,7 @@ class CMS_Admin implements Core_ModuleInterface {
  * @return string
  */
 	static function layout() {
-		return CMS::view('admin-layout.phtml');
+		return CMS::view('layouts/admin.phtml');
 	}
 
 

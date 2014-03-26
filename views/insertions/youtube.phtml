@@ -1,8 +1,23 @@
-<p class="youtube">
-  <object width="425" height="344">
-    <param name="movie" value="http://www.youtube.com/v/<?= $code ?>&hl=ru&fs=1&rel=0"></param>
-    <param name="allowFullScreen" value="true"></param>
-    <param name="allowscriptaccess" value="always"></param>
-    <embed src="http://www.youtube.com/v/<?= $code ?>&hl=ru&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="425" height="344"></embed>
-  </object>
-</p>
+<?php
+
+$id = false;
+$width = 640;
+$height = 480;
+
+foreach($args_array as $arg) {
+	
+	$arg = trim($arg);
+	
+	if ($m = Core_Regexps::match_with_results('{^(\d+)x(\d+)$}',$arg)) {
+		$width = $m[1];
+		$height = $m[2];
+	}
+	
+	else {
+		$id = $arg;
+	}
+}
+
+if ($id) {
+	?><iframe id="player" type="text/html" width="<?= $width ?>" height="<?= $height ?>" src="http://www.youtube.com/embed/<?= $id ?>?enablejsapi=1 frameborder="0" class="youtube"></iframe><?php
+}

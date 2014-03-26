@@ -12,6 +12,7 @@ class CMS_Lang_Common_En implements Core_ModuleInterface {
 	public $next = 'Next'; 
 	public $month_i = array('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'); 
 	public $month_r = array('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
+	public $dwshort = array('mo','tu','we','th','fr','sa','su');
 	public $name = 'Name'; 
 	public $components = 'Components';
 	

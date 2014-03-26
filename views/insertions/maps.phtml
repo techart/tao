@@ -1,0 +1,85 @@
+<?php
+Core::load('Templates.HTML.Helpers.Maps');
+
+$type = 'yandex';
+$map_id = uniqid('map');
+$width = 300;
+$height = 300;
+$border = false;
+$padding = 0;
+$margin = 0;
+$style = false;
+
+$options = array(
+	'properties' => array(
+		'center' => array(
+			'x' => false,
+			'y' => false,
+		),
+	),
+	'markers' => array(),
+	'windows' => array(),
+);
+
+
+foreach($args_array as $arg) {
+	
+	$arg = trim($arg);
+	$larg = strtolower($arg);
+	
+	if ($larg=='yandex'||$larg=='google') {
+		$type = $larg;
+	}
+	
+	if ($larg=='roads'||$larg=='satellite'||$larg=='hybrid') {
+		$options['properties']['type'] = $larg;
+	}
+	
+	elseif ($m = Core_Regexps::match_with_results('{^(\d+)x(\d+)$}',$larg)) {
+		$width = $m[1];
+		$height = $m[2];
+	}
+	
+	elseif ($m = Core_Regexps::match_with_results('{^(border|margin|padding):(.+)$}',$larg)) {
+		$s = $m[1];
+		$$s = trim($m[2]);
+	}
+	
+	elseif (Core_Regexps::match('{^\d+$}',$arg)) {
+		$options['properties']['zoom'] = (int)$arg;
+	}
+	
+	elseif (is_numeric($arg)) {
+		if (!$options['properties']['center']['x']) {
+			$options['properties']['center']['x'] = $arg;
+		}
+		elseif (!$options['properties']['center']['y']) {
+			$options['properties']['center']['y'] = $arg;
+		}
+	}
+	
+	elseif (CMS::vars()->exists($larg)) {
+		$o = CMS::vars()->get($larg);
+		if (is_array($o)) {
+			$options = array_replace_recursive($options, $o);
+		}
+	}
+	
+	else {
+		$map_id = $arg;
+	}
+}
+
+if (!isset($options['properties']['style'])) {
+	if (!$style) {
+		$style = '';
+		$style .= "width: {$width}px;";
+		$style .= "height: {$height}px;";
+		if ($border) $style .= "border: {$border};";
+		if ($margin) $style .= "margin: {$margin};";
+		if ($padding) $style .= "padding: {$padding};";
+	}
+	$options['properties']['style'] = $style;
+}
+
+print $this->maps->map($type, $map_id, "", $options);

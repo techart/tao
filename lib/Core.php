@@ -2228,6 +2228,15 @@ class Core_Arrays {
       return $default;
   }
 
+  public static function put(array &$array, $value, $position = 0)
+  {
+    if (is_null($position)) {
+      $position = count($array);
+    }
+    array_splice($array, $position, 0, array($value));
+    return $array;
+  }
+
 
 
 /**

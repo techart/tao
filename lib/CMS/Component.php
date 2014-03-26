@@ -3,8 +3,11 @@
  * @package CMS\Component
  */
 
+Core::load('Config.DSL');
 
-class CMS_Component implements Core_ModuleInterface {
+
+class CMS_Component implements Core_ModuleInterface
+{
 
 	const VERSION = '0.1.0';
 
@@ -16,7 +19,8 @@ class CMS_Component implements Core_ModuleInterface {
 
 	protected $process_schema = true;
 
-	public function __construct($name) {
+	public function __construct($name)
+	{
 		$this->name = $name;
 		$this->cache = WS::env()->cache;
 		//TODO: config source (file, cache, vars ...)
@@ -27,22 +31,23 @@ class CMS_Component implements Core_ModuleInterface {
 		return true;
 	}
 
-	public function dir() {
-		return CMS::component_dir($this->name);
+	public function dir($path = '') {
+		return CMS::component_dir($this->name, $path);
 	}
 
-	public function config($name) {
+	public function config($name)
+	{
 		if (!empty($this->cconfig[$name])) {
 			return $this->cconfig[$name];
 		}
-		$config = null;
+		$config = array();
 		$file = $this->dir() . "/{$this->config_dir}/$name.php";
 		if (is_file($file)) {
-			$config = include $file;
+			$config = (array) Config_DSL::Builder()->load($file)->object;
 		}
 		$file = $this->dir() . "/{$this->user_config_dir}/$name.php";
 		if (is_file($file)) {
-			$user_data = include $file;
+			$user_data = Config_DSL::Builder()->load($file)->object;
 			$config = Core_Arrays::deep_merge_update($config, (array) $user_data);
 		}
 		$result = (object) $config;
@@ -53,36 +58,40 @@ class CMS_Component implements Core_ModuleInterface {
 		return $this->cconfig[$name] = $result;
 	}
 
-	public function filepath($to) {
+	public function filepath($to)
+	{
 		return $this->dir() . '/' . $to;
 	}
 
-	public function config_path($to) {
+	public function config_path($to)
+	{
 		return $this->dir() . "/{$this->config_dir}/$to";
 	}
 
-	public function __get($name) {
-		if (isset($this->$name)) return $this->$name;
+	public function __get($name)
+	{
+		if (isset($this->$name)) {
+			return $this->$name;
+		}
 		return null;
 	}
 
-	// public static function after_initialize() {
-	// 	$me = CMS::component();
-	// 	if (!$me) return;
-	// 	if ($me->process_schema)
-	// 		$me->process_schema();
-	// }
+	public function get_name()
+	{
+		return CMS::get_component_name_for($this);
+	}
 
-	public function process_schema() {
+	public function process_schema()
+	{
 		$schema = $this->config('schema');
 		$fields = $this->config('fields');
-		$cache_key = md5('cms:component:'.serialize($schema) . serialize($fields));
-		if ($this->cache->has($cache_key)) {
-			return $this;
+
+		if (empty($schema)) {
+			return;
 		}
-		$this->cache->set($cache_key, 1);
-		if (empty($schema)) return;
-		if (empty($fields)) $fields = Core::hash();
+		if (empty($fields)) {
+			$fields = Core::hash();
+		}
 
 		$schema = clone $schema;
 
@@ -95,6 +104,7 @@ class CMS_Component implements Core_ModuleInterface {
 			$schema->$name = array();
 		}
 
+		//fields to schema
 		Core::load('DB.Schema');
 		Core::load('CMS.Fields');
 		foreach ($schema as $name => &$table) {
@@ -103,10 +113,21 @@ class CMS_Component implements Core_ModuleInterface {
 			}
 		}
 
+		// remove empty values
 		foreach ($schema as $name => $ttable) {
 			if (empty($ttable)) {
 				unset($schema->$name);
 			}
+		}
+
+		// cache
+		$cname = strtolower($this->get_name());
+		if (!empty($cname)) {
+			$cache_key = 'cms:component:' . $cname . ':schema:' . md5(serialize($schema));
+			if ($this->cache->has($cache_key)) {
+				return $this;
+			}
+			$this->cache->set($cache_key, 1, 0);
 		}
 		
 		DB_Schema::process_cache($schema);

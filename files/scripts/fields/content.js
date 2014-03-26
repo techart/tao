@@ -15,19 +15,38 @@ TAO.fields.content = function(field) {
 	$('.field-content-selection .field-content-selection-item',field).each(function() {
 	var el = $(this);
 	var fcode = el.parent().siblings('input[type="hidden"]').val();
+	field = $('.' + el.attr('data-for'), el.parent().parent());
+	var selector = field.find('textarea');
+	var editor = TAO.editor.get(selector);
 	if (el.attr('data-format') == fcode) {
-		if (el.is('option'))
+		if (el.is('option')) {
 			el.attr('selected', true);
-		else
+		}
+		else {
 			el.addClass('active');
-		field = $('.' + el.attr('data-for'), el.parent().parent());
+		}
 		field.siblings().removeClass('field-content-pane-current');
 		field.addClass('field-content-pane-current');
-		var selector = field.find('textarea');
-		var editor = TAO.editor.get(selector);
 		if (editor && typeof editor.refresh === 'function') {
 			editor.refresh(selector);
 		}
+		if (editor && typeof editor.enable === 'function') {
+			editor.enable(selector);
+		}
+	} else {
+		// hack to allow initialize fat editors like tinyMCE
+		var attempt = 0;
+		var interval_id = setInterval(function() {
+			editor = TAO.editor.get(selector);
+			if (editor && typeof editor.disable === 'function') {
+				clearInterval(interval_id);
+				editor.disable(selector);
+			}
+			if (attempt >= 3) {
+				clearInterval(interval_id);
+			}
+			attempt++;
+		}, 400);
 	}
 	
 	var switch_content = function() {
@@ -69,7 +88,13 @@ TAO.fields.content = function(field) {
 		if (to_editor && typeof to_editor.refresh === 'function') {
 			to_editor.refresh(to_selector);
 		}
-		
+
+		if (to_editor && typeof to_editor.enable === 'function') {
+			to_editor.enable(to_selector);
+		}
+		if (from_editor && typeof from_editor.disable === 'function') {
+			from_editor.disable(from_selector);
+		}
 	};
 	
 	if (el.is('option'))

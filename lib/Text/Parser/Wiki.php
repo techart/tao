@@ -228,14 +228,21 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 			else if ($m = Core_Regexps::match_with_results('{^<source\s+lang="(.+)">}i',$tline)) {
 				$this->close_block();
 				$lang = strtolower(trim($m[1]));
+				$highlighter = false;
 				if (isset($this->highlights[$lang])) {
 					$module = $this->highlights[$lang];
 					Core::load($module);
 					$class = str_replace('.','_',$module);
 					$highlighter = new $class;
-					$this->parse_source($highlighter);
 				}
+				$this->parse_source($highlighter);
 			}
+
+			else if ($m = Core_Regexps::match_with_results('{^<source>}i',$tline)) {
+				$this->close_block();
+				$this->parse_source(false);
+			}
+
 
 			else if (strtolower($tline)=='</source>') {
 				
@@ -396,14 +403,14 @@ class Text_Parser_Wiki implements Core_ModuleInterface, Text_Process_ProcessInte
 
 /**
  */
-	protected function parse_source($hl) {
+	protected function parse_source($hl=false) {
 		$source = '';
 		while (!$this->eof()) {
 			$line = rtrim($this->get());
 			if (strtolower($line)=='</source>') break;
 			else $source .= $line."\n";
 		}
-		$code = $hl->run($source);
+		$code = $hl?$hl->run($source):$source;
 		$this->html .= self::$tag_pre_start;
 		$this->html .= $code;
 		$this->html .= self::$tag_pre_end;

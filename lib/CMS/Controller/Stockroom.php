@@ -231,6 +231,8 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 			}
 		}
 
+		Events::call('cms.stockroom.after_update', $item, $error);
+
 		return $this->render('update',array(
 			'item' => $item,
 			'error' => $error,
@@ -374,6 +376,8 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 				return $this->redirect_to($this->action_url('instok',$item));
 			}
 		}
+
+		Events::call('cms.stockroom.after_install', $item, $error);
 
 		return $this->render('install',array(
 			'item' => $item,

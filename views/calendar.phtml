@@ -1,0 +1,51 @@
+<?php
+$this->use_styles('calendar.css');
+$this->use_scripts('calendar.js');
+
+$year_left = $year;
+$month_left = $month-1;
+if ($month_left<1) {
+	$year_left = $year-1;
+	$month_left = 12;
+}
+
+$year_right = $year;
+$month_right = $month+1;
+if ($month_right>12) {
+	$year_right = $year+1;
+	$month_right = 1;
+}
+
+$component_arg = $component? "&component={$component}" : '';
+?>
+<div class="calendar-informer">
+	<div class="calendar-informer-header">
+		<div class="calendar-informer-title">
+			<?php if ($url) { ?><a href="<?= $url ?>"><?php } ?>
+			<span class="calendar-informer-month"><?= Core_Strings::capitalize(CMS::lang()->_common->month_i[(int)$month-1]) ?></span>
+			<span class="calendar=informer-year"><?= $year ?></span>
+			<?php if ($url) { ?></a><?php } ?>
+		</div>
+		<?php if (!isset($ajax_buttons)||$ajax_buttons) { ?>
+		<div class="calendar-informer-button calendar-informer-button-left" data-url="/calendar/month/?year=<?= $year_left?>&month=<?= $month_left ?><?= $component_arg ?>">&nbsp;</div>
+		<div class="calendar-informer-button calendar-informer-button-right" data-url="/calendar/month/?year=<?= $year_right?>&month=<?= $month_right ?><?= $component_arg ?>">&nbsp;</div>
+		<?php } ?>
+	</div>
+	
+	<div class="calendar-informer-weeks">
+		<div class="calendar-informer-weeks-headers">
+			<?php for($n=0;$n<7;$n++) { ?>
+				<span><?= Core_Strings::capitalize(CMS::lang()->_common->dwshort[$n]) ?></span>
+			<?php } ?>
+		</div>
+		<?php foreach($data as $week) { ?><div class="calendar-informer-week">
+			<?php foreach($week as $n => $info) { ?><div data-date="<?= $year ?>-<?= $month ?>-<?= $info['day'] ?>" class="calendar-informer-day calendar-informer-day-<?= $n ?><?= ($info['holiday']?' calendar-informer-holiday':'') ?><?= $info['day']==$day?' calendar-informer-day-current':''?>">
+				<?php if ($info['count']>0) { ?>
+				<a href="<?= $info['url'] ?>"><?= $info['day'] ?></a>
+				<?php } else { ?>
+				<span><?= $info['day'] ?></span>
+				<?php } ?>
+			</div><?php } ?>
+		</div><?php } ?>
+	</div>
+</div>

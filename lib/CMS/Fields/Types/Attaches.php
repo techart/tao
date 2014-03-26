@@ -182,22 +182,41 @@ class CMS_Fields_Types_Attaches_ValueContainer extends CMS_Fields_ValueContainer
 		return count($this->filelist($dir));
 	}
 
-	public function filelist_urls($dir = null) {
+	public function filelist_urls($dir = null)
+	{
 		$res = array();
 		foreach ($this->filelist($dir) as $file) {
 			$name = basename($file);
-			if ($name)
+			if ($name) {
 				$res[$name] = $this->type->action_url($this->name, $this->data, 'download', $this->item, array('file' => $name, 'code' => $this->type->temp_code()));
+			}
 		}
 		return $res;
 	}
 
-	public function render($template = 'render/default', $parms = array()) {
+	public function render_urls()
+	{
+		$res = array();
+		$base_path = realpath($_SERVER['DOCUMENT_ROOT']);
+		foreach ($this->filelist($dir) as $file) {
+			$real_path = realpath($file);
+			$name = basename($file);
+			if ($base_path && $real_path && Core_Strings::starts_with($real_path, $base_path)) {
+				$res[$name] = '/' . trim($file, '\/.');
+			} else {
+				$res[$name] = '#';
+			}
+		}
+		return $res;
+	}
+
+	public function render($template = 'render/default', $parms = array())
+	{
 		$template = $this->template()->spawn($this->type->template($this->data, $template));
 		return $template->with(array(
 			'files' => $this->filelist(),
 			'dir' => $this->dir(),
-			'filelist_urls' => $this->filelist_urls(),
+			'filelist_urls' => $this->render_urls(),
 			'container' => $this
 		))->render();
 	}

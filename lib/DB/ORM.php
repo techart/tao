@@ -1235,7 +1235,12 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * 
  * @return mixed
  */
-  public function select($key = null) {return $this->query()->fetch_all(null,  $key);}
+  public function select($key = null) {
+	if (is_null($key) && is_array($this->options['key']) && count($this->options['key']) == 1) {
+		$key = reset($this->options['key']);
+	}
+  	return $this->query()->fetch_all(null,  $key);
+  }
 
 /**
  * Выполняет SELECT-запрос и выбирает первую строку результирующего выражения
@@ -1275,13 +1280,14 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 /**
  * @return int
  */
-  public function stat($just_count = false) {
-	list($m, $this->mode) = array($this->mode, '');
-	return Core::with_index($this->make_cursor($this->sql()->stat($just_count, $m), false)->
-	  bind($this->__get('binds'))->
-		execute()->
-		fetch(), 'count');
-  }
+	public function stat($just_count = false) {
+		list($m, $this->mode) = array($this->mode, '');
+		$rows = $this->make_cursor($this->sql()->stat($just_count, $m), false)->bind($this->__get('binds'))->execute()->fetch_all();
+		if (!empty($rows) && ($count = count($rows)) > 1) {
+			return $count;
+		}
+		return Core::with_index(reset($rows), 'count');
+	}
 
 /**
  * @param boolean $fetch_first
@@ -1426,6 +1432,7 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
 	Events::call('orm.mapper.change', $rc, $action = 'insert', $this, $e);
 	Events::call('orm.mapper.insert', $rc, $this, $e);
 	Events::call("orm.mapper.{$this->__name()}.insert", $rc, $this, $e);
+	$e->strict_after_insert();
 	return $rc;
   }
 
@@ -1542,7 +1549,13 @@ class DB_ORM_SQLMapper extends DB_ORM_Mapper
  * 
  * @return Iterator
  */
-  public function getIterator() { return $this->query(false)->getIterator(); }
+  public function getIterator() {
+  	$key = null;
+  	if (is_array($this->options['key'])) {
+		$key = reset($this->options['key']);
+	}
+	return $this->query(false)->getIterator($key);
+}
 
 
 
@@ -2420,6 +2433,8 @@ abstract class DB_ORM_Entity
   protected $attrs = array();
   protected $mapper = null;
   protected $enable_dispatch = false;
+  protected $__id = null;
+  protected $mapper_name = null;
 
 
 /**
@@ -2431,6 +2446,14 @@ abstract class DB_ORM_Entity
 	  $this->mapper = $mapper;
 	$this->setup()->assign($attrs); }
 
+
+	public function mapper_name($value = null)
+	{
+		if (!is_null($value)) {
+			$this->mapper_name = $value;
+		}
+		return $this->mapper_name;
+	}
 
 
 /**
@@ -2463,11 +2486,14 @@ abstract class DB_ORM_Entity
   }
   
   public function id() {
+  	if (!is_null($this->__id)) {
+  		return $this->__id;
+  	}
 	if ($mapper = $this->get_mapper()) {
 	  $key = $this->key();
-	  return $this->$key;
+	  return $this->__id = $this->$key;
 	}
-	return $this['id'];
+	return $this->__id = $this['id'];
   }
 
   public function is_phantom()
@@ -2533,7 +2559,21 @@ abstract class DB_ORM_Entity
 	return $this;
   }
   
-  public function get_mapper() {return $this->mapper ? $this->mapper->spawn() : null;}
+  public function get_mapper()
+  {
+  	if ($this->mapper) {
+  		return $this->mapper->spawn();
+  	}
+  	if ($mname = $this->mapper_name()) {
+  		return WS::env()->orm->{$mname};
+  	}
+  	return null;
+  }
+  
+  public function strict_after_insert()
+  {
+	$this->__id = null;
+  }
 
   public function after_insert() {return $this->dispatch_res('after_insert', true);}
   public function after_update() {return $this->dispatch_res('after_update', true);}

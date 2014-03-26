@@ -30,7 +30,7 @@ class CMS_Redactor_NicEdit extends CMS_Redactor_AbstractEditor implements Core_M
 	{
 		return array(
 			array('name' => CMS::stdfile_url('scripts/nicEditor/nicEdit.js'), 'type' => 'lib', 'weight' => -1),
-			array('name' => CMS::stdfile_url('styles/nicEditor/nicEdit.css'))
+			array('name' => CMS::stdfile_url('styles/nicEditor/nicEdit.css')),
 		);
 	}
 

@@ -43,7 +43,7 @@ class CMS_Fields_Types_DateStr extends CMS_Fields_AbstractField implements Core_
 
 	public function sqltype()
 	{
-		return 'timestamp';
+		return 'int';
 	}
 
 	protected function layout_preprocess($l, $name, $data)

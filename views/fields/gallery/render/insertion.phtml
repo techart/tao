@@ -23,11 +23,11 @@ Events::add_listener("cms.insertions.template.gallery", function ($template, &$a
 			}
 			$link_attrs = array('target' => '_blank');
 			$args['images'][$i] = array(
-				'path' => $data['path'],
+				'path' => $data['orig_path'],
 				'lazy' => $container->lazy,
 				'caption' => $data['caption'],
 				'preview' => !empty($mods) ? $data['url'] : null,
-				'full' => !empty($fullsize_mods) ? $data['orig_url'] : null,
+				'full' => !empty($fullsize_mods) ? $data['fullsize_url'] : null,
 				'style' => $style,
 				'link_attrs' => $link_attrs,
 			);

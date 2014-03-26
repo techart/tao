@@ -221,31 +221,89 @@ class CMS_Fields implements Core_ModuleInterface {
 		return $schema;
 	}
 
-	static function column_schema($db_name , $src, &$schema, $table_name = null, $field_name = null) {
+	static function column_schema($db_name, $src, &$schema, $table_name = null, $field_name = null) {
 		$type = 'text';
 		$length = false;
 		$size = false;
 		$index = false;
+		$index_name = false;
+		$index_type = false;
+		$index_columns = array();
 		$precision = false;
 		$scale = false;
-		$index_length = false;
 		$default = '';
 		$not_default = false;
 		$nn = true;
 		$src = trim(strtolower($src));
 
-		if ($m = Core_Regexps::match_with_results('{^(.+)\s+index(\(\d+\))?$}',$src)) {
+		$parms = array();
+		$unsetparms = array();
+
+		// index
+		if ($m = Core_Regexps::match_with_results('{(.+)(\s+index(_[a-z_\-0-9]+)?(\(.+\))?)}i',$src)) {
 			$index = true;
-			$index_length = trim($m[2], '() ');
-			$src = trim($m[1]);
+			$index_name = trim($m[3], ' _');
+			if ($index_name === 'primary') {
+				$index_type = 'primary key';
+				$index_name = false;
+			}
+			$index_data = trim($m[4], '() ');
+			if (!empty($index_data)) {
+				foreach (explode(',', $index_data) as $ipart) {
+					$ipart = trim($ipart);
+					$int_val = filter_var($ipart, FILTER_VALIDATE_INT);
+					if (Core_Strings::contains($ipart, ':')) {
+						$index_columns[] = explode(':', $ipart);
+					} else if ($int_val !== false) {
+						$index_columns[] = array($db_name, $ipart);
+					} else {
+						$index_columns[] = $ipart;
+					}
+				}
+			}
+			$src = trim(str_replace($m[2], '', $src));
 		}
 
+		// type
 		$type = $src;
-		if ($m = Core_Regexps::match_with_results('{^([a-z]+)\((\d+)\)$}',$src)) {
+		if ($m = Core_Regexps::match_with_results('{^([a-z]+)(\((\d+)\))?}i',$src)) {
 			$type = $m[1];
-			$length = trim($m[2]);
+			$length = trim($m[3]);
 		}
 
+		// null
+		if ($m = Core_Regexps::match_with_results('{\s+null}', $src)) {
+			$nn = false;
+		}
+
+		// parms
+		if ($m = Core_Regexps::match_with_results('{/(.*)$}', $src)) {
+			$parms_str = trim($m[1]);
+			foreach (explode(',', $parms_str) as $parm) {
+				list($k, $v) = explode('=', $parm);
+				$v = trim($v);
+				$k = trim($k);
+				$int_val = filter_var($v, FILTER_VALIDATE_INT);
+				if ($int_val !== false) {
+					$v = $int_val;
+				} else {
+					$bool_val = filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+					if (!is_null($bool_val)) {
+						$v = $bool_val;
+					}
+				}
+				if ($v === 'null') {
+					$v = null;
+				}
+				if ($v !== 'none') {
+					$parms[$k] = $v;
+				} else {
+					$unsetparms[$k] = $v;
+				}
+			}
+		}
+
+		// process parms
 		if ($type=='bigtext'||$type=='longtext') {
 			$type = 'text';
 			$size = 'big';
@@ -289,6 +347,8 @@ class CMS_Fields implements Core_ModuleInterface {
 			$not_default = true;
 		}
 
+		// compose all in one
+
 		$rc = array('name' => $db_name, 'type' => $type, 'not null' => $nn, 'index' => $index);
 		if (!$not_default) $rc['default'] = $default;
 		if ($length) $rc['length'] = $length;
@@ -298,18 +358,33 @@ class CMS_Fields implements Core_ModuleInterface {
 
 
 		if ($idx = $rc['index']) {
-			$index_name = "idx_" . ($table_name ? str_replace('_', '', $table_name) : '') . "_{$db_name}";
-			$icolumns = $index_length ? array(array($db_name, (int) $index_length)) : array($db_name);
-			$schema['indexes'][] = array('name' => $index_name,'columns' => $icolumns);
+			if (!$index_name) {
+				$index_name = "idx_" . ($table_name ? str_replace('_', '', $table_name) : '') . "_{$db_name}";
+			}
+			if (empty($index_columns)) {
+				$index_columns = array($db_name);
+			}
+			$idx = array('name' => $index_name,'columns' => $index_columns);
+			if ($index_type) {
+				$idx['type'] = $index_type;
+			}
+			$schema['indexes'][] = $idx;
 		}
 		unset($rc['index']);
-		
+
+		foreach ($unsetparms as $k => $v) {
+			unset($rc[$k]);
+		}
+		$rc = array_replace_recursive($rc, $parms);
+
 		if ($type=='serial') {
 			$schema['indexes'][] = array('type' => 'primary key', 'columns' => array($db_name));
 		}
 		
 		$rc['__from_field'] = $field_name;
-		$schema['columns'][$db_name] = $rc;
+		if ($type !== 'empty') {
+			$schema['columns'][$db_name] = $rc;
+		}
 
 		return $rc;
 	}
@@ -322,6 +397,7 @@ abstract class CMS_Fields_AbstractField {
 	protected $dir;
 	protected $view;
 	private $temp_code = false;
+	protected $dir_paths = array();
 
 
 
@@ -534,7 +610,7 @@ abstract class CMS_Fields_AbstractField {
 
 	protected function upload_file($fobject, $name, $data, $action, $item) {
 		$file = $fobject->file_array;
-		$filename = $this->uploaded_filename($name, $data, $file);
+		$filename = $this->real_uploaded_filename($name, $data, $file);
 		$code = $this->request('code');
 		$dir = $this->dir_path($item,$code,$name,$data);
 		if(!empty($file['error'])) {
@@ -575,6 +651,17 @@ abstract class CMS_Fields_AbstractField {
 		return true;
 	}
 
+	protected function real_uploaded_filename($name, $data, $file) {
+		if (isset($data['uploaded_filename'])) {
+			$callback = $data['uploaded_filename'];
+			$result = call_user_func($callback, trim($file['name']), $file, $name, $data);
+			if ($result) {
+				return $result;
+			}
+		}
+		return $this->uploaded_filename($name, $data, $file);
+	}
+
 	protected function uploaded_filename($name, $data, $file) {
 		return CMS::translit(preg_replace('{[\s+]+}','-',trim($file['name'])));
 	}
@@ -585,6 +672,10 @@ abstract class CMS_Fields_AbstractField {
 
 	public function dir_path($item,$code,$name,$data) {
 		$item_id = $item ? $item->id() : 0;
+		$key = "$name-$item_id-$code-{$data['private']}";
+		if (isset($this->dir_paths[$key])) {
+			return $this->dir_paths[$key];
+		}
 		$dir = false;
 		if (empty($item_id)) {
 			$dir = CMS::temp_dir()."/dir-$code";
@@ -595,7 +686,7 @@ abstract class CMS_Fields_AbstractField {
 			if ($dir[0]!='.'&&$dir[0]!='/') $dir = "./$dir";
 		}
 		$dir .= "/$name";
-		return $dir;
+		return $this->dir_paths[$key] = $dir;
 	}
 //--------------------------------------------------
 //END CONTROLLER
@@ -631,14 +722,14 @@ abstract class CMS_Fields_AbstractField {
 			,'validate_presence','validate_email','validate_match','validate_match_message','validate_confirmation','validate_confirmation_message','validate_ajax','validate_ajax_message','validate_error_message',
 			'input formats', 'default input format', 'allow select format', 'template name', 'layout preprocess', 'preprocess', 'attach', 'items', 'tagparms', 'multilang',
 			'in_list', 'group', 'in_filters', 'weight', '__table', 'access', 'sqltype', 'in_form', 'weight_in_list', 'weight_in_form', 'init_value', 'datepicker', 'view_preprocess',
-			'validation'
+			'validation', 'uploaded_filename'
 		);
 	}
 
 	public function user() {
 		if (Core::is_cli()) return 'cli';
-		if (CMS::admin()) return 'admin-'.CMS::env()->admin_auth->user->login;
-		if (CMS::$env->auth->user) return CMS::$env->auth->user->id;
+		if (CMS::admin()) return 'admin-'.WS::env()->admin_auth->user->login;
+		if (WS::env()->auth->user) return WS::env()->auth->user->id;
 		return false;
 	}
 
@@ -916,6 +1007,12 @@ abstract class CMS_Fields_AbstractField {
 	public function form_validator($form,$name,$data) {
 		if (isset($data['validate_presence'])) {
 			$this->validator($form)->validate_presence_of($name,$data['validate_presence']);
+		}
+		if (isset($data['validate_range_from'])||isset($data['validate_range_to'])) {
+			$from = isset($data['validate_range_from'])?$data['validate_range_from']:0;
+			$to = isset($data['validate_range_to'])?$data['validate_range_to']:PHP_INT_MAX;
+			$message = isset($data['validate_range_message'])?$data['validate_range_message']:"$name!";
+			$this->validator($form)->validate_range_of($name,$from,$to,$message);
 		}
 		if (isset($data['validate_email'])) {
 			$this->validator($form)->validate_email_for($name,$data['validate_email']);

@@ -16,7 +16,10 @@
 	<script type="text/javascript">
 		$(function() {
 			$('#<?= '__'.$form->name.'_save_and_stay_button' ?>').click(function() {
-				$('#__<?= $form->name ?>_save_and_stay_field').val('<?= WS::env()->request->uri ?>');
+				var el = $('#__<?= $form->name ?>_save_and_stay_field');
+				if (el.val() == 0) {
+					el.val('<?= WS::env()->request->uri ?>');
+				}
 				return true;
 			});
 		});

@@ -94,7 +94,7 @@ class Text_Highlight implements Core_ModuleInterface, Text_Process_ProcessInterf
 	}
 	
 	protected function lex_identifier($c=false) {
-		if (!$c) $c = $this->get();
+		if ($c===false) $c = $this->get();
 		$w = '';
 		while($this->is_letter($c)||$this->is_digit($c)||$c=='_') {
 			$w .= $c;
@@ -105,7 +105,7 @@ class Text_Highlight implements Core_ModuleInterface, Text_Process_ProcessInterf
 	}
 
 	protected function lex_number($c=false) {
-		if (!$c) $c = $this->get();
+		if ($c===false) $c = $this->get();
 		$w = '';
 		while($this->is_digit($c)||$c=='.') {
 			$w .= $c;

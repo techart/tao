@@ -184,7 +184,7 @@ class CMS_Fields_Types_Gallery extends CMS_Fields_Types_Documents {
 	
 	protected function stdunset($data) {
 		$res = parent::stdunset($data);
-		return $this->punset($res, 'user_mods', 'upload_mods', 'presets', 'zip');
+		return $this->punset($res, 'user_mods', 'upload_mods', 'presets', 'zip', 'item_class');
 	}
 
 	protected function layout_preprocess($l, $name, $data) {
@@ -216,13 +216,17 @@ JS;
 class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_ModsCache implements IteratorAggregate, Countable  {
 
 	protected $fullsize = null;
-
 	protected $to_remake = array();
-
 	protected $orig_files = array();
+	protected $remake_cache = array();
+	protected $filelists = array();
+	protected $dir = null;
 	
 	public function dir() {
-		return $this->type->dir_path($this->item,false,$this->name,$this->data);
+		if (!is_null($this->dir)) {
+			return $this->dir;
+		}
+		return $this->dir = $this->type->dir_path($this->item,false,$this->name,$this->data);
 	}
 	
 	public function path() {
@@ -231,11 +235,13 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 
 	public function add($file) {
 		$this->type->add($file, $this->name, $this->data, $this->item);
+		$this->remake_cache = array();
 		return $this;
 	}
 
 	public function remove($file) {
 		$this->type->remove($file, $this->name, $this->data, $this->item);
+		$this->remake_cache = array();
 		return $this;
 	}
 
@@ -246,7 +252,16 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 		return $res;
 	}
 
+	public function mods_reset() {
+		parent::mods_reset();
+		$this->remake_cache = array();
+		return $this;
+	}
+
 	protected function mods_is_remake($path) {
+		if (isset($this->remake_cache[$path])) {
+			return $this->remake_cache[$path];
+		}
 		$mod = basename($path);
 		$mods_info = $this->type->load_mods_info($this->dir());
 		$files = $this->filelist();
@@ -267,15 +282,19 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 				$this->to_remake[$name] = $search;
 			}
 		}
+		$this->remake_cache[$path] = $res;
 		return $res;
 	}
 	
 	public function filelist($dir = null) {
 		if (is_null($dir) && !empty($this->orig_files)) return $this->orig_files;
 		$dir = is_null($dir) ? $this->dir() : $dir;
+		if (isset($this->filelists[$dir])) {
+			return $this->filelists[$dir];
+		}
 		$res = $this->type->filelist($dir, $this->name, $this->data, $this->item);
 		if (is_null($dir)) $this->orig_files = $res;
-		return $res;
+		return $this->filelists[$dir] = $res;
 	}
 	
 	public function mods_filelist() {
@@ -351,13 +370,19 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 		$file = $files_flat[$index];
 		$gindex = array_search($file, $files);
 		if ($gindex === FALSE) return null;
-		return $this->create_item($file, $gindex);
+		return $this->create_item($file, $gindex, $this->dir());
 	}
 
-	protected function create_item($file, $gindex) {
-		$item = new CMS_Fields_Types_Gallery_ItemContainer($this->name, $this->data, $this->item, $this->type);
-		$item->set_parent($this)->set_file($file, $gindex)->set_mods($this->mods);
+	protected function create_item($file, $gindex, $dir = null) {
+		$item_class = $this->get_item_class();
+		$item = Core::make($item_class, $this->name, $this->data, $this->item, $this->type);
+		$item->set_parent($this)->set_file($file, $gindex, $dir)->set_mods($this->mods);
 		return $item;
+	}
+
+	public function get_item_class()
+	{
+		return isset($this->data['item_class']) ? $this->data['item_class'] : 'CMS.Fields.Types.Gallery.ItemContainer';
 	}
 
 	public function offsetGet($index) {
@@ -369,10 +394,11 @@ class CMS_Fields_Types_Gallery_ValueContainer extends CMS_Fields_Types_Image_Mod
 		$files = $this->files_names($this->filelist());
 		$files_flat = array_values($files);
 		$count = count($files);
+		$dir = $this->dir();
 		for ($i = 0; $i < $count; $i++) {
 			$file = $files_flat[$i];
 			$gindex = array_search($file, $files);
-			$values[$gindex] = $this->create_item($file, $gindex);
+			$values[$gindex] = $this->create_item($file, $gindex, $dir);
 		}
         return new ArrayIterator($values);
     }
@@ -395,17 +421,24 @@ class CMS_Fields_Types_Gallery_ItemContainer extends CMS_Fields_Types_Gallery_Va
 		return $this;
 	}
 
-	public function set_file($name, $index) {
+	public function set_file($name, $index, $dir = null) {
 		$this->file_name = $name;
 		$this->index = $index;
 		$data = $this->files_data();
 		$this->file_data = $data['files'][$index];
-		$dir = $this->dir();
-		if ($this->parent->fullsize) {
-			$dir = $this->mods_reset()->preset($this->parent->fullsize)->cached_path();
+		if (is_null($dir)) {
+			$dir = $this->dir();
 		}
 		$this->file_data['orig_path'] = $dir . '/' . $this->file_name;
 		$this->file_data['orig_url'] = $this->value_to_url($this->file_data['orig_path']);
+		if ($this->parent->fullsize) {
+			$this->fullsize($this->parent->fullsize);
+			$fdir = $this->mods_reset()->preset($this->parent->fullsize)->cached_path();
+			$this->file_data['fullsize_path'] =  $fdir . '/' . $this->file_name;
+		} else {
+			$this->file_data['fullsize_path'] = $this->file_data['orig_path'];
+		}
+		$this->file_data['fullsize_url'] = $this->value_to_url($this->file_data['fullsize_path']);
 		return $this;
 	}
 
@@ -436,8 +469,9 @@ class CMS_Fields_Types_Gallery_ItemContainer extends CMS_Fields_Types_Gallery_Va
 	}
 
 	public function offsetGet($name) {
-		if (in_array($name, array('path', 'url')))
+		if (in_array($name, array('path', 'url'))) {
 			$this->cached_path();
+		}
 		if (isset($this->file_data[$name])) return $this->file_data[$name];
 		return null;
 	}

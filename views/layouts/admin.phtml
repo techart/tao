@@ -1,19 +1,17 @@
 <?php
-  //TODO: разобраться с путями для layout
-  $this->allow_filtering(false);
-  $this->no_duplicates_in('js');
-  // $this->use_onpage_to_file('js');
-  // $this->use_onpage_to_file('css');
-  $this->meta->http_content_type = "text/html; charset=utf-8";
+	$this->use_style('/tao/styles/normalize.css',array('type' => 'lib','weight' => -100));
+
+	$this->allow_filtering(false);
+	$this->no_duplicates_in('js');
+	$this->meta->http_content_type = "text/html; charset=utf-8";
 	$title = CMS::lang(trim(CMS::vars()->get('admin.title')));
 	$this->meta->title = $title;
 	$this->use_script(CMS_Admin::$jquery, array('type' => 'lib', 'weight' => -20));
 	if (!isset($logo_width)) $logo_width = 140;
 	if (!isset($logo_height)) $logo_height = 80;
 	$this->
-		use_styles('/tao/styles/normalize.css')->
-		use_styles('/tao/styles/admin/layout.css')->
-		use_styles('/tao/styles/admin/menu.css')->
+		use_styles('admin/layout.css')->
+		use_styles('admin/menu.css')->
 		use_styles('/tao/styles/admin/controls.css')->
 		use_styles('/tao/styles/jquery/modalbox.css')->
 		use_scripts('/tao/scripts/jquery/popup/modalbox.js')->

@@ -14,13 +14,13 @@ if (!isset($caption)) $caption = false;
 
 $caption_styles = '';
 
-
-Events::call('cms.insertions.img.default_args',$image_args);
+Events::call("cms.insertions.img-all.default_args",$image_args);
+Events::call("cms.insertions.{$insertion_name}.default_args",$image_args);
 foreach($args_array as $arg) {
 	$image_args[] = $arg;
 }
-
-Events::call('cms.insertions.img.args',$image_args);
+Events::call("cms.insertions.img-all.args",$image_args);
+Events::call("cms.insertions.{$insertion_name}.args",$image_args);
 
 foreach($image_args as $arg) {
 	$arg = trim($arg);

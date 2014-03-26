@@ -307,7 +307,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 				if ($count > $this->limit) {
 					$break = true;
 				}
-			} else if (count($ids) >= $this->limit * $this->chunks_break) {
+			} else if ($count >= $this->limit * $this->chunks_break) {
 				$break = true;
 			}
 			// if ($break) {

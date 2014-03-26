@@ -101,6 +101,9 @@ class CMS_Fields_Types_TreeSelect extends CMS_Fields_AbstractField implements Co
 					$out[$key][$options['disabled_name']] = $item[$options['disabled_name']];
 				}
 				if (!empty($item[$options['childs_name']])) {
+					if (Core_Types::is_callable($item[$options['childs_name']])) {
+						$item[$options['childs_name']] = Core::invoke($item[$options['childs_name']]);
+					}
 					$out[$key][$options['childs_name']] = array();
 					$this->tree_generation($out[$key][$options['childs_name']], $flat_out, $item[$options['childs_name']], $options, $data);
 				}

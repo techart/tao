@@ -698,15 +698,17 @@ class DB_CursorIterator implements Iterator {
 	
 	/** @var DB_Cursor Курсор */
 	protected $cursor;
+	protected $key;
 
 	/**
 	 * Конструктор
 	 * 
 	 * @params DB_Cursor $cursor Курсор
 	 */
-	public function __construct(DB_Cursor $cursor)
+	public function __construct(DB_Cursor $cursor, $key = null)
 	{
 		$this->cursor = $cursor;
+		$this->key = $key;
 	}
 
 	/**
@@ -726,7 +728,11 @@ class DB_CursorIterator implements Iterator {
 	 */
 	public function key()
 	{
-		return $this->cursor->num_of_fetched - 1;
+		if (!$this->key) {
+			return $this->cursor->num_of_fetched - 1;
+		} else {
+			return $this->cursor->row[$this->key];
+		}
 	}
 
 	/**
@@ -1196,9 +1202,9 @@ class DB_Cursor implements Core_PropertyAccessInterface, IteratorAggregate
 	 * 
 	 * @return DB_CursorIterator
 	 */
-	public function getIterator()
+	public function getIterator($key = null)
 	{
-		return new DB_CursorIterator($this);
+		return new DB_CursorIterator($this, $key);
 	}
 
 	/**

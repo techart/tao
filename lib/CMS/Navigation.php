@@ -19,7 +19,7 @@ class CMS_Navigation implements Core_ModuleInterface {
 		Navigation::option('navigation_set_class', 'CMS.Navigation.Set');
 	}
 
-	static public function layout($v=hull)
+	static public function layout($v=null)
 	{
 		return Navigation::layout($v);
 	}

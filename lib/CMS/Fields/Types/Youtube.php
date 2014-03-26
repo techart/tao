@@ -211,7 +211,7 @@ class CMS_Fields_Types_Youtube_ValueContainer extends CMS_Fields_Types_Image_Mod
 
 	protected function create_parms_array($parms) {
 		foreach($parms as $parm) {
-			if($this->get_parm($parm))
+			if(!is_null($this->get_parm($parm)))
 				$ret[$parm] = $this->get_parm($parm);
 		}
 		return $ret;

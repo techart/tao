@@ -13,7 +13,7 @@ Core::load('WS', 'Events');
  */
 class CMS implements Core_ModuleInterface {
 	const MODULE  = 'CMS';
-	const VERSION = '2.0.28';
+	const VERSION = '2.1.28';
 
 	static $libpath		= '';
 	static $taopath		= '';
@@ -281,8 +281,6 @@ class CMS implements Core_ModuleInterface {
 		Core::load('Events');
 		Core::load('CMS.Component');
 		Core::load('Templates.HTML');
-		Core::load('Templates.HTML.Forms');
-		Core::load('Templates.HTML.Assets');
 		Core::load('Forms');
 		Core::load('IO.FS');
 		Core::load('CMS.Controller');
@@ -749,18 +747,23 @@ class CMS implements Core_ModuleInterface {
 		// return "/component-static/$component/$file/$m/";
 	}
 
+	static function component_path($file,$component=false)
+	{
+		if (!$component) $component = self::$current_component_name;
+		$app_path = self::component_dir($component)."/app/$file";
+		if (is_file($app_path)) {
+			return $app_path;
+		}
+		$path = self::component_dir($component)."/$file";
+		return $path;
+	}
+
 /**
  * Возвращает конструкцию вида file://.... для файла из каталога текущего компонента
  * 
  */
 	static function component_static_path($file,$component=false) {
-		if (!$component) $component = self::$current_component_name;
-		$app_path = self::component_dir($component)."/app/$file";
-		if (is_file($app_path)) {
-			return "file://".$app_path;
-		}
-		$path = self::component_dir($component)."/$file";
-		return "file://".$path;
+		return "file://".self::component_path($file,$component);
 	}
 
 
@@ -887,12 +890,14 @@ class CMS implements Core_ModuleInterface {
  * @param string $text
  */
 	static function log($name,$text) {
+		$filename = "../logs/$name.log";
 		$text = trim($text);
-		$f = fopen("../logs/$name.log","a");
+		$f = fopen($filename,"a");
 		$t = date('Y-m-d G:i:s');
 		$ip = self::ip();
 		fputs($f, "$t [$ip] $text\n");
 		fclose($f);
+		CMS::chmod_file($filename);
 	}
 
 

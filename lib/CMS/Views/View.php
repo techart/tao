@@ -36,5 +36,24 @@ class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInter
 		return $paths;
 	}
 
+	public function use_file(array $file, $type = null) {
+		$path = $file['name'];
+		if (!Templates_HTML::path($type, $path)) {
+			if (!is_null($type)) {
+				$paths = Templates_HTML::option('paths');
+				$prefix = $paths[$type];
+				if (!Core_Strings::starts_with($path, $prefix)) {
+					$path = $prefix . '/' . ltrim($path, '/');
+				}
+			}
+			$component_url =  CMS::component_static_path($path);
+			$component_path = str_replace('file://', '', $component_url);
+			if (is_file($component_path)) {
+				$file['name'] = $component_url;
+			}
+		}
+		return parent::use_file($file, $type);
+	}
+
 }
 

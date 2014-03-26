@@ -29,8 +29,8 @@ class CMS_Redactor_Epic extends CMS_Redactor_AbstractEditor implements Core_Modu
 	protected function libraries_files()
 	{
 		return array(
-			array('name' => 'editors/epiceditor/js/epiceditor.js', 'type' => 'lib', 'weight' => -1),
-			array('name' => 'editors/reMarked.js')
+			array('name' => '/editors/epiceditor/js/epiceditor.js', 'type' => 'lib', 'weight' => -1),
+			array('name' => '/editors/reMarked.js')
 		);
 	}
 	

@@ -362,8 +362,8 @@ class Forms_Commons_ObjectMultiSelectField extends Forms_Commons_CollectionField
  * @param  $source
  */
   public function load($source) {
-    if (isset($source[$this->name]) && (is_array($source[$this->name]) || $source[$this->name] instanceof Traversable)) {
-      $this->value = array();
+    $this->value = array();
+    if (isset($source[$this->name]) && (is_array($source[$this->name]) || $source[$this->name] instanceof Traversable)) { 
       foreach ($source[$this->name] as $v)
        if (isset($this->index[$v])) {
          $item = $this->items[$this->index[$v]];

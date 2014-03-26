@@ -107,22 +107,27 @@ class JSON_Converter {
 /**
  * @param Object_AttrListInterface $object
  * @param  $flavor
+ * @param  $columns
  * @return string
  */
-  public function from(Object_AttrListInterface $object, $flavor = null) {
-    return $this->encode_object($object, $flavor);
+  public function from(Object_AttrListInterface $object, $flavor = null, $columns = array()) {
+    return $this->encode_object($object, $flavor, $columns);
   }
 
 /**
  * @param  $items
  * @param  $flavor
+ * @param  $columns
  * @return string
  */
-  public function from_collection($items, $flavor = null) {
+  public function from_collection($items, $flavor = null, $columns = array()) {
     $r = array();
     foreach ($items as $item)
-      if ($item instanceof Object_AttrListInterface)
-        $r[] = $this->encode_object($item, $flavor);
+      if ($item instanceof Object_AttrListInterface) {
+        $r[] = $this->encode_object($item, $flavor, $columns);
+      } elseif (is_array($item)) {
+        $r[] = $this->encode_scalar($item, null);
+      }
     return $r;
   }
 
@@ -130,10 +135,11 @@ class JSON_Converter {
  * @param Object_AttrListInterface $object
  * @param string $json
  * @param  $flavor
+ * @param  $columns
  * @return object
  */
-  public function to(Object_AttrListInterface $object, $json, $flavor = null) {
-    return $this->decode_object(is_string($json) ? json_decode($json) : $json, $object, $flavor);
+  public function to(Object_AttrListInterface $object, $json, $flavor = null, $columns = array()) {
+    return $this->decode_object(is_string($json) ? json_decode($json) : $json, $object, $flavor, $columns);
   }
 
 
@@ -205,7 +211,7 @@ class JSON_Converter {
  * @param  $flavor
  * @return object
  */
-  protected function encode_object(Object_AttrListInterface $object, $flavor = null) {
+  protected function encode_object(Object_AttrListInterface $object, $flavor = null, $columns = array()) {
     if (method_exists($object, 'encode')) {
       $r = $object->encode($flavor);
       if (!is_null($r)) {
@@ -214,9 +220,13 @@ class JSON_Converter {
     }
     $r = new stdClass();
     foreach ($object->__attrs($flavor) as $attr) {
+      if (count($columns) > 0 && !in_array($attr->name, $columns)) {
+        continue;
+      }
+
       switch (true) {
         case $attr->is_object():
-          $r->{$attr->name} = $this->encode_object($object->{$attr->name}, $flavor);
+          $r->{$attr->name} = $object->{$attr->name} ? $this->encode_object($object->{$attr->name}, $flavor) : null;
           break;
         case $attr->is_collection():
           $r->{$attr->name} = $this->encode_collection($object, $attr, $flavor);
@@ -233,14 +243,15 @@ class JSON_Converter {
  * @param Object_AttrListInterface $object
  * @param Object_Attribute $attr
  * @param  $flavor
+ * @param  $columns
  * @return array
  */
-  protected function encode_collection(Object_AttrListInterface $object, Object_Attribute $attr, $flavor = null) {
+  protected function encode_collection(Object_AttrListInterface $object, Object_Attribute $attr, $flavor = null, $columns = array()) {
     $items = array();
 
     foreach ($object->{$attr->name} as $item)
       if (is_object($item) && $item instanceof Object_AttrListInterface)
-        $items[] = $this->encode_object($item, $flavor);
+        $items[] = $this->encode_object($item, $flavor, $columns);
       else
         $items[] = $this->encode_scalar($item, $attr);
 
@@ -316,9 +327,10 @@ class JSON_Converter {
  * @param object $json
  * @param Object_AttrListInterface $object
  * @param  $flavor
+ * @param  $columns
  * @return object
  */
-  public function decode_object($json, Object_AttrListInterface $object, $flavor = null) {
+  public function decode_object($json, Object_AttrListInterface $object, $flavor = null, $columns = array()) {
     if (method_exists($object, 'decode')) {
       $r = $object->decode($json, $flavor);
       if (!is_null($r)) {
@@ -326,6 +338,10 @@ class JSON_Converter {
       }
     }
     foreach ($object->__attrs($flavor) as $attr) {
+      if (count($columns) > 0 && !in_array($attr->name, $columns)) {
+        continue;
+      }
+
       if (isset($json->{$attr->name}))
         switch (true) {
           case $attr->is_object() && is_object($json->{$attr->name}):
@@ -347,9 +363,10 @@ class JSON_Converter {
  * @param Object_AttrsListInterface $object
  * @param Object_Attribute $attr
  * @param  $flavor
+ * @param  $columns
  * @return object
  */
-  protected function decode_collection($json, Object_AttrListInterface $object, Object_Attribute $attr, $flavor = null) {
+  protected function decode_collection($json, Object_AttrListInterface $object, Object_Attribute $attr, $flavor = null, $columns = array()) {
     $operation = isset($attr->operation) ? $attr->operation : 'append';
     foreach ($json->{$attr->name} as $v) {
       if (Core_Types::is_subclass_of('Object_AttrListInterface', $attr->items))

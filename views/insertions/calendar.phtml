@@ -1,0 +1,101 @@
+<?php
+
+$year = (int)date('Y');
+$month = (int)date('m');
+$day = false;
+$router = false;
+$orm = false;
+$cache = false;
+$component = false;
+
+foreach($args_array as $arg) {
+	$arg = strtolower(trim($arg));
+	$iarg = (int)$arg;
+	if ($iarg>=1970) {
+		$year = $iarg;
+	}
+	elseif ($iarg>0&&$iarg<13) {
+		$month = $iarg;
+	}
+	elseif ($arg=='cache') {
+		$cache = true;
+	}
+	elseif ($m = Core_Regexps::match_with_results('{^[a-z_][a-z0-9_]*$}',$arg)) {
+		$component = $arg;
+	}
+	elseif ($m = Core_Regexps::match_with_results('{^(year|month|day|component)\s*(:|=)\s*(.+)$}',$arg)) {
+		$k = trim($m[1]);
+		$v = trim($m[3]);
+		$$k = $v;
+	}
+}
+
+Events::call("cms.insertions.calendar.setup",$router,$orm,$cache);
+if ($component) {
+	Events::call("cms.insertions.calendar.{$component}.setup",$router,$orm,$cache);
+}
+
+if ($year) {
+	$year = (int)$year;
+}
+
+if ($month) {
+	$month = (int)$month;
+}
+
+if ($day) {
+	$day = (int)$day;
+}
+
+if ($cache===true) {
+	$cache = "tao:informer:calendar:{$component}";
+}
+
+
+$data = false;
+
+if ($cache) {
+	$cache .= ":{$year}-{$month}";
+	$data = WS::env()->cache->get($cache);
+}
+
+if (!$data) {
+	$data = array();
+	$n = 0;
+	$numdays = (int)date('t',CMS::s2date("1.{$month}.{$year}"));
+	while(true) {
+		$n++;
+		$d = CMS::s2date("{$n}.{$month}.{$year}");
+		if ($n>$numdays) {
+			break;
+		}
+		$w = date('N',$d);
+		if ($w==1||$n==1) {
+			$data[] = array();
+		}
+		$holiday = $w>5;
+		Events::call('cms.calendar.is_holiday',$d,$holiday);
+		$count = is_callable($orm)?call_user_func($orm,$year,$month,$n):0;
+		$url = is_callable($router)?call_user_func($router,$year,$month,$n):false;
+		$data[count($data)-1][$w] = array(
+			'day' => $n,
+			'holiday' => $holiday,
+			'count' => $count,
+			'url' => $url,
+		);
+	}
+}
+
+if ($cache) {
+	WS::env()->cache->set($cache,$data);
+}
+
+
+print $this->partial('calendar',array(
+	'url' => is_callable($router)? call_user_func($router,$year,$month) : false,
+	'year' => $year,
+	'month' => $month,
+	'day' => $day,
+	'data' => $data,
+	'component' => $component,
+));

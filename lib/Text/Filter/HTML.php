@@ -9,7 +9,7 @@ Core::load('Text.Process');
 class Text_Filter_HTML implements Core_ModuleInterface, Text_Process_ProcessInterface {
   const VERSION = '0.1.0';
   
-  protected $allowed_tags = array('a', 'em', 'strong', 'cite', 'code', 'ul', 'ol', 'li', 'dl', 'dt', 'dd');
+  protected $allowed_tags = array('a', 'em', 'strong', 'cite', 'code', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'br');
   
   public function configure($config) {
     if (isset($config['tags']))
