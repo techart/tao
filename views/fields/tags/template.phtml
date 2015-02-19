@@ -1,8 +1,44 @@
 <?php
+$this->use_styles('fields/tags.css');
+$this->use_scripts('fields/tags.js');
 
 if ((int)$item_id==0) {
 	print CMS::lang()->_common->unable_in_add;
 } else {
-	print $this->forms->textarea($_name,$tagparms); 
+	$items = isset($data['items'])? CMS::items_for_select($data['items']) : false;
+	if ($items) {
+		$style = isset($data['style'])? $data['style'] : '';
+		?><div class="fields-tags-multilinks" style="<?= $style ?>"><?php
+		foreach($items as $_id => $_title) {
+			print $this->forms->checkbox("{$_name}{$_id}");
+			print "&nbsp;{$_title}<br>";
+		}
+		?></div><?php
+	} else {
+		print $this->forms->textarea($_name,$tagparms); 
+		if (isset($data['select'])) {
+			$table = $item->mapper->options['table'][0];
+			$tags = CMS_Fields_Types_Tags::get_all_tags($table,$_name);
+			$links = '';
+			foreach($tags as $_id => $_title) {
+				$del_url = CMS::$current_controller->field_action_url($_name,'delete',$item,array('tag_id'=>$_id));
+				$links .= "<span data-id='{$_id}' data-del='{$del_url}'>{$_title}</span>&nbsp;&nbsp; ";
+			}
+			if ($data['select']=='links') {
+				?>
+				<div class="tao-fields-tags-select-links tao-fields-tags-select-<?= $table ?>-<?= $_name ?>">
+					<?= $links ?>
+				</div>
+				<script type="text/javascript">
+				<!--
+					$(function() {
+						tao_fields_tags_init('<?= $table ?>','<?= $_name ?>','<?= $form->name?>_<?= $_name ?>');
+					});
+				//-->
+				</script>
+				<?php
+			}
+		}
+	}
 }
 

@@ -1,26 +1,31 @@
 <?php
+
 /**
  * @package Templates\HTML\Assets\Postprocess\Minify
  */
-
- class Templates_HTML_Assets_Postprocess_Minify implements Core_ConfigurableModuleInterface
- {
+class Templates_HTML_Assets_Postprocess_Minify implements Core_ConfigurableModuleInterface
+{
 	const VERSION = '0.1.0';
 
 	static protected $options = array(
 		'minify_php_dir' => '../vendor/Minify/'
 	);
 
-	static public function initialize(array $options = array()) {
+	static public function initialize(array $options = array())
+	{
 		self::options($options);
 	}
 
-	static public function option($name, $value = null) {
-		if (is_null($value)) return self::$options[$name];
+	static public function option($name, $value = null)
+	{
+		if (is_null($value)) {
+			return self::$options[$name];
+		}
 		return self::$options[$name] = $value;
 	}
 
-	static public function options(array $options = array()) {
+	static public function options(array $options = array())
+	{
 		self::$options = array_merge(self::$options, $options);
 	}
 }
@@ -67,7 +72,7 @@ class Templates_HTML_Assets_Postprocess_Minify_JSPostprocessor extends Templates
 	{
 		if (!class_exists('JSMinPlus')) {
 			$dir = Templates_HTML_Assets_Postprocess_Minify::option('minify_php_dir');
-			require_once($dir . 'JSMin/JSMin.php');
+			require_once($dir . 'JSMinPlus/JSMinPlus.php');
 		}
 		if ($this->filter($path, $data)) {
 			if (empty($content)) {

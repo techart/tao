@@ -2,12 +2,12 @@
 /**
  * EpicEditor редактор
  *
- * @author Svistunov <svistunov@techart.ru>
+ * @author   Svistunov <svistunov@techart.ru>
  *
  * @version  0.1.0
  *
- * @package CMS\Redactor
- * 
+ * @package  CMS\Redactor
+ *
  */
 
 Core::load('CMS.Redactor');
@@ -16,7 +16,7 @@ Core::load('CMS.Redactor');
  * EpicEditor редактор. Класс модуля.
  *
  * @package CMS\Redactor
- * 
+ *
  */
 class CMS_Redactor_Epic extends CMS_Redactor_AbstractEditor implements Core_ModuleInterface
 {
@@ -24,6 +24,7 @@ class CMS_Redactor_Epic extends CMS_Redactor_AbstractEditor implements Core_Modu
 	 * Библиотечные файлы
 	 *
 	 * Обычно список файлов для подключения плагина
+	 *
 	 * @return array
 	 */
 	protected function libraries_files()
@@ -33,9 +34,10 @@ class CMS_Redactor_Epic extends CMS_Redactor_AbstractEditor implements Core_Modu
 			array('name' => '/editors/reMarked.js')
 		);
 	}
-	
+
 	/**
 	 * Настройки по умолчанию
+	 *
 	 * @return array
 	 */
 	public function default_settings()

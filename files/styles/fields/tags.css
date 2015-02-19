@@ -1,0 +1,13 @@
+.tao-fields-tags-select-links {
+	font-size: 11px;
+	color: #888;
+}
+
+	.tao-fields-tags-select-links span {
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+		.tao-fields-tags-select-links span:hover {
+			color: #000;
+		}

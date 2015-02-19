@@ -1,5 +1,5 @@
 <div class="field field-multivalue">
-<?php if(!$item->is_phantom()) {
+<?php if($item && !$item->is_phantom()) {
 	print $this->partial($type_object->template($data, 'items'));
 	print $this->partial($type_object->template($data, 'add'), array('item' => $item));
 } else {

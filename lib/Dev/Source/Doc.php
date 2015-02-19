@@ -1,126 +1,141 @@
 <?php
 /**
  * Dev.Source.Doc
- * 
+ *
  * @package Dev\Source\Doc
  * @version 0.1.0
  */
-Core::load('XML','CLI.Application', 'Proc', 'Dev.Source', 'Object');
+Core::load('XML', 'CLI.Application', 'Proc', 'Dev.Source', 'Object');
+
 /**
  * @package Dev\Source\Doc
  */
-class Dev_Source_Doc implements Core_ModuleInterface, CLI_RunInterface {
-  const VERSION = '0.1.0';
+class Dev_Source_Doc implements Core_ModuleInterface, CLI_RunInterface
+{
+	const VERSION = '0.1.0';
 
-/**
- * @param array $argv
- */
-  static public function main(array $argv) { Core::with(new Dev_Source_Doc_Application())->main($argv); }
+	/**
+	 * @param array $argv
+	 */
+	static public function main(array $argv)
+	{
+		Core::with(new Dev_Source_Doc_Application())->main($argv);
+	}
 }
 
 /**
  * @package Dev\Source\Doc
  */
-class Dev_Source_Doc_LibraryDirGenerator {
-  protected $path_to_library;
-  protected $path_to_html;
-  protected $toc;
+class Dev_Source_Doc_LibraryDirGenerator
+{
+	protected $path_to_library;
+	protected $path_to_html;
+	protected $toc;
 
-/**
- * @param string $path_to_library
- * @param string $path_to_html
- */
-  public function __construct($path_to_library, $path_to_html) {
-    $this->path_to_library = rtrim((string) $path_to_library, '/');
-    $this->path_to_html = rtrim((string) $path_to_html, '/');
+	/**
+	 * @param string $path_to_library
+	 * @param string $path_to_html
+	 */
+	public function __construct($path_to_library, $path_to_html)
+	{
+		$this->path_to_library = rtrim((string)$path_to_library, '/');
+		$this->path_to_html = rtrim((string)$path_to_html, '/');
 
-    $this->toc = array();
-  }
+		$this->toc = array();
+	}
 
+	/**
+	 */
+	public function generate()
+	{
+		foreach (new Dev_Source_LibraryDirIterator($this->path_to_library) as $module_name => $module) {
+			if (Core_Strings::contains($module_name, '.')) {
+				$file_place = $this->path_to_html . "/" . Core_Regexps::replace('{/\w+$}', '', Core_Strings::replace($module_name, '.', '/'));
+				if (!IO_FS::exists($file_place)) {
+					IO_FS::mkdir($file_place, 0775, true);
+				}
+			}
+			try {
+				$module_generator = new Dev_Source_Doc_ModuleGenerator(
+					$module, $this->path_to_html . "/" . Core_Strings::replace($module_name, '.', '/'));
+				$module_generator->write();
+				$module_generator->write_diagram();
+				$this->add_to_toc($module_generator);
+			} catch (Dev_Source_InvalidSourceException$e) {
+			}
+		}
+		$this->write_css();
+		$this->write_toc();
+		$this->write_index();
+	}
 
-/**
- */
-  public function generate() {
-    foreach (new Dev_Source_LibraryDirIterator($this->path_to_library) as $module_name => $module) {
-      if (Core_Strings::contains($module_name, '.')) {
-        $file_place = $this->path_to_html."/".Core_Regexps::replace('{/\w+$}', '', Core_Strings::replace($module_name, '.', '/'));
-        if (!IO_FS::exists($file_place))
-          IO_FS::mkdir($file_place , 0775, true);
-      }
-      try {
-        $module_generator = new Dev_Source_Doc_ModuleGenerator(
-          $module, $this->path_to_html."/".Core_Strings::replace($module_name, '.', '/'));
-        $module_generator->write();
-        $module_generator->write_diagram();
-        $this->add_to_toc($module_generator);
-      } catch (Dev_Source_InvalidSourceException$e) {
-      }
-    }
-    $this->write_css();
-    $this->write_toc();
-    $this->write_index();
-  }
+	/**
+	 */
+	protected function write_toc()
+	{
+		$toc_dom = XML::Builder();
 
-/**
- */
-  protected function write_toc() {
-    $toc_dom = XML::Builder();
+		$modules_dom = $toc_dom->begin_html()->begin_head()->title('Library Documentation')->
+			link(array('rel' => 'stylesheet', 'type' => 'text/css', 'href' => 'style.css'))->end->
+			begin_body()->begin_ul(array('class' => 'modules'));
+		ksort($this->toc);
 
-    $modules_dom = $toc_dom->begin_html()->begin_head()->title('Library Documentation')->
-      link(array('rel'=> 'stylesheet', 'type'=> 'text/css', 'href' => 'style.css'))->end->
-      begin_body()->begin_ul(array('class' => 'modules'));
-    ksort($this->toc);
+		foreach ($this->toc as $module_name => $module) {
+			$module_dom = $modules_dom->begin_li()->a(array($module_name,
+					'href' => $module['href'], 'target' => 'content')
+			);
+			if ($module['interfaces'] != null) {
+				$interfaces_dom = $module_dom->begin_ul(array('class' => 'interfaces'));
+				ksort($module['interfaces']);
+				foreach ($module['interfaces'] as $interface_name => $interface_ref)
+					$interfaces_dom->begin_li()->a(array($interface_name, 'href' => $interface_ref, 'target' => 'content'));
+			}
+			$classes_dom = $module_dom->begin_ul(array('class' => 'classes'));
+			ksort($module['classes']);
+			foreach ($module['classes'] as $class_name => $class_ref)
+				$classes_dom->begin_li()->a(array($class_name, 'href' => $class_ref, 'target' => 'content'));
+		}
 
-    foreach ($this->toc as $module_name => $module) {
-      $module_dom = $modules_dom->begin_li()->a(array($module_name,
-        'href' => $module['href'], 'target' => 'content'));
-      if ($module['interfaces'] != null) {
-        $interfaces_dom = $module_dom->begin_ul(array('class' => 'interfaces'));
-          ksort($module['interfaces']);
-        foreach ($module['interfaces'] as $interface_name => $interface_ref)
-          $interfaces_dom->begin_li()->a(array($interface_name, 'href' => $interface_ref, 'target' => 'content'));
-      }
-      $classes_dom = $module_dom->begin_ul(array('class' => 'classes'));
-        ksort($module['classes']);
-      foreach ($module['classes'] as $class_name => $class_ref)
-        $classes_dom->begin_li()->a(array($class_name, 'href' => $class_ref, 'target' => 'content'));
-    }
+		IO_FS::File($this->path_to_html . "/toc.html")->open('w+')->
+			write($toc_dom->document->saveHTML())->close();
+	}
 
-    IO_FS::File($this->path_to_html."/toc.html")->open('w+')->
-      write($toc_dom->document->saveHTML())->close();
-  }
+	/**
+	 * @param Dev_Source_Doc_ModuleGenerator $module_generator
+	 */
+	protected function add_to_toc(Dev_Source_Doc_ModuleGenerator $module_generator)
+	{
+		$this->toc[$module_generator->module->name] = array('href' => $module_generator->ref,
+			'classes' => $module_generator->classes, 'interfaces' => $module_generator->interfaces);
+	}
 
-/**
- * @param Dev_Source_Doc_ModuleGenerator $module_generator
- */
-  protected function add_to_toc(Dev_Source_Doc_ModuleGenerator $module_generator) {
-    $this->toc[$module_generator->module->name] = array('href' => $module_generator->ref,
-      'classes' => $module_generator->classes, 'interfaces' => $module_generator->interfaces);
-  }
+	/**
+	 */
+	protected function write_css()
+	{
+		IO_FS::File($this->path_to_html . "/style.css")->
+			open('w+')->write(self::css())->close();
+	}
 
-/**
- */
-  protected function write_css() {
-    IO_FS::File($this->path_to_html."/style.css")->
-      open('w+')->write(self::css())->close();
-  }
+	/**
+	 */
+	protected function write_index()
+	{
+		IO_FS::File($this->path_to_html . "/index.html")->
+			open('w+')->write(self::index_html())->close();
+	}
 
-/**
- */
-  protected function write_index() {
-    IO_FS::File($this->path_to_html."/index.html")->
-      open('w+')->write(self::index_html())->close();
-  }
-
-  public static function css() {
-    return <<<CSS
+	public static function css()
+	{
+		return <<<CSS
     --body { color: red;}
 CSS;
 
-  }
+	}
 
-  public static function index_html() {
-    return <<<HTML
+	public static function index_html()
+	{
+		return <<<HTML
 <!DOCTYPE html
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -139,100 +154,116 @@ CSS;
 </html>
 
 HTML;
-  }
-
+	}
 
 }
 
 /**
  * @package Dev\Source\Doc
  */
-class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
-  protected $path;
-  protected $module;
-  protected $ref;
-  protected $classes;
-  protected $interfaces;
-  static $listeners;
+class Dev_Source_Doc_ModuleGenerator extends Object_Struct
+{
+	protected $path;
+	protected $module;
+	protected $ref;
+	protected $classes;
+	protected $interfaces;
+	static $listeners;
 
-/**
- * @param Dev_Source_Module $module
- * @param path $path
- */
-  public function __construct(Dev_Source_Module $module, $path) {
-    $this->module = $module;
-    $this->path = $path;
-    $this->ref = Core_Strings::replace($this->module->name, '.', '/').".html";
-  }
+	/**
+	 * @param Dev_Source_Module $module
+	 * @param path              $path
+	 */
+	public function __construct(Dev_Source_Module $module, $path)
+	{
+		$this->module = $module;
+		$this->path = $path;
+		$this->ref = Core_Strings::replace($this->module->name, '.', '/') . ".html";
+	}
 
+	/**
+	 * @param Dev_Source_Doc_ModuleGeneratorListener $listener
+	 *
+	 * @return Dev_Source_Doc_ModuleGenerator
+	 */
+	static function listener(Dev_Source_Doc_ModuleGeneratorListener $listener)
+	{
+		if (!isset(self::$listeners)) {
+			self::$listeners = Object::Listener();
+		}
+		self::$listeners->append($listener);
+	}
 
-/**
- * @param Dev_Source_Doc_ModuleGeneratorListener $listener
- * @return Dev_Source_Doc_ModuleGenerator
- */
-  static function listener(Dev_Source_Doc_ModuleGeneratorListener $listener) {
-    if (!isset(self::$listeners)) self::$listeners = Object::Listener();
-    self::$listeners->append($listener);
-  }
+	/**
+	 * @return mixed
+	 */
+	protected function get_interfaces()
+	{
+		if ($this->interfaces != null) {
+			return $this->interfaces;
+		}
+		foreach ($this->module->xml->getElementsByTagName('interface') as $k => $v) {
+			$name = $v->getAttribute('name');
+			$this->interfaces[$name] = $this->ref . '#i-' . Core_Strings::replace($name, '.', '-');
+		}
+		return $this->interfaces;
+	}
 
-/**
- * @return mixed
- */
-  protected function get_interfaces() {
-    if ($this->interfaces != null) return $this->interfaces;
-    foreach ($this->module->xml->getElementsByTagName('interface') as $k => $v) {
-      $name = $v->getAttribute('name');
-      $this->interfaces[$name] = $this->ref.'#i-'.Core_Strings::replace($name, '.', '-');
-    }
-    return $this->interfaces;
-  }
+	/**
+	 * @return mixed
+	 */
+	protected function get_classes()
+	{
+		if ($this->classes != null) {
+			return $this->classes;
+		}
+		$this->classes = array();
+		foreach ($this->module->xml->getElementsByTagName('class') as $k => $v) {
+			$name = $v->getAttribute('name');
+			$this->classes[$name] = $this->ref . '#c-' . Core_Strings::replace($name, '.', '-');
+		}
+		return $this->classes;
+	}
 
-/**
- * @return mixed
- */
-  protected function get_classes() {
-    if ($this->classes != null) return $this->classes;
-    $this->classes = array();
-    foreach ($this->module->xml->getElementsByTagName('class') as $k => $v) {
-      $name = $v->getAttribute('name');
-      $this->classes[$name] = $this->ref.'#c-'.Core_Strings::replace($name, '.', '-');
-    }
-    return $this->classes;
-  }
+	/**
+	 * @return Dev_Source_Doc_Generator
+	 */
+	public function write()
+	{
+		$xslt = new XSLTProcessor();
+		$xslt->registerPHPFunctions();
+		$xslt->importStylesheet(DOMDocument::loadXML(Dev_Source_Doc_ModuleGenerator::xslt()));
+		$stream = IO_FS::File($this->path . ".html")->open('w+');
+		$stream->write($xslt->transformToXML($this->module->xml));
+		$stream->close();
+		if (isset(self::$listeners)) {
+			self::$listeners->on_write($this);
+		}
+		return $this;
+	}
 
-/**
- * @return Dev_Source_Doc_Generator
- */
-  public function write() {
-    $xslt = new XSLTProcessor();
-    $xslt->registerPHPFunctions();
-    $xslt->importStylesheet(DOMDocument::loadXML(Dev_Source_Doc_ModuleGenerator::xslt()));
-    $stream = IO_FS::File($this->path.".html")->open('w+');
-    $stream->write($xslt->transformToXML($this->module->xml));
-    $stream->close();
-    if (isset(self::$listeners)) self::$listeners->on_write($this);
-    return $this;
-  }
+	/**
+	 */
+	public function write_diagram()
+	{
+		exec("bin/tao-source-diagram -o{$this->path}.png -Tpng {$this->module->name}");
+	}
 
-/**
- */
-  public function write_diagram() {
-    exec("bin/tao-source-diagram -o{$this->path}.png -Tpng {$this->module->name}");
-  }
+	/**
+	 * @return string
+	 */
+	static public function generate_imagemap($module_name)
+	{
+		exec("bin/tao-source-diagram -Tcmap {$module_name}", $ouput);
+		$res = '';
+		foreach ($ouput as $v)
+			$res .= $v . "\n";
+		return $res;
+	}
 
-/**
- * @return string
- */
-  static public function generate_imagemap($module_name) {
-    exec("bin/tao-source-diagram -Tcmap {$module_name}", $ouput);
-    $res = '';
-    foreach ($ouput as $v)
-      $res .= $v."\n";
-    return $res;
-  }
-
-  static function xslt() {
-    return <<<XSL
+	static function xslt()
+	{
+		return <<<XSL
 
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -511,88 +542,91 @@ class Dev_Source_Doc_ModuleGenerator  extends Object_Struct {
 
 XSL;
 
-  }
-
-
-}
-
-/**
- * @package Dev\Source\Doc
- */
-interface Dev_Source_Doc_ModuleGeneratorListener {
-
-/**
- * @param Dev_Source_Doc_ModuleGenerator $module_generator
- */
-  public function on_write(Dev_Source_Doc_ModuleGenerator $module_generator);
+	}
 
 }
 
 /**
  * @package Dev\Source\Doc
  */
-class Dev_Source_Doc_ApplicationListener implements Dev_Source_Doc_ModuleGeneratorListener {
-  protected $stream;
+interface Dev_Source_Doc_ModuleGeneratorListener
+{
 
-/**
- * @param IO_Stream_AbstractStream $stream
- */
-  public function __construct(IO_Stream_AbstractStream $stream = null) {
-    $this->stream = Core::if_null($stream, IO::stderr());
-  }
-
-
-
-/**
- * @param Dev_Source_Doc_ModuleGenerator $module_generator
- */
-  public function on_write(Dev_Source_Doc_ModuleGenerator $module_generator) {
-    $this->stream->write($module_generator->module->name."\n");
-  }
+	/**
+	 * @param Dev_Source_Doc_ModuleGenerator $module_generator
+	 */
+	public function on_write(Dev_Source_Doc_ModuleGenerator $module_generator);
 
 }
 
 /**
  * @package Dev\Source\Doc
  */
-class Dev_Source_Doc_Application extends CLI_Application_Base {
+class Dev_Source_Doc_ApplicationListener implements Dev_Source_Doc_ModuleGeneratorListener
+{
+	protected $stream;
+
+	/**
+	 * @param IO_Stream_AbstractStream $stream
+	 */
+	public function __construct(IO_Stream_AbstractStream $stream = null)
+	{
+		$this->stream = Core::if_null($stream, IO::stderr());
+	}
+
+	/**
+	 * @param Dev_Source_Doc_ModuleGenerator $module_generator
+	 */
+	public function on_write(Dev_Source_Doc_ModuleGenerator $module_generator)
+	{
+		$this->stream->write($module_generator->module->name . "\n");
+	}
+
+}
 
 /**
- * @param array $argv
- * @return int
+ * @package Dev\Source\Doc
  */
-  public function run(array $argv) {
-    if ($this->config->visible)
-      Dev_Source_Doc_ModuleGenerator::listener(new Dev_Source_Doc_ApplicationListener());
-    if (empty($this->config->module)) {
-      $library_generator = new Dev_Source_Doc_LibraryDirGenerator(
-        $this->config->library, $this->config->output);
-      $library_generator->generate();
-    }
-    else {
-      $module_generator = new Dev_Source_Doc_ModuleGenerator(
-        new Dev_Source_Module($this->config->module) , $this->config->output);
-      $module_generator->write_diagram();
-      $module_generator->write();
-    }
-    return 0;
-  }
+class Dev_Source_Doc_Application extends CLI_Application_Base
+{
 
+	/**
+	 * @param array $argv
+	 *
+	 * @return int
+	 */
+	public function run(array $argv)
+	{
+		if ($this->config->visible) {
+			Dev_Source_Doc_ModuleGenerator::listener(new Dev_Source_Doc_ApplicationListener());
+		}
+		if (empty($this->config->module)) {
+			$library_generator = new Dev_Source_Doc_LibraryDirGenerator(
+				$this->config->library, $this->config->output);
+			$library_generator->generate();
+		} else {
+			$module_generator = new Dev_Source_Doc_ModuleGenerator(
+				new Dev_Source_Module($this->config->module), $this->config->output);
+			$module_generator->write_diagram();
+			$module_generator->write();
+		}
+		return 0;
+	}
 
+	/**
+	 */
+	protected function setup()
+	{
+		$this->options->
+			brief('Dev.Source.Doc ' . Dev_Source_Doc::VERSION . ': TAO documentation generator')->
+			string_option('library', '-l', '--library', 'Path to library')->
+			string_option('module', '-m', '--module', 'Module name')->
+			boolean_option('visible', '-v', '--visible', 'Visible output process (wtf?')->
+			string_option('output', '-o', '--output', 'Path to output');
 
-/**
- */
-  protected function setup() {
-    $this->options->
-      brief('Dev.Source.Doc '.Dev_Source_Doc::VERSION.': TAO documentation generator')->
-      string_option('library',  '-l', '--library', 'Path to library')->
-      string_option('module',   '-m', '--module',  'Module name')->
-      boolean_option('visible', '-v', '--visible', 'Visible output process (wtf?')->
-      string_option('output',   '-o', '--output',  'Path to output');
-
-    $this->config->library = './lib';
-    $this->config->visible  = false;
-  }
+		$this->config->library = './lib';
+		$this->config->visible = false;
+	}
 
 }
 

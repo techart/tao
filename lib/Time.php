@@ -1,80 +1,79 @@
 <?php
 /**
  * Работа с датами
- * 
+ *
  * В PHP нет стандартного способа для работы с датами. Присутствующий в PHP класс DateTime
  * получил значительную часть необходимой функциональности только в версии 5.3, а на момент
  * начала разработки фреймворка плохо подходил для реальной работы. Поэтому было принято
  * решение реализовать собственный класс для представления моментов времени и использовать
  * его во всех модулях библиотеки. В дальнейшем, возможно, произойдет слияние этого класса
  * со стандартным DateTime.
- * 
+ *
  * Момент времени, представляемый экземпляром класса Time.DateTime, который наследуется от
  * стандартного класса DateTime. Такой подход имеет свои плюсы и минусы, в дальнейшем,
  * возможно, это решение будет пересмотрено.
- * 
- * @todo надо бы сделать методы которые не меняют состояния класса типа как в Ruby method и method!
- * 
- * @author Timokhin <timokhin@techart.ru>
- * 
+ *
+ * @todo    надо бы сделать методы которые не меняют состояния класса типа как в Ruby method и method!
+ *
+ * @author  Timokhin <timokhin@techart.ru>
+ *
  * @package Time
  */
 
-/** 
+/**
  * Класс модуля
- * 
- * Реализует набор фабричных методов для создания объектов класса Time.DateTime, 
+ *
+ * Реализует набор фабричных методов для создания объектов класса Time.DateTime,
  * и несколько вспомогательных методов.
- * 
- * @link http://www.php.net/manual/ru/datetime.formats.php
- * 
+ *
+ * @link    http://www.php.net/manual/ru/datetime.formats.php
+ *
  * @version 0.3.0
- * 
+ *
  * @package Time
  */
 class Time implements Core_ModuleInterface
 {
 	/** Имя модуля */
-	const MODULE  = 'Time';
-	
+	const MODULE = 'Time';
+
 	/** Версия модуля */
 	const VERSION = '0.3.0';
 
 	/** @todo to date format */
 	/** Y-m-d H:i:s */
-	const FMT_DEFAULT  = 'Y-m-d H:i:s';
-	
+	const FMT_DEFAULT = 'Y-m-d H:i:s';
+
 	/** d.m.Y H:i:s */
-	const FMT_DMYHMS   = 'd.m.Y H:i:s';
-	
+	const FMT_DMYHMS = 'd.m.Y H:i:s';
+
 	/** d.m.Y H:i */
-	const FMT_DMYHM    = 'd.m.Y H:i';
-	
+	const FMT_DMYHM = 'd.m.Y H:i';
+
 	/** d.m.Y */
-	const FMT_DMY      = 'd.m.Y';
-	
+	const FMT_DMY = 'd.m.Y';
+
 	/** Y-m-d */
-	const FMT_YMD      = 'Y-m-d';
-	
+	const FMT_YMD = 'Y-m-d';
+
 	/** m.d.Y */
-	const FMT_MDY      = 'm.d.Y';
-	
+	const FMT_MDY = 'm.d.Y';
+
 	/** H:i:s */
-	const FMT_HMS      = 'H:i:s';
-	
+	const FMT_HMS = 'H:i:s';
+
 	/** H:i */
-	const FMT_HM       = 'H:i';
-	
+	const FMT_HM = 'H:i';
+
 	/** D, d M Y H:i:s O */
-	const FMT_RFC1123  = 'D, d M Y H:i:s O';
-	
+	const FMT_RFC1123 = 'D, d M Y H:i:s O';
+
 	/** Y-m-d\TH:i:sO */
 	const FMT_ISO_8601 = "Y-m-d\TH:i:sO";
 
-
 	/**
-	* Регулярные выражения для автоматического определения формата даты
-	*/
+	 * Регулярные выражения для автоматического определения формата даты
+	 */
 	protected static $format_patters = array(
 		'{^\d+\.\d+\.\d+$}' => 'd.m.Y',
 		'{^\d+\.\d+\.\d+([\s-]+)\d+:\d+$}' => 'd.m.Y${1}H:i',
@@ -88,16 +87,16 @@ class Time implements Core_ModuleInterface
 	);
 
 	/**
-	* Добавление автоопределяемого формата
-	*/
+	 * Добавление автоопределяемого формата
+	 */
 	public static function add_format_pattern($regexp, $format)
 	{
 		self::$format_patters[$regexp] = $format;
 	}
 
 	/**
-	* Автоматическое определение формата даты
-	*/
+	 * Автоматическое определение формата даты
+	 */
 	public static function detect_format($string)
 	{
 		foreach (self::$format_patters as $pattern => $replace) {
@@ -109,43 +108,44 @@ class Time implements Core_ModuleInterface
 		return '';
 	}
 
-
 	/**
 	 * Создает объект класса Time_DateTime
-	 * 
+	 *
 	 * Момент времени может быть задан различными способами:
 	 * - в виде числа -- в этом случае число является значением UNIX timestamp;
 	 * - в виде строки -- в этом случае делается попытка разбора строки и создания
 	 * соответствущего объекта;
 	 * - в виде объекта класса Time.DateTime -- в этом случае метод просто возвращает этот объект.
-	 * 
-	 * Парсинг строки выполняется с помощью метода Time.DateTime::parse() без указания 
+	 *
+	 * Парсинг строки выполняется с помощью метода Time.DateTime::parse() без указания
 	 * формата, что, в свою очередь, приводит к вызову встроенной функции {@link http://php.ru/manual/function.strtotime.html strtotime()}.
-	 * 
-	 * @see Time_DateTime::parse()
-	 * 
+	 *
+	 * @see    Time_DateTime::parse()
+	 *
 	 * @params integer|string|object $timestamp Момент времени
-	 * 
+	 *
 	 * @return Time_DateTime
 	 */
 	static public function DateTime($timestamp = null)
 	{
-		if (is_null($timestamp)) return new Time_DateTime();
+		if (is_null($timestamp)) {
+			return new Time_DateTime();
+		}
 		switch (true) {
 			case $timestamp instanceof Time_DateTime:
-				return $timestamp;
-			case !is_object($timestamp) && (string) (int) $timestamp === (string) $timestamp:
+				return clone $timestamp;
+			case !is_object($timestamp) && (string)(int)$timestamp === (string)$timestamp:
 				$date = new Time_DateTime("@$timestamp");
 				$date->setTimezone(new DateTimeZone(date_default_timezone_get()));
 				return $date;
 			default:
-				return Time_DateTime::parse((string) $timestamp);
+				return Time_DateTime::parse((string)$timestamp);
 		}
 	}
 
 	/**
 	 * Создает объект класса Time_DateTime, соответствующий текущей дате
-	 * 
+	 *
 	 * @return Time_DateTime
 	 */
 	static public function now()
@@ -155,10 +155,10 @@ class Time implements Core_ModuleInterface
 
 	/**
 	 * Возвращает количество секунд между двумя датами
-	 * 
+	 *
 	 * @params Time_DateTime $from первая дата
 	 * @params Time_DateTime $to вторая дата
-	 * 
+	 *
 	 * @return integer
 	 */
 	static public function seconds_between(Time_DateTime $from, Time_DateTime $to)
@@ -168,18 +168,18 @@ class Time implements Core_ModuleInterface
 
 	/**
 	 * Создает объект класса Time_DateTime по набору параметров
-	 * 
+	 *
 	 * Набор параметров описывает момент времени. Псевдоним для  Time.DateTime::compose()
-	 * 
-	 * @see Time_DateTime::compose()
-	 * 
+	 *
+	 * @see    Time_DateTime::compose()
+	 *
 	 * @params integer $year год
 	 * @params integer $month месяц по умолчанию 1
 	 * @params integer $day день по умолчанию 1
 	 * @params integer $hour час по умолчанию 0
 	 * @params integer $minute минуты по умолчанию 0
 	 * @params integer $second секунды по умолчанию 0
-	 * 
+	 *
 	 * @return Time_DateTime|false
 	 */
 	static public function compose($year, $month = 1, $day = 1, $hour = 0, $minute = 0, $second = 0)
@@ -189,93 +189,94 @@ class Time implements Core_ModuleInterface
 
 	/**
 	 * Создает объект класса Time_DateTime на основании строкового представления даты
-	 * 
+	 *
 	 * Псевдоним для метода Time_DateTime::parse().
-	 * @see Time_DateTime::parse()
-	 * 
+	 *
+	 * @see    Time_DateTime::parse()
+	 *
 	 * @params string $string строка, представляющая дату
 	 * @params string $format строка формата по умолчанию пустая строка
-	 * 
+	 *
 	 * @return Time_DateTime
 	 */
 	static public function parse($string, $format = '')
 	{
 		return Time_DateTime::parse($string, $format);
 	}
-	
+
 	/**
 	 * Возвращает массив из двух дат в sql-datetime-форматеб которым соответствуют переданные значения.
 	 * Используется для формирования sql-запроса при выборке за год, месяц или день
-	 * 
+	 *
 	 * @params int $year год
 	 * @params int $month месяц (не обязателен)
 	 * @params int $day день (не обязателен)
-	 * 
+	 *
 	 * @return array
 	 */
-	public static function between($year,$month=false,$day=false) {
+	public static function between($year, $month = false, $day = false)
+	{
 		$t1 = "{$year}-01-01 00:00:00";
 		$t2 = "{$year}-12-31 23:59:59";
 		if ($month) {
-			$smonth = $month<10? "0$month" : "$month";
-			$numdays = date('t',mktime(0,0,0,$month,1,$year));
+			$smonth = $month < 10 ? "0$month" : "$month";
+			$numdays = date('t', mktime(0, 0, 0, $month, 1, $year));
 			$t1 = "{$year}-{$smonth}-01 00:00:00";
 			$t2 = "{$year}-{$smonth}-{$numdays} 23:59:59";
 			if ($day) {
-				$sday = $day<10? "0$day" : "$day";
+				$sday = $day < 10 ? "0$day" : "$day";
 				$t1 = "{$year}-{$smonth}-{$sday} 00:00:00";
 				$t2 = "{$year}-{$smonth}-{$sday} 23:59:59";
 			}
 		}
-		return array($t1,$t2);
+		return array($t1, $t2);
 	}
-	
+
 	/**
 	 * Производит разбор строки с датой.
 	 * Возвращает массив из года, месяца и дня.
-	 * 
+	 *
 	 * @params string $date дата
-	 * 
+	 *
 	 * @return array
 	 */
 	public static function year_month_day($date)
 	{
-		if ($m = Core_Regexps::match_with_results('{^(\d+)-(\d+)-(\d+)}',$date)) {
-			return array((int)$m[1],(int)$m[2],(int)$m[3]);
+		if ($m = Core_Regexps::match_with_results('{^(\d+)-(\d+)-(\d+)}', $date)) {
+			return array((int)$m[1], (int)$m[2], (int)$m[3]);
 		}
-		if ($m = Core_Regexps::match_with_results('{^(\d+)-(\d+)}',$date)) {
-			return array((int)$m[1],(int)$m[2],false);
+		if ($m = Core_Regexps::match_with_results('{^(\d+)-(\d+)}', $date)) {
+			return array((int)$m[1], (int)$m[2], false);
 		}
-		if ($m = Core_Regexps::match_with_results('{^(\d+)}',$date)) {
-			return array((int)$m[1],false,false);
+		if ($m = Core_Regexps::match_with_results('{^(\d+)}', $date)) {
+			return array((int)$m[1], false, false);
 		}
-		return array(false,false,false);
+		return array(false, false, false);
 	}
 }
 
-
-/** 
+/**
  * Объектное представление дат
- * 
- * На данный момент информация о дате хранится в виде UNIX timestamp. В дальнейшем возможно 
+ *
+ * На данный момент информация о дате хранится в виде UNIX timestamp. В дальнейшем возможно
  * изменение внутреннего формата хранения. Рекомендуется использовать фабричный метод модуля
  * Time::DateTime() для создания объектов класса.
- * 
- * @see Time::DateTime()
- * 
+ *
+ * @see     Time::DateTime()
+ *
  * @package Time
  */
 class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Core_EqualityInterface
 {
 	/**
 	 * Переустанавливает текущее значение времени объекта DateTime в новое значение.
-	 * 
-	 * @link http://www.php.net/manual/ru/datetime.settime.php
-	 * 
+	 *
+	 * @link   http://www.php.net/manual/ru/datetime.settime.php
+	 *
 	 * @params integer $hour Час нового времени.
 	 * @params integer $minute Минуты нового времени.
 	 * @params integer $second Секунды нового времени.
-	 * 
+	 *
 	 * @return self
 	 */
 	public function setTime()
@@ -287,13 +288,13 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Переустанавливает текущее значение даты объекта DateTime в новое значение.
-	 * 
-	 * @link http://www.php.net/manual/ru/datetime.setdate.php
-	 * 
+	 *
+	 * @link   http://www.php.net/manual/ru/datetime.setdate.php
+	 *
 	 * @params integer $year Год новой даты.
 	 * @params integer $month Месяц новой даты.
 	 * @params integer $day День новой даты.
-	 * 
+	 *
 	 * @return self
 	 */
 	public function setDate()
@@ -305,17 +306,17 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Создает объект класса Time_DateTime по набору параметров
-	 * 
-	 * Набор параметров описывает момент времени. Перед созданием 
+	 *
+	 * Набор параметров описывает момент времени. Перед созданием
 	 * объекта проверяет корректность даты по григорианскому календарю {@link http://php.ru/manual/function.checkdate.html}
-	 * 
+	 *
 	 * @params integer $year год
 	 * @params integer $month месяц по умолчанию 1
 	 * @params integer $day день по умолчанию 1
 	 * @params integer $hour час по умолчанию 0
 	 * @params integer $minute минуты по умолчанию 0
 	 * @params integer $second секунды по умолчанию 0
-	 * 
+	 *
 	 * @return Time_DateTime|false
 	 */
 	static public function compose($year, $month = 1, $day = 1, $hour = 0, $minute = 0, $second = 0)
@@ -328,19 +329,19 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 		$date->setTime($hour, $minute, $second);
 		return $date;
 	}
-	
+
 	/**
 	 * Создает объект класса Time_DateTime
-	 * 
+	 *
 	 * Строка будет разобрана с учетом текущих настроек LC_TIME.
-	 * 
-	 * @link http://php.ru/manual/function.strptime.html
-	 * @link http://php.ru/manual/function.strftime.html
-	 * @link http://php.ru/manual/function.setlocale.html
-	 * 
+	 *
+	 * @link   http://php.ru/manual/function.strptime.html
+	 * @link   http://php.ru/manual/function.strftime.html
+	 * @link   http://php.ru/manual/function.setlocale.html
+	 *
 	 * @params string $string Строка для разбора и получения параметров для создания объекта
-	 * @params string $format Формат строки $string 
-	 * 
+	 * @params string $format Формат строки $string
+	 *
 	 * @return null|Time_DateTime
 	 */
 	static public function parse_clib($string, $format)
@@ -350,24 +351,23 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 			return null;
 		}
 		return self::compose(
-			$tm['tm_year'] + 1900, $tm['tm_mon'] + 1, ($tm['tm_mday']) ? $tm['tm_mday'] : 1 ,
+			$tm['tm_year'] + 1900, $tm['tm_mon'] + 1, ($tm['tm_mday']) ? $tm['tm_mday'] : 1,
 			$tm['tm_hour'], $tm['tm_min'], $tm['tm_sec']
 		);
 	}
 
-
 	/**
 	 * Создает объект класса Time.DateTime на основании строкового представления даты
-	 * 
-	 * Если параметр $clib имеет значение не $null или в строке формата находится символ %, 
+	 *
+	 * Если параметр $clib имеет значение не $null или в строке формата находится символ %,
 	 * то строка разбирается функцией parse_clib (см. {@link http://php.ru/manual/function.strptime.html})
-	 * Если параметр $clib имеет значение null, то строка разбирается функцией 
+	 * Если параметр $clib имеет значение null, то строка разбирается функцией
 	 * DateTime::createFromFormat (см. {@link http://www.php.net/manual/ru/datetime.createfromformat.php})
-	 * 
+	 *
 	 * @params string $string Строка для разбора
 	 * @params string $format Строка формата по умолчанию пустая строка
 	 * @params mixed $clib Флаг, показывающий, как разбирать строку по умолчанию null
-	 * 
+	 *
 	 * @return null|Time_DateTime
 	 */
 	static public function parse($string, $format = '', $clib = null)
@@ -385,7 +385,7 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 		if ($format) {
 			if (is_null($clib) && Core_Strings::contains($format, '%')) {
 				$clib = true;
-			}	
+			}
 			if ($clib == true) {
 				$rc = self::parse_clib($string, $format);
 			} else {
@@ -401,14 +401,16 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 		if ($rc && !checkdate($rc->month, $rc->day, $rc->year)) {
 			return null;
 		}
-		
+
 		return $rc;
 	}
 
 	/**
 	 * Обертка над strtotime
+	 *
 	 * @param  string $string Строка даты
-	 * @return self|null         
+	 *
+	 * @return self|null
 	 */
 	static public function strtotime($string)
 	{
@@ -421,12 +423,12 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Обертка над DateTime::createFromFormat
-	 * 
-	 * @link http://www.php.net/manual/ru/datetime.createfromformat.php
-	 * 
+	 *
+	 * @link   http://www.php.net/manual/ru/datetime.createfromformat.php
+	 *
 	 * @params string $format Строка формата
 	 * @params string $string Строка, представляющая дату(время)
-	 * 
+	 *
 	 * @return Time_DateTime|false
 	 */
 	static public function createFromFormat($format, $string)
@@ -442,13 +444,13 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Выполняет проверку на равенство
-	 * 
-	 * Псевдоним для is_equal_to() 
-	 * Проверяет на равенство дату, представляемую объектом, с датой, представляемой другим 
+	 *
+	 * Псевдоним для is_equal_to()
+	 * Проверяет на равенство дату, представляемую объектом, с датой, представляемой другим
 	 * объектом класса Time.DateTime.
-	 * 
+	 *
 	 * @params Time_DateTime $to дата
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function equals($to)
@@ -458,10 +460,10 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Проверяет дату объекта на нахождение в заданном интервале
-	 * 
+	 *
 	 * @params Time_DateTime $from Начало интервала
 	 * @params Time_DateTime $to Конец интервала
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function between(Time_DateTime $from, Time_DateTime $to)
@@ -471,9 +473,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Проверяет, предшествует ли дата объекта заданной дате
-	 * 
+	 *
 	 * @params Time_DateTime $time
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function earlier_than(Time_DateTime $time)
@@ -483,9 +485,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Проверяет, что дата объекта не предшествует заданной дате
-	 * 
+	 *
 	 * @params Time_DateTime $time
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function not_earlier_than(Time_DateTime $time)
@@ -495,9 +497,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Проверяет, следует ли дата объекта за указанной датой
-	 * 
+	 *
 	 * @params Time_DateTime $time
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function later_than(Time_DateTime $time)
@@ -507,9 +509,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Проверяет, что дата объекта не следует за указанной датой
-	 * 
+	 *
 	 * @params Time_DateTime $time
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function not_later_than(Time_DateTime $time)
@@ -519,12 +521,12 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Выполняет проверку дат на равенство с точностью до дня
-	 * 
-	 * В отличие от метода equals(), сравниваются только календарные даты и игнорируется 
+	 *
+	 * В отличие от метода equals(), сравниваются только календарные даты и игнорируется
 	 * составляющая собственно времени (часы, минуты, секунды).
-	 * 
+	 *
 	 * @params Time_DateTime $time
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function same_date_as(Time_DateTime $time)
@@ -534,19 +536,19 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Проверяет на равенство две даты
-	 * 
+	 *
 	 * @params Time_DateTime $time
-	 * 
+	 *
 	 * @return boolean
 	 */
-	public function is_equal_to(Time_DateTime $time) 
+	public function is_equal_to(Time_DateTime $time)
 	{
 		return $this == $time;
 	}
 
 	/**
 	 * Возвращает смещение временной зоны
-	 * 
+	 *
 	 * @return integer
 	 */
 	public function time_zone_offset()
@@ -556,7 +558,7 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Возвращает Timestamp
-	 * 
+	 *
 	 * @return integer
 	 */
 	public function getTimestamp()
@@ -569,57 +571,57 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Устанавливает Timestamp
-	 * 
+	 *
 	 * @params integer $unixtimestamp Метка времени Unix представляющая дату.
-	 * 
+	 *
 	 * @return self
 	 */
-	public function setTimestamp($unixtimestamp )
+	public function setTimestamp($unixtimestamp)
 	{
 		if (method_exists('DateTime', 'setTimestamp')) {
 			parent::setTimestamp($unixtimestamp);
 			return $this;
 		}
-		$date = getdate((int) $unixtimestamp);
+		$date = getdate((int)$unixtimestamp);
 		if (!empty($date)) {
 			$this->setDate($date['year'], $date['mon'], $date['mday']);
 			$this->setTime($date['hours'], $date['minutes'], $date['seconds']);
 		}
-        return $this;
+		return $this;
 	}
-
 
 	/**
 	 * Устанавливает Timestamp
-	 * 
+	 *
 	 * Параметры добавляются к соответствующим текущим значениям объекта
-	 * 
+	 *
 	 * @params integer $seconds
 	 * @params integer $minutes
 	 * @params integer $hours
 	 * @params integer $days
 	 * @params integer $months
 	 * @params integer $years
-	 * 
+	 *
 	 * @return self
 	 */
 	public function add_by_timestap($seconds, $minutes = 0, $hours = 0, $days = 0, $months = 0, $years = 0)
 	{
 		$ts = mktime($this->hour + $hours, $this->minute + $minutes,
-			$this->second + $seconds, $this->month + $months, $this->day + $days, $this->year + $years);
+			$this->second + $seconds, $this->month + $months, $this->day + $days, $this->year + $years
+		);
 		return $this->setTimestamp($ts);
 	}
 
 	/**
 	 * Смещает дату вперед на определенный интервал
-	 * 
+	 *
 	 * @params integer|DateInterval|string $seconds
 	 * @params integer $minutes
 	 * @params integer $hours
 	 * @params integer $days
 	 * @params integer $months
 	 * @params integer $years
-	 * 
+	 *
 	 * @return self
 	 */
 	public function add($seconds, $minutes = 0, $hours = 0, $days = 0, $months = 0, $years = 0)
@@ -640,9 +642,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату вперед на заданное число секунд
-	 * 
-	 * @params integer $interval 
-	 * 
+	 *
+	 * @params integer $interval
+	 *
 	 * @return self
 	 */
 	public function add_seconds($interval)
@@ -652,9 +654,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату вперед на заданное число минут
-	 * 
-	 * @params integer $interval 
-	 * 
+	 *
+	 * @params integer $interval
+	 *
 	 * @return self
 	 */
 	public function add_minutes($interval)
@@ -664,9 +666,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату вперед на заданное число часов
-	 * 
-	 * @params integer $interval 
-	 * 
+	 *
+	 * @params integer $interval
+	 *
 	 * @return self
 	 */
 	public function add_hours($interval)
@@ -676,9 +678,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату вперед на заданное число дней
-	 * 
-	 * @params integer $interval 
-	 * 
+	 *
+	 * @params integer $interval
+	 *
 	 * @return self
 	 */
 	public function add_days($interval)
@@ -688,9 +690,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату вперед на заданное число месяцев
-	 * 
-	 * @params integer $interval 
-	 * 
+	 *
+	 * @params integer $interval
+	 *
 	 * @return self
 	 */
 	public function add_months($interval)
@@ -700,9 +702,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату вперед на заданное число лет
-	 * 
-	 * @params integer $interval 
-	 * 
+	 *
+	 * @params integer $interval
+	 *
 	 * @return self
 	 */
 	public function add_years($interval)
@@ -712,14 +714,14 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату назад на определенный интервал
-	 * 
+	 *
 	 * @params integer|DateInterval|string $seconds
 	 * @params integer $minutes
 	 * @params integer $hours
 	 * @params integer $days
 	 * @params integer $months
 	 * @params integer $years
-	 * 
+	 *
 	 * @return self
 	 */
 	public function sub($seconds, $minutes = 0, $hours = 0, $days = 0, $months = 0, $years = 0)
@@ -740,9 +742,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату назад на заданное количество секунд
-	 * 
+	 *
 	 * @params integer $interval
-	 * 
+	 *
 	 * @return self
 	 */
 	public function sub_seconds($interval)
@@ -752,20 +754,21 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату назад на заданное количество минут
-	 * 
+	 *
 	 * @params integer $interval
-	 * 
+	 *
 	 * @return self
 	 */
 	public function sub_minutes($interval)
 	{
 		return $this->sub(0, $interval);
 	}
+
 	/**
 	 * Смещает дату назад на заданное количество часов
-	 * 
+	 *
 	 * @params integer $interval
-	 * 
+	 *
 	 * @return self
 	 */
 	public function sub_hours($interval)
@@ -775,9 +778,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату назад на заданное количество дней
-	 * 
+	 *
 	 * @params integer $interval
-	 * 
+	 *
 	 * @return self
 	 */
 	public function sub_days($interval)
@@ -787,9 +790,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату назад на заданное количество месяцев
-	 * 
+	 *
 	 * @params integer $interval
-	 * 
+	 *
 	 * @return self
 	 */
 	public function sub_months($interval)
@@ -799,9 +802,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Смещает дату назад на заданное количество лет
-	 * 
+	 *
 	 * @params integer $interval
-	 * 
+	 *
 	 * @return self
 	 */
 	public function sub_years($interval)
@@ -811,25 +814,36 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Возвращает значение свойства
-	 * 
+	 *
 	 * @params string $property имя свойства
-	 * 
+	 *
 	 * @throws Core_MissingPropertyException Несуществующее свойство
-	 * 
+	 *
 	 * @return integer
 	 */
 	public function __get($property)
 	{
 		switch ($property) {
-			case 'timestamp': case 'ts': return $this->getTimestamp();
-			case 'year':      return (int) $this->format('Y');
-			case 'month':     return (int) $this->format('n');
-			case 'day':       return (int) $this->format('j');
-			case 'hour':      return (int) $this->format('G');
-			case 'minute':    return (int) $this->format('i');
-			case 'second':    return (int) $this->format('s');
-			case 'wday':      $w =(int) $this->format('w'); return $w == 0 ? 7 : $w;
-			case 'yday':      return (int) $this->format('j');
+			case 'timestamp':
+			case 'ts':
+				return $this->getTimestamp();
+			case 'year':
+				return (int)$this->format('Y');
+			case 'month':
+				return (int)$this->format('n');
+			case 'day':
+				return (int)$this->format('j');
+			case 'hour':
+				return (int)$this->format('G');
+			case 'minute':
+				return (int)$this->format('i');
+			case 'second':
+				return (int)$this->format('s');
+			case 'wday':
+				$w = (int)$this->format('w');
+				return $w == 0 ? 7 : $w;
+			case 'yday':
+				return (int)$this->format('j');
 			default:
 				throw new Core_MissingPropertyException($property);
 		}
@@ -837,22 +851,22 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Устанавливает значение свойства
-	 * 
+	 *
 	 * На данный момент только значение свойства timestamp может быть установлено извне.
-	 * 
+	 *
 	 * @params string $property имя свойства
 	 * @params string $value значение
-	 * 
+	 *
 	 * @throws Core_ReadOnlyPropertyException Если свойство существует и это не timestamp
 	 * @throws Core_MissingPropertyException Если свойство не существует
-	 * 
+	 *
 	 * @return self
 	 */
 	public function __set($property, $value)
 	{
 		switch ($property) {
 			case 'timestamp':
-				$this->setTimestamp((int) $value);
+				$this->setTimestamp((int)$value);
 				return $this;
 			case 'year':
 			case 'month':
@@ -870,9 +884,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Проверяет установку значения свойства
-	 * 
+	 *
 	 * @params string $property имя свойства
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function __isset($property)
@@ -895,9 +909,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Удаляет свойство
-	 * 
+	 *
 	 * @params string $property имя свойства
-	 * 
+	 *
 	 * @throws Core_UndestroyablePropertyException для существующих свойств
 	 * @throws Core_MissingPropertyException для не существующих свойств
 	 */
@@ -918,12 +932,12 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 				throw new Core_MissingPropertyException($property);
 		}
 	}
-	
+
 	/**
 	 * Возвращает строку формата для parse_clib
-	 * 
+	 *
 	 * @params string $format Строка формата по умолчанию Time::FMT_DEFAULT
-	 * 
+	 *
 	 * @return string
 	 */
 	public function format_clib($format = Time::FMT_DEFAULT)
@@ -933,10 +947,10 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Преобразует дату в строку заданного формата
-	 * 
+	 *
 	 * @params string $format Строка формата по умолчанию Time::FMT_DEFAULT
 	 * @params null|boolean $clib Флаг, показывающий как форматировать строку
-	 * 
+	 *
 	 * @return string
 	 */
 	public function format($format = Time::FMT_DEFAULT, $clib = null)
@@ -944,7 +958,7 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 		if (is_null($clib) && Core_Strings::contains($format, '%')) {
 			$clib = true;
 		}
-		
+
 		if ($clib) {
 			return $this->format_clib($format);
 		} else {
@@ -954,10 +968,12 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Возвращает дату в виде строки в соответствии с локалью и падежом
+	 *
 	 * @param  string  $format  формат
 	 * @param  string  $locale  локаль
 	 * @param  integer $variant падеж
-	 * @return string           
+	 *
+	 * @return string
 	 *
 	 * @see  L10N
 	 */
@@ -970,9 +986,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Преобразует дату в строку в формате RFC1123
-	 * 
+	 *
 	 * Результат выполнения метода не зависит от выбранной локали.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function as_rfc1123()
@@ -982,9 +998,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Возвращает строковое представление объекта
-	 * 
+	 *
 	 * При формировании строкового представления используется формат по умолчанию.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function as_string()
@@ -994,9 +1010,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Возвращает строковое представление объекта
-	 * 
+	 *
 	 * Псевдоним для as_string().
-	 * 
+	 *
 	 * @return string
 	 */
 	public function __toString()
@@ -1006,12 +1022,12 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Переводит дату из строкового представления в timestamp
-	 * 
-	 * В качестве параметра принимаются значения вида: "d.m.y", "d.m.y - G:i", "d.m.y - G:i:s". 
+	 *
+	 * В качестве параметра принимаются значения вида: "d.m.y", "d.m.y - G:i", "d.m.y - G:i:s".
 	 * Если передана некорректная строка, то будет возвращен ноль.
-	 * 
+	 *
 	 * @params string $in дата
-	 * 
+	 *
 	 * @return integer
 	 */
 	static public function s2date($in)
@@ -1025,8 +1041,9 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 		}
 		return $date ? $date->ts : 0;
 	}
-	
-	static public function datetime2timestamp($time, $format = '') {
+
+	static public function datetime2timestamp($time, $format = '')
+	{
 		$res = self::s2date($time);
 		if ($res > 0) {
 			return $res;
@@ -1035,22 +1052,22 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 			return $date ? $date->ts : 0;
 		}
 	}
-	
+
 	/**
 	 * Переводит дату из строкового представления в формат SQL DATE
-	 * 
-	 * В качестве параметра принимаются значения вида: "d.m.y" или "d.m.Y - G:i" или "d.m.Y - G:i:s". 
+	 *
+	 * В качестве параметра принимаются значения вида: "d.m.y" или "d.m.Y - G:i" или "d.m.Y - G:i:s".
 	 * Если передана некорректная строка, то будет возвращено "0000-00-00".
-	 * 
+	 *
 	 * @params string $in
-	 * 
+	 *
 	 * @return string
 	 */
 	static public function s2sqldate($in)
 	{
 		$in = trim($in);
 		$date = Time::DateTime($in);
-		
+
 		return ($date) ? str_replace(' 00:00:00', '', $date->as_string()) : '0000-00-00';
 		/*
 		$res = '0000-00-00';
@@ -1063,29 +1080,29 @@ class Time_DateTime extends DateTime implements Core_PropertyAccessInterface, Co
 
 	/**
 	 * Форматирует SQL DATE/DATETIME в соответствии с переданным форматом
-	 * 
+	 *
 	 * В формате допустимы только dmyYHGis
-	 * 
+	 *
 	 * @params string $format Формат
 	 * @params string|integer $time Дата/время
-	 * 
+	 *
 	 * @return string|null
 	 */
-	static public function sqldateformat($format,$time)
+	static public function sqldateformat($format, $time)
 	{
 		$date = Time::DateTime($time);
 		return ($date) ? $date->format($format) : null;
 	}
-	
+
 	/**
 	 * Суммирует дату/время с секундами
-	 * 
+	 *
 	 * @params string $datetime
 	 * @params integer $sec
-	 * 
+	 *
 	 * @return string|false
 	 */
-	static function datetime_add($datetime,$sec)
+	static function datetime_add($datetime, $sec)
 	{
 		$date = Time::DateTime($datetime);
 		if (!$date) {

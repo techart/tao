@@ -55,6 +55,9 @@ TAO.require(['tao/oop', 'SlickGrid/slick.table'], function() {
           dataType: 'json',
           success : function(data) {
             self.setOptions(data);
+          },
+          complete: function() {
+            self.setupColumns();
           }
         });
       }
@@ -430,7 +433,7 @@ TAO.require(['tao/oop', 'SlickGrid/slick.table'], function() {
           this.data = this.dataView.getItems();
           this.url = options && options['url'] ? options['url'] : dataStore.getUrl();
           this.pager = null;
-          this.remoteOptions().always(self.setupColumns());
+          this.remoteOptions();
         },
 
         // class property

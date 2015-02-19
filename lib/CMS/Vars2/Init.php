@@ -1,18 +1,20 @@
 <?php
+
 /**
  * @package CMS\Vars2\Init
  */
-
-
-class CMS_Vars2_Init implements Core_ModuleInterface {
+class CMS_Vars2_Init implements Core_ModuleInterface
+{
 	const VERSION = '0.0.0';
 
-	static function run() {
+	static function run()
+	{
 		if (!CMS::vars()->exists('admin')) {
-			CMS::vars()->storage()->create_dir('admin',array(
-				'_title' => 'Настройки системы администрирования',
-				'_access' => 'full',
-			));
+			CMS::vars()->storage()->create_dir('admin', array(
+					'_title' => 'Настройки системы администрирования',
+					'_access' => 'full',
+				)
+			);
 		}
 		if (!CMS::vars()->exists('admin.title')) {
 			$var = CMS::vars()->entity('string');

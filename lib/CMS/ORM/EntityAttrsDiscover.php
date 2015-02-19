@@ -1,9 +1,8 @@
 <?php
+
 /**
  * @package CMS\ORM\EntityAttrsDiscover
  */
-
-
 class CMS_ORM_EntityAttrsDiscover implements Core_ModuleInterface
 {
 
@@ -16,8 +15,9 @@ class CMS_ORM_EntityAttrsDiscover implements Core_ModuleInterface
 		$this->enable_cache = $enable_cache;
 	}
 
-	protected function from_schema($data) {
-		$res =  Object::AttrList();
+	protected function from_schema($data)
+	{
+		$res = Object::AttrList();
 		$columns = $data['columns'];
 		if (!empty($columns)) {
 			foreach ($columns as $name => $column) {

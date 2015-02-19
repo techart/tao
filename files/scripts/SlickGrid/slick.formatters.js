@@ -16,10 +16,18 @@
         "PercentComplete": PercentCompleteFormatter,
         "PercentCompleteBar": PercentCompleteBarFormatter,
         "YesNo": YesNoFormatter,
-        "Checkmark": CheckmarkFormatter
+        "Checkmark": CheckmarkFormatter,
+        "Raw": Raw
       }
     }
   });
+
+  function Raw (row, cell, value, columnDef, dataContext) {
+    if (value !== null) {
+      return value;
+    }
+    return "";
+  }
 
   function PercentCompleteFormatter(row, cell, value, columnDef, dataContext) {
     if (value == null || value === "") {

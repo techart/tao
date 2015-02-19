@@ -11,9 +11,9 @@ if (is_dir($dir)) {
 		$filename = $f->name;
 		?>
 		<tr>
-			<td class="file"><a href="<?= CMS::$current_controller->field_action_url($name,'download',$item,array('code'=>$code,'file' => $f->name)) ?>"><?= $filename ?></a></td>
+			<td class="file"><a href="<?= CMS::$current_controller->field_action_url($name,'download',$item,array('code'=>$code,'file' => $f->name)) ?>" target="_blank"><?= $filename ?></a></td>
 			<td class="url"><?= $type_object->file_url($f) ?></td>
-			<td class="delete"><div class="delete-attachment" href="<?= CMS::$current_controller->field_action_url($name,'delete',$item,array('code'=>$code,'file' => $f->name)) ?>">&nbsp;</div></td>
+			<td class="delete"><div class="delete-attachment" href="<?= CMS::$current_controller->field_action_url($name,'delete',$item,array('code'=>$code,'file' => urlencode($f->name))) ?>">&nbsp;</div></td>
 		</tr>
 
 		<?php

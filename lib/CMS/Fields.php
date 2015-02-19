@@ -1,10 +1,10 @@
 <?php
+
 /**
  * @package CMS\Fields
  */
-
-
-class CMS_Fields implements Core_ModuleInterface {
+class CMS_Fields implements Core_ModuleInterface
+{
 
 	const MODULE = 'CMS.Fields';
 	const VERSION = '0.0.0';
@@ -12,70 +12,80 @@ class CMS_Fields implements Core_ModuleInterface {
 	static $types = array();
 	static $dirs = array();
 
-	static function initialize($config) {
+	static function initialize($config)
+	{
 		//TODO: автоматически регистрировать тепы из CMS.Fields.Types.*
-		CMS::field_type('input',	'CMS.Fields.Types.Input');
-		CMS::field_type('hidden',	'CMS.Fields.Types.Hidden');
-		CMS::field_type('radio',	'CMS.Fields.Types.Radio');
-		CMS::field_type('checkbox',	'CMS.Fields.Types.Checkbox');
-		CMS::field_type('select',	'CMS.Fields.Types.Select');
-		CMS::field_type('textarea',	'CMS.Fields.Types.Textarea');
-		CMS::field_type('sqldate',	'CMS.Fields.Types.SQLDate');
-		CMS::field_type('datestr',	'CMS.Fields.Types.DateStr');
-		CMS::field_type('sqldatestr',	'CMS.Fields.Types.SQLDateStr');
-		CMS::field_type('upload',	'CMS.Fields.Types.Upload');
-		CMS::field_type('ajaxupload',	'CMS.Fields.Types.AjaxUpload');
-		CMS::field_type('subheader',	'CMS.Fields.Types.Subheader');
-		CMS::field_type('email',	'CMS.Fields.Types.Email');
-		CMS::field_type('attaches',	'CMS.Fields.Types.Attaches');
-		CMS::field_type('image',	'CMS.Fields.Types.Image');
-		CMS::field_type('protect',	'CMS.Fields.Types.Protect');
-		CMS::field_type('html',		'CMS.Fields.Types.HTML');
-		CMS::field_type('wiki',		'CMS.Fields.Types.Wiki');
-		CMS::field_type('gallery',	'CMS.Fields.Types.Gallery');
-		CMS::field_type('parms',	'CMS.Fields.Types.Parms');
-		CMS::field_type('tree_select',	'CMS.Fields.Types.TreeSelect');
-		CMS::field_type('multivalue',	'CMS.Fields.Types.Multivalue');
-		CMS::field_type('multilink',	'CMS.Fields.Types.Multilink');
-		CMS::field_type('static_multilink',	'CMS.Fields.Types.StaticMultilink');
-		CMS::field_type('checkboxes',	'CMS.Fields.Types.Checkboxes');
-		CMS::field_type('autocomplete',	'CMS.Fields.Types.Autocomplete');
-		CMS::field_type('content',	'CMS.Fields.Types.Content');
-		CMS::field_type('documents',	'CMS.Fields.Types.Documents');
-		CMS::field_type('documents_grid',	'CMS.Fields.Types.DocumentsGrid');
-		CMS::field_type('youtube',	'CMS.Fields.Types.Youtube');
-		CMS::field_type('map_coords',	'CMS.Fields.Types.MapCoords');
-		CMS::field_type('fieldset',	'CMS.Fields.Types.FieldSet');
-		CMS::field_type('array',	'CMS.Fields.Types.Array');
-		CMS::field_type('tags',		'CMS.Fields.Types.Tags');
+		CMS::field_type('input', 'CMS.Fields.Types.Input');
+		CMS::field_type('hidden', 'CMS.Fields.Types.Hidden');
+		CMS::field_type('radio', 'CMS.Fields.Types.Radio');
+		CMS::field_type('checkbox', 'CMS.Fields.Types.Checkbox');
+		CMS::field_type('select', 'CMS.Fields.Types.Select');
+		CMS::field_type('textarea', 'CMS.Fields.Types.Textarea');
+		CMS::field_type('sqldate', 'CMS.Fields.Types.SQLDate');
+		CMS::field_type('datestr', 'CMS.Fields.Types.DateStr');
+		CMS::field_type('sqldatestr', 'CMS.Fields.Types.SQLDateStr');
+		CMS::field_type('upload', 'CMS.Fields.Types.Upload');
+		CMS::field_type('ajaxupload', 'CMS.Fields.Types.AjaxUpload');
+		CMS::field_type('subheader', 'CMS.Fields.Types.Subheader');
+		CMS::field_type('email', 'CMS.Fields.Types.Email');
+		CMS::field_type('attaches', 'CMS.Fields.Types.Attaches');
+		CMS::field_type('image', 'CMS.Fields.Types.Image');
+		CMS::field_type('protect', 'CMS.Fields.Types.Protect');
+		CMS::field_type('html', 'CMS.Fields.Types.HTML');
+		CMS::field_type('wiki', 'CMS.Fields.Types.Wiki');
+		CMS::field_type('gallery', 'CMS.Fields.Types.Gallery');
+		CMS::field_type('parms', 'CMS.Fields.Types.Parms');
+		CMS::field_type('tree_select', 'CMS.Fields.Types.TreeSelect');
+		CMS::field_type('multivalue', 'CMS.Fields.Types.Multivalue');
+		CMS::field_type('multilink', 'CMS.Fields.Types.Multilink');
+		CMS::field_type('static_multilink', 'CMS.Fields.Types.StaticMultilink');
+		CMS::field_type('checkboxes', 'CMS.Fields.Types.Checkboxes');
+		CMS::field_type('autocomplete', 'CMS.Fields.Types.Autocomplete');
+		CMS::field_type('content', 'CMS.Fields.Types.Content');
+		CMS::field_type('documents', 'CMS.Fields.Types.Documents');
+		CMS::field_type('documents_grid', 'CMS.Fields.Types.DocumentsGrid');
+		CMS::field_type('youtube', 'CMS.Fields.Types.Youtube');
+		CMS::field_type('map_coords', 'CMS.Fields.Types.MapCoords');
+		CMS::field_type('fieldset', 'CMS.Fields.Types.FieldSet');
+		CMS::field_type('array', 'CMS.Fields.Types.Array');
+		CMS::field_type('tags', 'CMS.Fields.Types.Tags');
+		CMS::field_type('iframe', 'CMS.Fields.Types.IFrame');
+		CMS::field_type('multilang_ext', 'CMS.Fields.Types.ExtendedMultilang');
 	}
 
-	static function type_by_class($class) {
+	static function type_by_class($class)
+	{
 		$class = Core_Types::virtual_class_name_for($class);
 		return array_search($class, CMS::$fields_types);
 	}
 
-	static function validate_parms($parms) {
-		if (is_string($parms)) $parms = array('type' => $parms);
+	static function validate_parms($parms)
+	{
+		if (is_string($parms)) {
+			$parms = array('type' => $parms);
+		}
 		return $parms;
 	}
 
-	static function type($type) {
-		if (is_array($type)) $type = isset($type['type'])? $type['type'] : 'input';
-		if (!is_string($type)||$type=='') $type = 'input';
+	static function type($type)
+	{
+		if (is_array($type)) {
+			$type = isset($type['type']) ? $type['type'] : 'input';
+		}
+		if (!is_string($type) || $type == '') {
+			$type = 'input';
+		}
 		$type = mb_strtolower($type);
 
 		if (!isset(self::$types[$type])) {
 			if (isset(CMS::$fields_types[$type])) {
 				$module = CMS::$fields_types[$type];
-			}
-
-			else if (isset(CMS::$fields_types['input'])) {
-				$module = CMS::$fields_types['input'];
-			}
-
-			else {
-				throw new Exception('Fields initialization error');
+			} else {
+				if (isset(CMS::$fields_types['input'])) {
+					$module = CMS::$fields_types['input'];
+				} else {
+					throw new Exception('Fields initialization error');
+				}
 			}
 
 			$dir = IO_FS::File(Core::loader()->file_path_for($module))->dir_name;
@@ -90,63 +100,79 @@ class CMS_Fields implements Core_ModuleInterface {
 		return self::$types[$type];
 	}
 
-	static function assign_from_object($form,$object,$fields) {
-		if (!$fields) return false;
-		foreach($fields as $name => $data) {
+	static function assign_from_object($form, $object, $fields)
+	{
+		if (!$fields) {
+			return false;
+		}
+		foreach ($fields as $name => $data) {
 			$tobj = self::type($data);
-			$tobj->assign_from_object($form,$object,$name,$data);
+			$tobj->assign_from_object($form, $object, $name, $data);
 		}
 	}
 
-	static function assign_to_object($form,$object,$fields) {
-		if (!$fields) return false;
-		foreach($fields as $name => $data) {
+	static function assign_to_object($form, $object, $fields)
+	{
+		if (!$fields) {
+			return false;
+		}
+		foreach ($fields as $name => $data) {
 			$tobj = self::type($data);
-			$tobj->assign_to_object($form,$object,$name,$data);
+			$tobj->assign_to_object($form, $object, $name, $data);
 		}
 	}
 
-	static function form_fields($form,$fields) {
-		if (!$fields) return $form;
-		foreach($fields as $name => $data) {
+	static function form_fields($form, $fields)
+	{
+		if (!$fields) {
+			return $form;
+		}
+		foreach ($fields as $name => $data) {
 			$tobj = self::type($data);
-			$tobj->form_fields($form,$name,$data);
-			$tobj->form_validator($form,$name,$data);
+			$tobj->form_fields($form, $name, $data);
+			$tobj->form_validator($form, $name, $data);
 		}
 		return $form;
 	}
 
-	static function process_form($form,$request) {
+	static function process_form($form, $request)
+	{
 		$rc = array();
 		$p = $form->process($request);
-		if (!$p) $rc = $form->validator->errors->property_errors;
+		if (!$p) {
+			$rc = $form->validator->errors->property_errors;
+		}
 		return $rc;
 	}
 
-	static function form($form,$fields,$view,$layout=false) {
-		if (!$fields) return $view;
-		foreach($fields as $name => $data) {
+	static function form($form, $fields, $view, $layout = false)
+	{
+		if (!$fields) {
+			return $view;
+		}
+		foreach ($fields as $name => $data) {
 			$tobj = self::type($data);
 			$tobj->view($view);
-			$tobj->draw_in_layout($name,$data,$layout);
+			$tobj->draw_in_layout($name, $data, $layout);
 		}
 	}
 
-	static function process_schema($table,$fields,$engine=false)
+	static function process_schema($table, $fields, $engine = false)
 	{
 		Core::load('DB.Schema');
-		$table_schema = self::fields_to_schema($fields,$table);
+		$table_schema = self::fields_to_schema($fields, $table);
 		if ($engine) {
 			$table_schema['mysql_engine'] = $engine;
 		}
 		DB_Schema::process(array($table => $table_schema));
-		foreach($fields as $name => $data) {
+		foreach ($fields as $name => $data) {
 			$type = self::type($data);
-			$type->process_schema($name,$data,$table,$fields);
+			$type->process_schema($name, $data, $table, $fields);
 		}
 	}
 
-	static public function fields_to_columns($fields, $table_name = null, &$schema = array()) {
+	static public function fields_to_columns($fields, $table_name = null, &$schema = array())
+	{
 		$schema = self::fields_to_schema($fields, $table_name, $schema);
 		$res = array();
 		$columns = isset($schema['columns']) ? $schema['columns'] : array();
@@ -155,19 +181,23 @@ class CMS_Fields implements Core_ModuleInterface {
 		}
 		if (!empty($columns)) {
 			foreach ($columns as $name => $data) {
-				if (is_string($name)) $res[] = $name;
-				else if (isset($data['name'])) $res[] = $data['name'];
+				if (is_string($name)) {
+					$res[] = $name;
+				} else {
+					if (isset($data['name'])) {
+						$res[] = $data['name'];
+					}
+				}
 			}
 		}
 		return $res;
 	}
 
-
 	private static function merge_schema($schema, $fschema, $table_name = null, $field_name = null)
 	{
 		// mark columns
 		if ($field_name && isset($fschema['columns'])) {
-			foreach($fschema['columns'] as $idx => $column) {
+			foreach ($fschema['columns'] as $idx => $column) {
 				$fschema['columns'][$idx]['__from_field'] = $field_name;
 			}
 		}
@@ -191,37 +221,41 @@ class CMS_Fields implements Core_ModuleInterface {
 		return $schema;
 	}
 
-	static public function fields_to_schema($fields, $table_name = null, &$schema = array()) {
-		//TODO: cache
-		//$schema = array();
-		foreach($fields as $field_name => $data) {
+	protected static $fields_to_schema_cache = array();
+
+	static public function fields_to_schema($fields, $table_name = null, &$schema = array())
+	{
+		$ckey = $table_name ? $table_name : md5(serialize(array_keys($fields)));
+		if (isset(self::$fields_to_schema_cache[$ckey])) {
+			$schema = array_replace_recursive($schema, self::$fields_to_schema_cache[$ckey]);
+			return $schema;
+		}
+		foreach ($fields as $field_name => $data) {
 			$type = self::type($data);
-			if (isset($data['sqltype'])&&$data['sqltype']===false) {
+			if (isset($data['sqltype']) && $data['sqltype'] === false) {
 				continue;
 			}
-			$sqltype = isset($data['sqltype'])? $data['sqltype'] : $type->sqltype();
-			$fschema = $type->schema($field_name,$data);
+			$sqltype = isset($data['sqltype']) ? $data['sqltype'] : $type->sqltype();
+			$fschema = $type->schema($field_name, $data);
 			if (isset($data['sqltypes'])) {
 				foreach ($data['sqltypes'] as $sub_name => $sub_type) {
 					self::column_schema($sub_name, $sub_type, $schema, $table_name, $field_name);
 				}
-			}
-			elseif ($sqltype) {
+			} elseif ($sqltype) {
 				self::column_schema($field_name, $sqltype, $schema, $table_name, $field_name);
-			}
-			elseif (!empty($fschema)) {
+			} elseif (!empty($fschema)) {
 				$schema = self::merge_schema($schema, $fschema, $table_name, $field_name);
-			}
-			elseif ($sqltypes = $type->sqltypes($field_name,$data)) {
+			} elseif ($sqltypes = $type->sqltypes($field_name, $data)) {
 				foreach ($sqltypes as $sub_name => $sub_type) {
 					self::column_schema($sub_name, $sub_type, $schema, $table_name, $field_name);
 				}
 			}
 		}
-		return $schema;
+		return self::$fields_to_schema_cache[$ckey] = $schema;
 	}
 
-	static function column_schema($db_name, $src, &$schema, $table_name = null, $field_name = null) {
+	static function column_schema($db_name, $src, &$schema, $table_name = null, $field_name = null)
+	{
 		$type = 'text';
 		$length = false;
 		$size = false;
@@ -240,12 +274,16 @@ class CMS_Fields implements Core_ModuleInterface {
 		$unsetparms = array();
 
 		// index
-		if ($m = Core_Regexps::match_with_results('{(.+)(\s+index(_[a-z_\-0-9]+)?(\(.+\))?)}i',$src)) {
+		if ($m = Core_Regexps::match_with_results('{(.+)(\s+index(_[a-z_\-0-9]+)?(\(.+\))?)}i', $src)) {
 			$index = true;
 			$index_name = trim($m[3], ' _');
 			if ($index_name === 'primary') {
 				$index_type = 'primary key';
 				$index_name = false;
+			}
+			if (Core_Strings::starts_with($index_name, 'unique')) {
+				$index_type = 'unique';
+				$index_name = trim(str_replace('unique', '', $index_name), '_ ');
 			}
 			$index_data = trim($m[4], '() ');
 			if (!empty($index_data)) {
@@ -254,10 +292,12 @@ class CMS_Fields implements Core_ModuleInterface {
 					$int_val = filter_var($ipart, FILTER_VALIDATE_INT);
 					if (Core_Strings::contains($ipart, ':')) {
 						$index_columns[] = explode(':', $ipart);
-					} else if ($int_val !== false) {
-						$index_columns[] = array($db_name, $ipart);
 					} else {
-						$index_columns[] = $ipart;
+						if ($int_val !== false) {
+							$index_columns[] = array($db_name, $ipart);
+						} else {
+							$index_columns[] = $ipart;
+						}
 					}
 				}
 			}
@@ -266,7 +306,7 @@ class CMS_Fields implements Core_ModuleInterface {
 
 		// type
 		$type = $src;
-		if ($m = Core_Regexps::match_with_results('{^([a-z]+)(\((\d+)\))?}i',$src)) {
+		if ($m = Core_Regexps::match_with_results('{^([a-z]+)(\((\d+)\))?}i', $src)) {
 			$type = $m[1];
 			$length = trim($m[3]);
 		}
@@ -304,58 +344,66 @@ class CMS_Fields implements Core_ModuleInterface {
 		}
 
 		// process parms
-		if ($type=='bigtext'||$type=='longtext') {
+		if ($type == 'bigtext' || $type == 'longtext') {
 			$type = 'text';
 			$size = 'big';
 		}
 
-		if ($type=='tinyint') {
+		if ($type == 'tinyint') {
 			$type = 'int';
 			$size = 'tiny';
 		}
 
-		if ($type=='price') {
+		if ($type == 'price') {
 			$type = 'numeric';
 			$precision = 10;
 			$scale = 2;
 			$default = '0.00';
 		}
 
-		if ($type=='datetime') {
+		if ($type == 'datetime') {
 			$default = '0000-00-00 00:00:00';
 		}
 
-
-		if ($type=='date') {
+		if ($type == 'date') {
 			$default = '0000-00-00';
 		}
 
-		if ($type=='int') {
+		if ($type == 'int') {
 			$default = 0;
 		}
 
-		if ($type=='serial') {
+		if ($type == 'serial') {
 			$default = null;
 		}
 
-		if ($type=='float'||$type=='double') {
+		if ($type == 'float' || $type == 'double') {
 			$type = 'float';
 			$default = 0.0;
 		}
 
-		if ('timestamp' == $type){
+		if ('timestamp' == $type) {
 			$not_default = true;
 		}
 
 		// compose all in one
 
 		$rc = array('name' => $db_name, 'type' => $type, 'not null' => $nn, 'index' => $index);
-		if (!$not_default) $rc['default'] = $default;
-		if ($length) $rc['length'] = $length;
-		if ($size) $rc['size'] = $size;
-		if ($precision) $rc['precision'] = $precision;
-		if ($scale) $rc['scale'] = $scale;
-
+		if (!$not_default) {
+			$rc['default'] = $default;
+		}
+		if ($length) {
+			$rc['length'] = $length;
+		}
+		if ($size) {
+			$rc['size'] = $size;
+		}
+		if ($precision) {
+			$rc['precision'] = $precision;
+		}
+		if ($scale) {
+			$rc['scale'] = $scale;
+		}
 
 		if ($idx = $rc['index']) {
 			if (!$index_name) {
@@ -364,7 +412,7 @@ class CMS_Fields implements Core_ModuleInterface {
 			if (empty($index_columns)) {
 				$index_columns = array($db_name);
 			}
-			$idx = array('name' => $index_name,'columns' => $index_columns);
+			$idx = array('name' => $index_name, 'columns' => $index_columns);
 			if ($index_type) {
 				$idx['type'] = $index_type;
 			}
@@ -377,10 +425,10 @@ class CMS_Fields implements Core_ModuleInterface {
 		}
 		$rc = array_replace_recursive($rc, $parms);
 
-		if ($type=='serial') {
-			$schema['indexes'][] = array('type' => 'primary key', 'columns' => array($db_name));
+		if ($type == 'serial') {
+			$schema['indexes']['PRIMARY'] = array('name' => 'PRIMARY', 'type' => 'primary key', 'columns' => array($db_name));
 		}
-		
+
 		$rc['__from_field'] = $field_name;
 		if ($type !== 'empty') {
 			$schema['columns'][$db_name] = $rc;
@@ -392,28 +440,37 @@ class CMS_Fields implements Core_ModuleInterface {
 }
 
 //TODO: refactoring
-abstract class CMS_Fields_AbstractField {
+abstract class CMS_Fields_AbstractField
+{
 
 	protected $dir;
 	protected $view;
 	private $temp_code = false;
 	protected $dir_paths = array();
+	protected static $tag_attrs = array('value', 'accept', 'style', 'align', 'href', 'width', 'height',
+		'alt', 'title', 'autocomplete', 'autofocus', 'checked', 'disabled', 'form', 'formaction',
+		'formenctype', 'formmethod', 'formnovalidate', 'formtarget', 'list', 'max', 'min', 'multiple',
+		'name', 'pattern', 'placeholder', 'readonly', 'required', 'size', 'src', 'step'
+	);
 
-
-
-	public function __construct() {}
+	public function __construct()
+	{
+	}
 
 //CONFIGURE
 //--------------------------------------------------
-	public function is_upload() {
+	public function is_upload()
+	{
 		return false;
 	}
 
-	public function sqltype() {
+	public function sqltype()
+	{
 		return false;
 	}
 
-	public function sqltypes($name,$data) {
+	public function sqltypes($name, $data)
+	{
 		return false;
 	}
 
@@ -422,7 +479,7 @@ abstract class CMS_Fields_AbstractField {
 		return isset($data['schema']) ? $data['schema'] : array();
 	}
 
-	public function process_schema($name,$data,$table,&$fields)
+	public function process_schema($name, $data, $table, &$fields)
 	{
 		return $this;
 	}
@@ -431,29 +488,36 @@ abstract class CMS_Fields_AbstractField {
 
 //ACCESS
 //--------------------------------------------------
-	public function __get($p) {
+	public function __get($p)
+	{
 		switch ($p) {
-			case 'view': case 'dir':
-			return $this->$p();
+			case 'view':
+			case 'dir':
+				return $this->$p();
 			case 'js_eval':
 				return $this->$p;
 		}
 	}
 
-	public function __set($p, $v) {
+	public function __set($p, $v)
+	{
 		switch ($p) {
-			case 'view': case 'dir':
-			return $this->$p($v);
+			case 'view':
+			case 'dir':
+				return $this->$p($v);
 		}
 	}
 
-	public function view($view = null) {
-		if ($view instanceof Templates_HTML_Template)
+	public function view($view = null)
+	{
+		if ($view instanceof Templates_HTML_Template) {
 			$this->view = $view;
+		}
 		return $this->view;
 	}
 
-	public function dir($dir = null) {
+	public function dir($dir = null)
+	{
 		return is_null($dir) ? $this->dir : $this->dir = $dir;
 	}
 //--------------------------------------------------
@@ -461,43 +525,56 @@ abstract class CMS_Fields_AbstractField {
 
 //FORM
 //--------------------------------------------------
-	public function form_fields($form,$name,$data) {
+	public function form_fields($form, $name, $data)
+	{
 
 		if ($langs = $this->data_langs($data)) {
-			foreach($langs as $lang => $ldata) {
-				$form->input($this->name_lang($name,$lang));
+			foreach ($langs as $lang => $ldata) {
+				$form->input($this->name_lang($name, $lang));
 			}
 			return $form;
-		}
-
-		else {
+		} else {
 			return $form->input($name);
 		}
 	}
 //--------------------------------------------------
 //END FORM
 
-	public function serialized($name,$data) {
+	public function serialized($name, $data)
+	{
 		return array();
 	}
 
 //LANG
 //--------------------------------------------------
-	public function enable_multilang() {
+	public function enable_multilang()
+	{
 		return false;
 	}
 
-	public function data_langs($data) {
-		if (!$this->enable_multilang()) return false;
-		if (!isset($data['multilang'])) return false;
-		if (!$data['multilang']) return false;
+	public function data_langs($data)
+	{
+		if (!$this->enable_multilang()) {
+			return false;
+		}
+		if (!isset($data['multilang'])) {
+			return false;
+		}
+		if (!$data['multilang']) {
+			return false;
+		}
 		$langs = CMS::lang()->langs();
-		if (!is_array($langs)) return false;
-		if (count($langs)<2) return false;
+		if (!is_array($langs)) {
+			return false;
+		}
+		if (count($langs) < 2) {
+			return false;
+		}
 		return $langs;
 	}
 
-	public function name_lang($name,$lang) {
+	public function name_lang($name, $lang)
+	{
 		return "_lang__{$name}__{$lang}";
 	}
 //--------------------------------------------------
@@ -505,46 +582,55 @@ abstract class CMS_Fields_AbstractField {
 
 //ASSIGN
 //--------------------------------------------------
-	public function assign_from_object($form,$object,$name,$data) {
-		if (!$this->access($name, $data, 'assign_from_object', $object, $form)) return;
-		$value = is_object($object)?$object[$name]:$object;
+	public function assign_from_object($form, $object, $name, $data)
+	{
+		if (!$this->access($name, $data, 'assign_from_object', $object, $form)) {
+			return;
+		}
+		$value = is_object($object) ? $object[$name] : $object;
 		if ($langs = $this->data_langs($data)) {
 			$values = CMS::lang()->lang_split($value);
-			foreach($langs as $lang => $ldata) {
-				$_name = $this->name_lang($name,$lang);
-				$form[$_name] = isset($values[$lang])? $values[$lang] : '';
+			foreach ($langs as $lang => $ldata) {
+				$_name = $this->name_lang($name, $lang);
+				$form[$_name] = isset($values[$lang]) ? $values[$lang] : '';
 			}
-		}
-		else {
+		} else {
 			$form[$name] = $value;
 		}
 	}
 
-	public function copy_value($from, $to, $name, $data) {
+	public function copy_value($from, $to, $name, $data)
+	{
 		$to[$name] = $from[$name];
 		return $this;
 	}
 
-	public function assign_to_object($form,$object,$name,$data) {
-		if (!$this->access($name, $data, 'assign_to_object', $object, $form)) return;
+	public function assign_to_object($form, $object, $name, $data)
+	{
+		if (!$this->access($name, $data, 'assign_to_object', $object, $form)) {
+			return;
+		}
 		if ($langs = $this->data_langs($data)) {
 			$value = '';
-			foreach($langs as $lang => $ldata) {
-				$_name = $this->name_lang($name,$lang);
+			foreach ($langs as $lang => $ldata) {
+				$_name = $this->name_lang($name, $lang);
 				$_value = trim($form[$_name]);
-				if ($_value!='') $value .= "%LANG{{$lang}}".$_value;
+				if ($_value != '') {
+					$value .= "%LANG{{$lang}}" . $_value;
+				}
 			}
 			$object[$name] = $value;
-		}
-		else {
+		} else {
 			$object[$name] = $form[$name];
 		}
 
-		if (isset($data['input formats']))
-			$this->process_input_format($form,$object,$name,$data);
+		if (isset($data['input formats'])) {
+			$this->process_input_format($form, $object, $name, $data);
+		}
 	}
 
-	protected function process_input_format($form,$object,$name,$data) {
+	protected function process_input_format($form, $object, $name, $data)
+	{
 		$request_name = $this->input_formats_name($name, $data);
 		$format_name = !empty(WS::env()->request[$request_name])
 			? WS::env()->request[$request_name]
@@ -554,53 +640,77 @@ abstract class CMS_Fields_AbstractField {
 			$object[$name] = Core::make('Text.Process')->process($object[$name], $process);
 		}
 	}
+
+	public function init_value($name, $data, $item)
+	{
+		$item[$name] = isset($data['init_value']) ? $data['init_value'] : '';
+		return $item;
+	}
 //--------------------------------------------------
 //END ASSIGN
-
 
 //CONTROLLER
 //--------------------------------------------------
 
-	public function on_before_action($name,$data,$action,$item=false,$fields = array()) {
+	public function controller($name, $data, $item = false)
+	{
+		if (isset($data['controller'])) {
+			$controller = Core::make($data['controller'], WS::env(), WS::env()->response);
+		} else {
+			$controller = CMS::$current_controller;
+		}
+		return $controller;
+	}
+
+	public function on_before_action($name, $data, $action, $item = false, $fields = array())
+	{
 		return false;
 	}
 
-	public function on_after_action($result, $name,$data,$action,$item=false,$fields = array()) {
+	public function on_after_action($result, $name, $data, $action, $item = false, $fields = array())
+	{
 		return false;
 	}
 
-
-	public function action($name,$data,$action,$item=false,$fields = array()) {
-		if (!$this->access($name, $data, 'action', $action, $item, $fields)) return Net_HTTP::forbidden();
+	public function action($name, $data, $action, $item = false, $fields = array())
+	{
+		if (!$this->access($name, $data, 'action', $action, $item, $fields)) {
+			return Net_HTTP::forbidden();
+		}
 		if (method_exists($this, $m = 'action_' . $action)) {
-			return $this->$m($name,$data,$action,$item,$fields);
+			return $this->$m($name, $data, $action, $item, $fields);
 		}
 		return false;
 	}
 
-	public function action_url($name,$data,$action,$item=false,$args=false) {
+	public function action_url($name, $data, $action, $item = false, $args = false)
+	{
 		return false;
 	}
 
-	public function process_uploads($name,$data,$uploads,$item,$extra) {
+	public function process_uploads($name, $data, $uploads, $item, $extra)
+	{
 	}
 
-	public function process_inserted($name,$data,$item) {
+	public function process_inserted($name, $data, $item)
+	{
 		return false;
 	}
 
-	public function action_upload($name,$data,$action,$item=false) {
+	public function action_upload($name, $data, $action, $item = false)
+	{
 		$files = array_pop($_POST);
 		$files = is_array($files) ? $files : array($files);
 		$error = '';
 		$msg = '';
-		if (count($files)==0) {
+		if (count($files) == 0) {
 			return CMS::lang()->_common->error_file_upload;
-		}
-		else {
+		} else {
 			try {
 				$res = $this->upload_files($files, $name, $data, $action, $item);
-				if (!empty($res)) return $res[0];
+				if (!empty($res)) {
+					return $res[0];
+				}
 			} catch (Exception $e) {
 				return $e->getMessage();
 			}
@@ -608,50 +718,61 @@ abstract class CMS_Fields_AbstractField {
 		return CMS::lang()->_common->error_file_upload;
 	}
 
-	protected function upload_file($fobject, $name, $data, $action, $item) {
+	protected function upload_file($fobject, $name, $data, $action, $item)
+	{
 		$file = $fobject->file_array;
 		$filename = $this->real_uploaded_filename($name, $data, $file);
 		$code = $this->request('code');
-		$dir = $this->dir_path($item,$code,$name,$data);
-		if(!empty($file['error'])) {
+		$dir = $this->dir_path($item, $code, $name, $data);
+		if (!empty($file['error'])) {
 			return $this->upload_error_message($file['error']);
-		}
-		else if (!isset($file['tmp_name'])||empty($file['tmp_name'])||$file['tmp_name']=='none') {
-			throw new Exception(CMS::lang()->_common->no_file_uploaded); //TODO: Exception class
-		}
-		else {
-			$old = $file['tmp_name'];
-			$new = "$dir/$filename";
-			$valid = $this->upload_validate($name, $data, $file, $new);
-			if ($valid !== true)
-				throw new Exception($valid);
+		} else {
+			if (!isset($file['tmp_name']) || empty($file['tmp_name']) || $file['tmp_name'] == 'none') {
+				throw new Exception(CMS::lang()->_common->no_file_uploaded); //TODO: Exception class
+			} else {
+				$old = $file['tmp_name'];
+				$new = "$dir/$filename";
+				$valid = $this->upload_validate($name, $data, $file, $new);
+				if ($valid !== true) {
+					throw new Exception($valid);
+				}
 
-			$eres = Events::call('cms.fields.upload', $name, $data, $file, $new);
-			if (!is_null($eres) && $eres !== true) return $eres;
-			$eres = Events::call("cms.fields.{$name}.upload", $data, $file, $new);
-			if (!is_null($eres) && $eres !== true) return $eres;
+				$eres = Events::call('cms.fields.upload', $name, $data, $file, $new);
+				if (!is_null($eres) && $eres !== true) {
+					return $eres;
+				}
+				$eres = Events::call("cms.fields.{$name}.upload", $data, $file, $new);
+				if (!is_null($eres) && $eres !== true) {
+					return $eres;
+				}
 
-			if (!is_dir($dir)) CMS::mkdirs($dir);
-			CMS::copy($old,$new);
-			CMS::chmod_file($new);
+				if (!is_dir($dir)) {
+					CMS::mkdirs($dir);
+				}
+				CMS::copy($old, $new);
+				CMS::chmod_file($new);
 
-			return $this->upload_return($name, $data, $new, $dir, $filename);
+				return $this->upload_return($name, $data, $new, $dir, $filename);
+			}
 		}
 	}
 
-	protected function upload_files($files, $name, $data, $action, $item) {
+	protected function upload_files($files, $name, $data, $action, $item)
+	{
 		$res = array();
 		foreach ($files as $fobject) {
-			$res = array_merge($res, (array) $this->upload_file($fobject, $name, $data, $action, $item));
+			$res = array_merge($res, (array)$this->upload_file($fobject, $name, $data, $action, $item));
 		}
 		return $res;
 	}
 
-	protected function upload_validate($name, $data, $file, $new) {
+	protected function upload_validate($name, $data, $file, $new)
+	{
 		return true;
 	}
 
-	protected function real_uploaded_filename($name, $data, $file) {
+	protected function real_uploaded_filename($name, $data, $file)
+	{
 		if (isset($data['uploaded_filename'])) {
 			$callback = $data['uploaded_filename'];
 			$result = call_user_func($callback, trim($file['name']), $file, $name, $data);
@@ -662,28 +783,37 @@ abstract class CMS_Fields_AbstractField {
 		return $this->uploaded_filename($name, $data, $file);
 	}
 
-	protected function uploaded_filename($name, $data, $file) {
-		return CMS::translit(preg_replace('{[\s+]+}','-',trim($file['name'])));
+	protected function uploaded_filename($name, $data, $file)
+	{
+		return CMS::translit(preg_replace('{[\s+]+}', '-', trim($file['name'])));
 	}
 
-	protected function upload_return($name, $data, $new_file, $dir, $filename) {
+	protected function upload_return($name, $data, $new_file, $dir, $filename)
+	{
 		return 'success';
 	}
 
-	public function dir_path($item,$code,$name,$data) {
+	public function dir_path($item, $code, $name, $data)
+	{
 		$item_id = $item ? $item->id() : 0;
 		$key = "$name-$item_id-$code-{$data['private']}";
+		if ($item->mapper) {
+            $key .= '-' . reset($item->mapper->options['table']);
+        } 
 		if (isset($this->dir_paths[$key])) {
 			return $this->dir_paths[$key];
 		}
 		$dir = false;
 		if (empty($item_id)) {
-			$dir = CMS::temp_dir()."/dir-$code";
-		}
-		else {
-			$dir = $item->homedir(isset($data['private'])&&$data['private']);
-			if ($dir=='') die;
-			if ($dir[0]!='.'&&$dir[0]!='/') $dir = "./$dir";
+			$dir = CMS::temp_dir() . "/dir-$code";
+		} else {
+			$dir = $item->homedir(isset($data['private']) && $data['private']);
+			if ($dir == '') {
+				die;
+			}
+			if ($dir[0] != '.' && $dir[0] != '/') {
+				$dir = "./$dir";
+			}
 		}
 		$dir .= "/$name";
 		return $this->dir_paths[$key] = $dir;
@@ -691,94 +821,164 @@ abstract class CMS_Fields_AbstractField {
 //--------------------------------------------------
 //END CONTROLLER
 
-
 //SUPPORT
 //--------------------------------------------------
 
-
-	public function search_subfield($name, $data, $field) {
+	public function search_subfield($name, $data, $field)
+	{
 		return false;
 	}
 
-	public function input_formats_name($name, $data) {
-		return $name. '_formats';
+	public function input_formats_name($name, $data)
+	{
+		return $name . '_formats';
 	}
 
-	public function url_class() {
+	public function url_class()
+	{
 		return 'field-url-' . WS::env()->request->id;
 	}
 
-	protected function punset($data) {
+	protected function punset($data)
+	{
 		$args = func_get_args();
-		foreach($args as $arg) if (is_string($arg)) {
-			if (isset($data[$arg])) unset($data[$arg]);
-		}
+		foreach ($args as $arg)
+			if (is_string($arg)) {
+				if (isset($data[$arg])) {
+					unset($data[$arg]);
+				}
+			}
 		return $data;
 	}
 
-	protected function stdunset($data) {
-		if (isset($data['value'])&&!$data['value']) unset($data['value']);
-		return $this->punset($data,'type','caption','rcaption','comment','match','tab','help','error_message','edit_only','if_component_exists','__item','__item_id','__items','template','layout','hidden','ajax'
-			,'validate_presence','validate_email','validate_match','validate_match_message','validate_confirmation','validate_confirmation_message','validate_ajax','validate_ajax_message','validate_error_message',
-			'input formats', 'default input format', 'allow select format', 'template name', 'layout preprocess', 'preprocess', 'attach', 'items', 'tagparms', 'multilang',
-			'in_list', 'group', 'in_filters', 'weight', '__table', 'access', 'sqltype', 'in_form', 'weight_in_list', 'weight_in_form', 'init_value', 'datepicker', 'view_preprocess',
-			'validation', 'uploaded_filename'
-		);
+	protected function stdunset($data)
+	{
+		if (isset($data['value']) && !$data['value']) {
+			unset($data['value']);
+		}
+		if (empty($data)) {
+			return array();
+		}
+		$keys = array_filter(array_keys($data), array($this, 'tag_attrs_filter'));
+		$attrs = array();
+		foreach ($keys as $key) {
+			if (isset($data[$key])) {
+				$attrs[$key] = $data[$key];
+			}
+		}
+		return $attrs;
 	}
 
-	public function user() {
-		if (Core::is_cli()) return 'cli';
-		if (CMS::admin()) return 'admin-'.WS::env()->admin_auth->user->login;
-		if (WS::env()->auth->user) return WS::env()->auth->user->id;
+	protected function tag_attrs_filter($attr)
+	{
+		return Core_Strings::starts_with($attr, 'data-') ||
+			Core_Strings::starts_with($attr, 'on') ||
+			in_array($attr, $this->tag_attrs())
+		;
+	}
+
+	protected function tag_attrs()
+	{
+		return self::$tag_attrs;
+	}
+
+	public function user()
+	{
+		if (Core::is_cli()) {
+			return 'cli';
+		}
+		if (CMS::admin()) {
+			return 'admin-' . WS::env()->admin_auth->user->login;
+		}
+		if (WS::env()->auth->user) {
+			return WS::env()->auth->user->id;
+		}
 		return false;
 	}
 
-	public function temp_code() {
+	public function temp_code()
+	{
 		if (!$this->temp_code) {
 			$u = $this->user();
-			if (!$u) die;
+			if (!$u) {
+				die;
+			}
 			$t = date('YmdHis');
-			$r = rand(1111,9999);
+			$r = rand(1111, 9999);
 			$this->temp_code = "$t-$r-$u";
 		}
 		return $this->temp_code;
 	}
 
-	protected function upload_error_message($e) {
-		switch((int)$e) {
-			case 1: return 'The uploaded file exceeds the upload_max_filesize directive in php.ini';
-			case 2: return 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form';
-			case 3: return 'The uploaded file was only partially uploaded';
-			case 4: return 'No file was uploaded.';
-			case 6: return 'Missing a temporary folder';
-			case 7: return 'Failed to write file to disk';
-			case 8: return 'File upload stopped by extension';
+	protected function upload_error_message($e)
+	{
+		switch ((int)$e) {
+			case 1:
+				return 'The uploaded file exceeds the upload_max_filesize directive in php.ini';
+			case 2:
+				return 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form';
+			case 3:
+				return 'The uploaded file was only partially uploaded';
+			case 4:
+				return 'No file was uploaded.';
+			case 6:
+				return 'Missing a temporary folder';
+			case 7:
+				return 'Failed to write file to disk';
+			case 8:
+				return 'File upload stopped by extension';
 		}
 		return "Unknown error ($e)";
 	}
 
-	public function use_styles() {
+	protected function js_injection($template, $field_name, $type, $url_class = false, $method_name = null)
+	{
+		$selector = '.field-' . $field_name;
+		if ($url_class) {
+			$selector = '.' . $url_class . $selector;
+			$template->with('url_class', $url_class);
+		}
+
+		$call = $method_name ? "$type.$method_name" : $type;
+		$code = "; $(function() { $('$selector').each(
+					function() {
+						TAO.fields.$call($(this));
+						}
+		)});";
+		$template->append_to('js', $code);
+	}
+
+	public function use_styles()
+	{
 		return $this->view->use_styles(func_get_args());
 	}
 
-	public function use_scripts() {
+	public function use_scripts()
+	{
 		return $this->view->use_scripts(func_get_args());
 	}
 
-	public function request($index = null) {
-		return is_null($index) ? WS::env()->request : WS::env()->request[(string) $index];
+	public function request($index = null)
+	{
+		return is_null($index) ? WS::env()->request : WS::env()->request[(string)$index];
 	}
 
-	public function access_default($name, $data, $action, $item = null, $args = array()) {
+	public function access_default($name, $data, $action, $item = null, $args = array())
+	{
 		//$args = array_slice(func_get_args(), 3);
 		$rc = Events::call('cms.fields.access', $name, $data, $action, $item);
-		if (!is_null($rc)) return $rc;
+		if (!is_null($rc)) {
+			return $rc;
+		}
 		$rc = Events::call('cms.fields.access.' . $action, $name, $data, $item);
-		if (!is_null($rc)) return $rc;
+		if (!is_null($rc)) {
+			return $rc;
+		}
 		return true;
 	}
 
-	public function access($name, $data, $action, $item = null) {
+	public function access($name, $data, $action, $item = null)
+	{
 		$args = array_slice(func_get_args(), 4);
 		if (Core_Types::is_callable($data['access'])) {
 			return Core::invoke($data['access'], array($this, $name, $data, $action, $item, $args));
@@ -791,45 +991,62 @@ abstract class CMS_Fields_AbstractField {
 
 // WIDGET:
 //--------------------------------------------------
-	public function layout($layout=false,$data=array()) {
-		if ($layout&&IO_FS::exists($layout)) return $layout;
-		if (isset($data['layout'])&&IO_FS::exists($data['layout'])) return $data['layout'];
+	public function layout($layout = false, $data = array())
+	{
+		if ($layout && IO_FS::exists($layout)) {
+			return $layout;
+		}
+		if (isset($data['layout']) && IO_FS::exists($data['layout'])) {
+			return $data['layout'];
+		}
 		return $this->template($data, $layout ? "layout-$layout" : 'layout');
 	}
 
-	public function template($data=array(), $name = 'template') {
+	public function template($data = array(), $name = 'template')
+	{
 		static $template = array();
 
-		if (Templates::is_absolute_path($name)) return $name;
+		if (Templates::is_absolute_path($name)) {
+			return $name;
+		}
 
 		if (isset($data['template'])) {
 			$data_templates = is_string($data['template']) ? array('template' => $data['template']) : $data['template'];
-			if (isset($data_templates[$name]) && IO_FS::exists($data_templates[$name]))
+			if (isset($data_templates[$name]) && IO_FS::exists($data_templates[$name])) {
 				return $data_templates[$name];
+			}
 		}
 
-		$type = isset($data['type'])? $data['type'] : 'input';
+		$type = isset($data['type']) ? $data['type'] : 'input';
 		$key = $type . '_' . $name;
-		if (isset($template[$key])) return $template[$key];
+		if (isset($template[$key])) {
+			return $template[$key];
+		}
 
 		/*if ($name == 'template' && isset($data['template name']))
 		  $name = $data['template name'];*/
 		$file = $this->dir() . "/$name.phtml";
 
-		if (IO_FS::exists($file)) return $template[$key] = $file;
+		if (IO_FS::exists($file)) {
+			return $template[$key] = $file;
+		}
 
 		$types = array($type);
 		$parents = Core_Types::class_hierarchy_for($this);
-		if (count($parents) >= 3)
+		if (count($parents) >= 3) {
 			foreach (array_slice($parents, 1, count($parents) - 2) as $p) {
 				$type = CMS_Fields::type_by_class($p);
-				if (empty($type))
+				if (empty($type)) {
 					$type = CMS_Fields::type_by_class(Core_Types::module_name_for($p));
+				}
 				$types[] = $type;
 			}
+		}
 
 		foreach ($types as $t) {
-			if (empty($t)) continue;
+			if (empty($t)) {
+				continue;
+			}
 			$view = Templates_HTML::Template('fields/' . $t . '/' . $name);
 			if ($view->exists()) {
 				return $template[$key] = $view->path;
@@ -844,23 +1061,27 @@ abstract class CMS_Fields_AbstractField {
 		return $template[$key] = $name;
 	}
 
-	public function caption_content($name,$data) {
+	public function caption_content($name, $data)
+	{
 		return false;
 	}
 
-	public function draw($name,$data, $template = 'template', $parms = array()) {
-		return $this->render($name,$data, $template, $parms);
+	public function draw($name, $data, $template = 'template', $parms = array())
+	{
+		return $this->render($name, $data, $template, $parms);
 	}
 
-	public function render($name,$data, $template = 'template', $parms = array()) {
+	public function render($name, $data, $template = 'template', $parms = array())
+	{
 		if ($this->access($name, $data, 'render', $data['__item'], $template)) {
-			$template = $this->create_template($name,$data, $template, $parms);
+			$template = $this->create_template($name, $data, $template, $parms);
 			$this->layout_preprocess($template, $name, $data);
 			return $template->render();
 		}
 	}
 
-	public function create_template($name,$data, $template = 'template', $parms = array()) {
+	public function create_template($name, $data, $template = 'template', $parms = array())
+	{
 		$template = $this->template($data, $template);
 		//FIXME
 		$t = !empty($this->view) ? $this->view->spawn($template) : Templates_HTML::Template($template);
@@ -871,94 +1092,124 @@ abstract class CMS_Fields_AbstractField {
 		return $t;
 	}
 
-	public function create_layout($name,$data,$layout=false, $template = 'template', $parms = array()) {
-		$layout = $this->layout($layout,$data);
+	public function create_layout($name, $data, $layout = false, $template = 'template', $parms = array())
+	{
+		$layout = $this->layout($layout, $data);
 		$template = $this->template($data, $template);
 		//FIXME
 		$l = !empty($this->view) ? $this->view->spawn($layout) : Templates_HTML::Template($layout);
 		$l->no_duplicates_in('js')->no_duplicates_in('css');
 
 		$l = $l->with(array(
-			'template' => $template,
-			'layout' => $layout,
-		));
+				'template' => $template,
+				'layout' => $layout,
+			)
+		);
 		$l->with($parms);
 		$this->layout_preprocess($l, $name, $data);
 		$this->preprocess($l, $name, $data);
 		return $l;
 	}
 
-	public function draw_in_layout($name,$data,$layout=false, $template = 'template', $parms = array()) {
-		print $this->render_in_layout($name,$data,$layout);
+	public function draw_in_layout($name, $data, $layout = false, $template = 'template', $parms = array())
+	{
+		print $this->render_in_layout($name, $data, $layout);
 	}
 
-	public function render_in_layout($name,$data,$layout=false, $template = 'template', $parms = array()) {
-		if ($this->access($name, $data, 'render_in_layout', $data['__item'], $layout, $template))
-			return $this->create_layout($name,$data,$layout, $template, $parms)->render();
+	public function render_in_layout($name, $data, $layout = false, $template = 'template', $parms = array())
+	{
+		if ($this->access($name, $data, 'render_in_layout', $data['__item'], $layout, $template)) {
+			return $this->create_layout($name, $data, $layout, $template, $parms)->render();
+		}
 	}
 
-	public function get_item($name, $data) {
+	public function get_item($name, $data)
+	{
 		return $data['__item'];
 	}
 
-	public function tagparms($name, $data) {
+	public function tagparms($name, $data)
+	{
 		$r = array_merge(isset($data['tagparms']) ? $data['tagparms'] : array(), $this->stdunset($data));
 		$this->validator_tagparms($name, $data, $r);
 		return $r;
 	}
 
-	protected function preprocess($template, $name, $data) {
-		//$form = $this->view->helpers['forms']->form;
-		if (isset($template->parms['form'])) {
+	protected function get_form_for_template($template, $name, $data)
+	{
+		$form = $template->helpers['forms']->form;
+		if (!$form && isset($template->parms['form'])) {
 			$form = $template->helpers['forms']->form = $template->parms['form'];
 		}
-		else {
-			$form = $template->helpers['forms']->form;
+		if (!$form) {
+			$form = $this->view->helpers['forms']->form;
 		}
+		// in same case (ajax processing), $form === null is normal
+		// if (!$form) {
+		// 	throw new RuntimeException('CMS.Fields: render without form');
+		// }
+		return $form;
+	}
+
+	protected function preprocess($template, $name, $data)
+	{
+		$form = $this->get_form_for_template($template, $name, $data);
 		$tagparms = $this->tagparms($name, $data);
 		$tagparms['data-field-name'] = $name;
-		$item = isset($data['__item'])? $data['__item'] : (isset($data['item']) ? $data['item'] : false);
-		$item_id = isset($data['__item_id'])? $data['__item_id'] : 0;
+		$item = isset($data['__item']) ? $data['__item'] : (isset($data['item']) ? $data['item'] : false);
+		$item_id = isset($data['__item_id']) ? $data['__item_id'] : 0;
 		$template->with(array(
-			'form' => $form,
-			'tagparms' => $tagparms,
-			'name' => $name,
-			'_name' => $name,
-			'data' => $data,
-			'type_object' => $this,
-			'item' => $item,
-			'item_id' => $item_id
-		));
-		if (isset($data['preprocess']))
+				'form' => $form,
+				'tagparms' => $tagparms,
+				'name' => $name,
+				'_name' => $name,
+				'data' => $data,
+				'type_object' => $this,
+				'item' => $item,
+				'item_id' => $item_id
+			)
+		);
+		if (isset($data['preprocess'])) {
 			Core::invoke($data['preprocess'], array($template, $name, $data));
+		}
 		return $template->allow_filtering(false);
 	}
 
-	protected function current_lang() {
+	protected function current_lang()
+	{
 		$current_lang = CMS::$default_lang;
-		if (isset($_COOKIE['admin-field-lang'])) $current_lang = $_COOKIE['admin-field-lang'];
+		if (isset($_COOKIE['admin-field-lang'])) {
+			$current_lang = $_COOKIE['admin-field-lang'];
+		}
 		return $current_lang;
 	}
 
-
-	protected function layout_preprocess($l, $name, $data) {
+	protected function layout_preprocess($l, $name, $data)
+	{
 		$form_name = $l->helpers['forms']->form->name;
 		$this->attach($l, $name, $data);
-		if (!isset($data['caption'])) $data['caption'] = '';
+		if (!isset($data['caption'])) {
+			$data['caption'] = '';
+		}
 		$caption = trim(CMS::lang($data['caption']));
 		$rcaption = '';
 		if (isset($data['rcaption'])) {
 			$caption = '';
 			$rcaption = trim(CMS::lang($data['rcaption']));
 		}
-		if ($caption=='') $caption = '&nbsp;';
-		else $caption .= ':';
-		
-		Events::call("cms.fields.$form_name.$name.caption",$caption,$rcaption);
-		Events::call("cms.fields.$form_name.caption",$caption,$rcaption);
+		if ($caption == '') {
+			$caption = '&nbsp;';
+		} else {
+			$caption .= ':';
+		}
 
-		$ccont = $this->caption_content($name,$data);
-		if (!$ccont) $ccont = $l->forms->label($name, $caption, array('class' => "label-$name left"));
+		Events::call("cms.fields.$form_name.$name.caption", $caption, $rcaption);
+		Events::call("cms.fields.$form_name.caption", $caption, $rcaption);
+
+		$ccont = $this->caption_content($name, $data);
+		if (!$ccont) {
+			$ccont = $l->forms->label($name, $caption, array('class' => "label-$name left"));
+		}
 
 		if (isset($data['allow select format']) && $data['allow select format'] && isset($data['input formats'])) {
 			$select_formats = array();
@@ -968,20 +1219,22 @@ abstract class CMS_Fields_AbstractField {
 			$l->update_parm('selected_formats', $select_formats);
 		}
 
-
 		$l->with(array(
-			'caption' => $caption,
-			'rcaption' => $rcaption,
-			'current_lang' => $this->current_lang(),
-			'ccont' => $ccont
-		));
+				'caption' => $caption,
+				'rcaption' => $rcaption,
+				'current_lang' => $this->current_lang(),
+				'ccont' => $ccont
+			)
+		);
 
-		if (isset($data['layout preprocess']))
+		if (isset($data['layout preprocess'])) {
 			Core::invoke($data['layout preprocess'], array($l, $name, $data));
+		}
 		return $l;
 	}
 
-	protected function attach($template, $name, $data) {
+	protected function attach($template, $name, $data)
+	{
 		if (isset($data['attach'])) {
 			$method_by_name = array('js' => 'use_scripts', 'css' => 'use_styles');
 			foreach ($data['attach'] as $name => $data) {
@@ -996,7 +1249,8 @@ abstract class CMS_Fields_AbstractField {
 //VALIDATION
 //--------------------------------------------------
 
-	public function validator($form) {
+	public function validator($form)
+	{
 		if (!$form->validator) {
 			$validator = Validation::Validator();
 			$form->validate_with($validator);
@@ -1004,37 +1258,41 @@ abstract class CMS_Fields_AbstractField {
 		return $form->validator;
 	}
 
-	public function form_validator($form,$name,$data) {
+	public function form_validator($form, $name, $data)
+	{
 		if (isset($data['validate_presence'])) {
-			$this->validator($form)->validate_presence_of($name,$data['validate_presence']);
+			$this->validator($form)->validate_presence_of($name, $data['validate_presence']);
 		}
-		if (isset($data['validate_range_from'])||isset($data['validate_range_to'])) {
-			$from = isset($data['validate_range_from'])?$data['validate_range_from']:0;
-			$to = isset($data['validate_range_to'])?$data['validate_range_to']:PHP_INT_MAX;
-			$message = isset($data['validate_range_message'])?$data['validate_range_message']:"$name!";
-			$this->validator($form)->validate_range_of($name,$from,$to,$message);
+		if (isset($data['validate_range_from']) || isset($data['validate_range_to'])) {
+			$from = isset($data['validate_range_from']) ? $data['validate_range_from'] : 0;
+			$to = isset($data['validate_range_to']) ? $data['validate_range_to'] : PHP_INT_MAX;
+			$message = isset($data['validate_range_message']) ? $data['validate_range_message'] : "$name!";
+			$this->validator($form)->validate_range_of($name, $from, $to, $message);
 		}
 		if (isset($data['validate_email'])) {
-			$this->validator($form)->validate_email_for($name,$data['validate_email']);
+			$this->validator($form)->validate_email_for($name, $data['validate_email']);
 		}
-		if (isset($data['validate_match'])&&isset($data['validate_match_message'])) {
-			$this->validator($form)->validate_format_of($name,$data['validate_match'],$data['validate_match_message']);
+		if (isset($data['validate_match']) && isset($data['validate_match_message'])) {
+			$this->validator($form)->validate_format_of($name, $data['validate_match'], $data['validate_match_message']);
 		}
-		if (isset($data['validate_confirmation'])&&isset($data['validate_confirmation_message'])) {
-			$this->validator($form)->validate_confirmation_of($name,$data['validate_confirmation'],$data['validate_confirmation_message']);
+		if (isset($data['validate_confirmation']) && isset($data['validate_confirmation_message'])) {
+			$this->validator($form)->validate_confirmation_of($name, $data['validate_confirmation'], $data['validate_confirmation_message']);
 		}
 		return $form;
 	}
 
-	public function validate_email($email) {
-		return Core_Regexps::match('{'.$this->email_regexp().'}',$email);
+	public function validate_email($email)
+	{
+		return Core_Regexps::match('{' . $this->email_regexp() . '}', $email);
 	}
 
-	public function email_regexp() {
+	public function email_regexp()
+	{
 		return '^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$';
 	}
 
-	public function validator_tagparms($name,$data,&$tagparms) {
+	public function validator_tagparms($name, $data, &$tagparms)
+	{
 		$rc = false;
 		if (isset($data['validate_ajax'])) {
 			$rc = true;
@@ -1050,13 +1308,13 @@ abstract class CMS_Fields_AbstractField {
 			$tagparms['data-validate-match-message'] = $data['validate_email'];
 			$tagparms['data-validate-match-mods'] = '';
 		}
-		if (isset($data['validate_match'])&&isset($data['validate_match_message'])) {
+		if (isset($data['validate_match']) && isset($data['validate_match_message'])) {
 			$rc = true;
 			$match = trim($data['validate_match']);
 			$mods = '';
-			if ($match[0]=='/'||$match[0]=='{') {
+			if ($match[0] == '/' || $match[0] == '{') {
 				$mods = '';
-				if ($m = Core_Regexps::match_with_results('!^(?:{|/)(.+)(?:}|/)([a-z]*)$!',$match)) {
+				if ($m = Core_Regexps::match_with_results('!^(?:{|/)(.+)(?:}|/)([a-z]*)$!', $match)) {
 					$match = $m[1];
 					$mods = $m[2];
 				}
@@ -1066,7 +1324,7 @@ abstract class CMS_Fields_AbstractField {
 			$tagparms['data-validate-match-message'] = htmlspecialchars($data['validate_match_message']);
 		}
 		if ($rc) {
-			$class = isset($tagparms['class'])? $tagparms['class'] : '';
+			$class = isset($tagparms['class']) ? $tagparms['class'] : '';
 			$class = trim("$class validable");
 			$tagparms['class'] = $class;
 		}
@@ -1078,34 +1336,50 @@ abstract class CMS_Fields_AbstractField {
 
 //DISPLAY
 //--------------------------------------------------
-	public function view_value($value,$name,$data,$row=false) {
-		if (is_object($value)) $value = $value[$name];
-		if (is_string($value)&&$value!=''&&$this->enable_multilang()) {
+	public function view_value($value, $name, $data, $row = false)
+	{
+		if (is_object($value)) {
+			$value = $value[$name];
+		}
+		if (is_string($value) && $value != '' && $this->enable_multilang()) {
 			$value = CMS::lang($value);
 		}
-		if (isset($data['view_preprocess'])&&is_callable($data['view_preprocess'])) {
-			$value = call_user_func($data['view_preprocess'],$value,$row);
+		if (isset($data['view_preprocess']) && is_callable($data['view_preprocess'])) {
+			$value = call_user_func($data['view_preprocess'], $value, $row);
 		}
 		return $value;
 	}
 
-	protected function container_class() {
-		$class = get_class($this).'_ValueContainer';
-		if (class_exists($class)) return $class;
+	protected function container_class()
+	{
+		$class = get_class($this) . '_ValueContainer';
+		if (class_exists($class)) {
+			return $class;
+		}
 		return 'CMS.Fields.ValueContainer';
 	}
 
-	public function container($name,$data,$item) {
+	/**
+	 * @param string         $name
+	 * @param array          $data
+	 * @param CMS_ORM_Entity $item
+	 *
+	 * @return CMS_Fields_ValueContainer
+	 */
+	public function container($name, $data, $item)
+	{
 		$class = $this->container_class();
-		if (isset($data['container']) && Core_Types::is_subclass_of('CMS.Fields.ValueContainer', $data['container']))
+		if (isset($data['container']) && Core_Types::is_subclass_of('CMS.Fields.ValueContainer', $data['container'])) {
 			$class = $data['container'];
-		return Core::make($class, $name,$data,$item,$this);
+		}
+		return Core::make($class, $name, $data, $item, $this);
 	}
 //--------------------------------------------------
 //END DISPLAY
 }
 
-class CMS_Fields_ValueContainer {
+class CMS_Fields_ValueContainer
+{
 
 	protected $name;
 	protected $data;
@@ -1113,96 +1387,126 @@ class CMS_Fields_ValueContainer {
 	protected $type;
 	protected $forced_lang = false;
 
-	public function __construct($name,$data,$item,$type) {
+	public function __construct($name, $data, $item, $type)
+	{
 		$this->name = $name;
 		$this->data = $data;
 		$this->item = $item;
 		$this->type = $type;
 	}
 
-	protected function template() {
+	protected function template()
+	{
 		$template = CMS::layout_view();
-		if (!$template) $template = Templates_HTML::Template('empty');
+		if (!$template) {
+			$template = Templates_HTML::Template('empty');
+		}
 		return $template;
 	}
 
-	public function value() {
+	public function value()
+	{
 		return $this->item->{$this->name};
 	}
 
-	public function set($value) {
+	public function set($value)
+	{
 		$this->item->{$this->name} = $value;
 		return $this;
 	}
 
-	public function lang($lang=false) {
-		$this->forced_lang = $lang? $lang : CMS::site_lang();
+	public function lang($lang = false)
+	{
+		$this->forced_lang = $lang ? $lang : CMS::site_lang();
 		return $this;
 	}
 
-	public function change_data(array $data) {
+	public function change_data(array $data)
+	{
 		$this->data = array_merge($this->data, $data);
 		return $this;
 	}
 
-	public function draw_in_layout($layout = false, $template = 'template', $parms = array()) {
+	public function draw_in_layout($layout = false, $template = 'template', $parms = array())
+	{
 		return $this->type->draw_in_layout($this->name, $this->data, $layout, $template, $parms);
 	}
 
-	public function render() {
-		if (!$this->type->access($this->name, $this->data, 'container_render', $this->item, $this)) return '';
+	public function render()
+	{
+		if (!$this->type->access($this->name, $this->data, 'container_render', $this->item, $this)) {
+			return '';
+		}
 		$value = $this->value();
-		if (is_null($value)) return '';
-		if (!is_string($value)) return print_r($value,true);
+		if (is_null($value)) {
+			return '';
+		}
+		if (!is_string($value)) {
+			return print_r($value, true);
+		}
 		if (is_string($value) && $this->type->enable_multilang()) {
 			if ($this->forced_lang) {
-				$value = CMS::lang($value,$this->forced_lang);
-			}
-			else {
+				$value = CMS::lang($value, $this->forced_lang);
+			} else {
 				$value = CMS::lang($value);
 			}
 		}
 		return $value;
 	}
 
-	protected function value_to_path($value) {
-		if ($value=='') return false;
-		if ($value[0]=='.'||$value[0]=='/') return $value;
+	protected function value_to_path($value)
+	{
+		if ($value == '') {
+			return false;
+		}
+		if ($value[0] == '.' || $value[0] == '/') {
+			return $value;
+		}
 		return "./$value";
 	}
 
-	public function path() {
+	public function path()
+	{
 		return $this->value_to_path(trim($this->value()));
 	}
 
-	public function value_to_url($value) {
-		if ($value=='') return false;
-		$value = preg_replace('{^\./}','',$value);
-		if ($value[0]=='.'||$value[0]=='/') {
-			$c = CMS::$current_controller;
-			return $c->download_url($value,$this->item,$this->name,$this->data);
+	public function value_to_url($value)
+	{
+		if ($value == '') {
+			return false;
+		}
+		$value = preg_replace('{^\./}', '', $value);
+		if ($value[0] == '.' || $value[0] == '/') {
+			return $this->type->controller($this->name, $this->data)->download_url($value, $this->item, $this->name, $this->data);
 		}
 		return "/$value";
 	}
 
-	public function url() {
+	public function url()
+	{
 		return $this->value_to_url(trim($this->value()));
 	}
 
-	public function __toString() {
-		return (string) $this->render();
+	public function __toString()
+	{
+		return (string)$this->render();
 	}
 
-	public function __get($name) {
-		if (isset($this->$name)) return $this->$name;
+	public function __get($name)
+	{
+		if (isset($this->$name)) {
+			return $this->$name;
+		}
 		throw new Core_MissingPropertyException($name);
 	}
 
-	public function access($action) {
+	public function access($action)
+	{
 		return $this->type->access($this->name, $this->data, $action, $this->item);
 	}
 
-	public function __call($method, $args) {
+	public function __call($method, $args)
+	{
 		if (method_exists($this->type, $method)) {
 			call_user_func_array(array($this->type, $method), $args);
 			return $this;

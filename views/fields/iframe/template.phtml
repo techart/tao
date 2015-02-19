@@ -1,0 +1,12 @@
+<?php
+
+if (!$item_id) {
+	print 'Недоступно при добавлении';
+}
+
+else {
+	$url = $data['url'];
+	$url = str_replace('%{id}',$item_id,$url);
+	$style = isset($data['style'])?$data['style']:'width:100%;height:200px;';
+	?><iframe style="<?= $style ?>" src="<?= $url ?>"></iframe><?php
+}

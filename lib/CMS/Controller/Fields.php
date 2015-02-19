@@ -3,55 +3,76 @@
  * @package CMS\Controller\Fields
  */
 
-
 Core::load('CMS.Fields');
 
-class CMS_Controller_Fields extends CMS_Controller {
+class CMS_Controller_Fields extends CMS_Controller
+{
 
 	protected $id = 0;
 	protected $edit_item = null;
 	protected $filtered_form_fields = array();
 
-	protected function load($id) {
+	protected function load($id)
+	{
 		return null;
 	}
 
-	public function name() {
+	public function name()
+	{
 		return null;
 	}
 
-	public function component() {
+	public function component()
+	{
 		return CMS::component();
 	}
 
-	public function get_from_component($name, $property = false, $default = array()) {
+	public function get_from_component($name, $property = false, $default = array())
+	{
 		$c = $this->component();
 		if ($c) {
 			$data = $this->component()->config($name);
 			if ($data) {
-				if (is_null($property)) return $data;
+				if (is_null($property)) {
+					return $data;
+				}
 				if ($property === false) {
 					$property = $this->name();
-					if (empty($property)) return null;
+					if (empty($property)) {
+						return null;
+					}
 				}
-				if (isset($data->$property)) return $data->$property;
+				if (isset($data->$property)) {
+					return $data->$property;
+				}
 			}
 		}
 		return $default;
 	}
 
-	public function setup_config() {
+	public function setup_config()
+	{
 		$fields = $this->get_from_component('fields');
-		if (!empty($fields)) $this->form_fields	= array_merge( (array) $this->form_fields, $fields);
+		if (!empty($fields)) {
+			$this->form_fields = array_merge((array)$this->form_fields, $fields);
+		}
 	}
 
-	public function setup() {
+	public function setup()
+	{
 		$this->setup_config();
 		return parent::setup();
 	}
 
+	protected static $search_fields_cache = array();
+
 	//TODO: cache this:
-	protected function search_fields($from, $to, $by, $weight_name = false, $caption_name = false, $default = null) {
+	protected function search_fields($from, $to, $by, $weight_name = false, $caption_name = false, $default = null)
+	{
+		$ckey = md5($by . ':' . $weight_name . ':' . $caption_name . ':' . $default . ':' . serialize(array_keys($from)));
+		if (isset(self::$search_fields_cache[$ckey])) {
+			return self::$search_fields_cache[$ckey];
+		}
 		$res = $to;
 		$weight = 0;
 		$delta = 0.001;
@@ -61,10 +82,17 @@ class CMS_Controller_Fields extends CMS_Controller {
 			}
 			if (isset($f[$by]) && $f[$by]) {
 				$parms = $f[$by];
-				if ($parms === true) $parms = $f;
-				else if (is_string($parms)) {$name = $parms; $parms = $f;}
-				else $parms = array_merge($f, $parms);
-				if ($caption_name&&isset($parms[$caption_name])) {
+				if ($parms === true) {
+					$parms = $f;
+				} else {
+					if (is_string($parms)) {
+						$name = $parms;
+						$parms = $f;
+					} else {
+						$parms = array_merge($f, $parms);
+					}
+				}
+				if ($caption_name && isset($parms[$caption_name])) {
 					$parms['caption'] = $parms[$caption_name];
 					unset($parms[$caption_name]);
 				}
@@ -73,7 +101,7 @@ class CMS_Controller_Fields extends CMS_Controller {
 			}
 		}
 		foreach ($res as $name => $parms) {
-			if ($weight_name&&isset($parms[$weight_name])) {
+			if ($weight_name && isset($parms[$weight_name])) {
 				$parms['weight'] = $parms[$weight_name];
 				unset($parms[$weight_name]);
 			}
@@ -83,22 +111,31 @@ class CMS_Controller_Fields extends CMS_Controller {
 			}
 			$res[$name] = $parms;
 		}
-		if (!empty($res)) uasort($res, array($this, 'sort_by_weight'));
-		return $res;
+		if (!empty($res)) {
+			uasort($res, array($this, 'sort_by_weight'));
+		}
+		return self::$search_fields_cache[$ckey] = $res;
 	}
 
-	protected function on_before_field_action() {}
+	protected function on_before_field_action()
+	{
+	}
 
-	protected function on_field_item_access($item) {
+	protected function on_field_item_access($item)
+	{
 		return true;
 	}
 
-	protected function fields_for_action() {
+	protected function fields_for_action()
+	{
 		return $this->form_fields();
 	}
 
-	protected function load_item() {
-		if ($this->edit_item) return $this->edit_item;
+	protected function load_item()
+	{
+		if ($this->edit_item) {
+			return $this->edit_item;
+		}
 		$item = false;
 		if (!empty($this->id)) {
 			$item = $this->load($this->id);
@@ -109,17 +146,18 @@ class CMS_Controller_Fields extends CMS_Controller {
 		return $item;
 	}
 
-	protected function field_action($field,$action) {
+	protected function field_action($field, $action)
+	{
 		$item = $this->load_item();
-		if (!$item) return $this->page_not_found();
-		if ($this->on_field_item_access($item)) return 'Access denied!';
+		if ($this->on_field_item_access($item)) {
+			return 'Access denied!';
+		}
 
 		$field_data = null;
 		foreach ($this->fields_for_action() as $fields) {
 			if (isset($fields[$field])) {
-					$field_data = $fields[$field];
-			}
-			else {
+				$field_data = $fields[$field];
+			} else {
 				foreach ($fields as $fname => $fdata) {
 					$ftype = CMS_Fields::type($fdata);
 					if ($field_data = $ftype->search_subfield($fname, $fdata, $field)) {
@@ -130,22 +168,33 @@ class CMS_Controller_Fields extends CMS_Controller {
 					}
 				}
 			}
-			if (empty($field_data)) continue;
-			
+
+			if (empty($field_data)) {
+				continue;
+			}
+
 			$type = CMS_Fields::type($field_data);
-			$field_data['__item'] = $item;
-			$field_data['__item_id'] = $item->id();
-			
-			$type->on_before_action($field,$field_data,$action,$item, $fields);
+			if ($item) {
+				$field_data['__item'] = $item;
+				$field_data['__item_id'] = $item->id();
+			}
+
+			$type->on_before_action($field, $field_data, $action, $item, $fields);
 			//FIME:
 			$field_data['__table'] = $this->name();
-			$rc = $type->action($field,$field_data,$action,$item, $fields);
-			$type->on_after_action($rc, $field,$field_data,$action,$item, $fields);
-			if ($rc===false) return $this->page_not_found();
-			if (is_object($rc)) return $rc;
-			if ($m = Core_Regexps::match_with_results('{^location:(.+)$}',$rc)) {
+			$rc = $type->action($field, $field_data, $action, $item, $fields);
+			$type->on_after_action($rc, $field, $field_data, $action, $item, $fields);
+			if ($rc === false) {
+				return $this->page_not_found();
+			}
+			if (is_object($rc)) {
+				return $rc;
+			}
+			if ($m = Core_Regexps::match_with_results('{^location:(.+)$}', $rc)) {
 				$location = trim($m[1]);
-				if ($location=='edit') $location = $this->action_url('edit',$item);
+				if ($location == 'edit') {
+					$location = $this->action_url('edit', $item);
+				}
 				return $this->redirect_to($location);
 			}
 			return $rc;
@@ -153,25 +202,29 @@ class CMS_Controller_Fields extends CMS_Controller {
 		return $this->page_not_found();
 	}
 
-	public function field_callback_update_item($item) {
+	public function field_callback_update_item($item)
+	{
 		return $this->update($item);
 	}
 
-	public function field_action_url($field, $action, $item = false, $args = false) {
+	public function field_action_url($field, $action, $item = false, $args = false)
+	{
 		if ($item) {
 			$fields = $this->form_fields($action);
 			if (isset($fields[$field])) {
 				$data = $fields[$field];
 				$type = CMS_Fields::type($data);
-				$url = $type->action_url($field,$data,$action,$item,$args);
-				if ($url) return $url;
+				$url = $type->action_url($field, $data, $action, $item, $args);
+				if ($url) {
+					return $url;
+				}
 			}
 		}
 
 		$url = $this->urls->admin_url();
 		$url .= "$action/field-$field/page-$this->page/";
 		if ($item) {
-			$url .= "id-".$this->item_id($item)."/";
+			$url .= "id-" . $this->item_id($item) . "/";
 		}
 		return $url;
 	}
@@ -185,14 +238,17 @@ class CMS_Controller_Fields extends CMS_Controller {
 	protected $form = false;
 
 	protected $form_fields = array();
-	protected function form_fields($action = 'edit') {
+
+	protected function form_fields($action = 'edit')
+	{
 		if ($fields = $this->schema_fields()) {
-			return $this->search_fields($fields,array(),'in_form','weight_in_form','caption_in_form', true);
+			return $this->search_fields($fields, array(), 'in_form', 'weight_in_form', 'caption_in_form', true);
 		}
 		return $this->form_fields;
 	}
 
-	protected function form_field_exists($name,$parms,$action) {
+	protected function form_field_exists($name, $parms, $action)
+	{
 		if (isset($parms['if_component_exists'])) {
 			if (!CMS::component_exists($parms['if_component_exists'])) {
 				return false;
@@ -201,17 +257,19 @@ class CMS_Controller_Fields extends CMS_Controller {
 		return true;
 	}
 
-	protected function sort_by_weight($a, $b) {
+	protected function sort_by_weight($a, $b)
+	{
 		return $a['weight'] < $b['weight'] ? -1 : 1;
 	}
 
-	protected function filter_form_fields($action) {
+	protected function filter_form_fields($action)
+	{
 		$fields = array();
 		$weight = 0.0;
 		$delta = 0.001;
-		foreach($this->form_fields($action) as $name => $parms) {
-			if ($this->form_field_exists($name,$parms,$action)) {
-				$parms['__table'] = $this->name();
+		foreach ($this->form_fields($action) as $name => $parms) {
+			$parms['__table'] = $this->name();
+			if ($this->form_field_exists($name, $parms, $action)) {
 				if (isset($parms['items'])) {
 					$parms['__items'] = $this->items_for_select($parms['items']);
 				}
@@ -226,17 +284,21 @@ class CMS_Controller_Fields extends CMS_Controller {
 		return $fields;
 	}
 
-	protected function items_for_select($items) {
+	protected function items_for_select($items)
+	{
 		return CMS::items_for_select($items);
 	}
 
-	public function create_form($url, $action = 'edit') {
-		$form = Forms::Form('mainform')->action($url);
+	public function create_form($url, $action = 'edit', $from_name = 'mainform')
+	{
+		$form = Forms::Form($from_name)->action($url);
 		$this->filtered_form_fields = $this->filter_form_fields($action);
-		CMS_Fields::form_fields($form,$this->filtered_form_fields);
-		foreach($this->filtered_form_fields as $name => $parms) {
+		CMS_Fields::form_fields($form, $this->filtered_form_fields);
+		foreach ($this->filtered_form_fields as $name => $parms) {
 			$type = CMS_Fields::type($parms);
-			if ($type->is_upload()) $this->upload_fields[$name] = $parms;
+			if ($type->is_upload()) {
+				$this->upload_fields[$name] = $parms;
+			}
 		}
 		$this->form = $form;
 		return $form;
@@ -244,67 +306,78 @@ class CMS_Controller_Fields extends CMS_Controller {
 
 	protected $item_before_assign;
 
-	protected function form_to_item($item) {
+	protected function form_to_item($item)
+	{
 		$this->item_before_assign = clone $item;
-		foreach($this->filtered_form_fields as $name => $parms) {
+		foreach ($this->filtered_form_fields as $name => $parms) {
 			$type = CMS_Fields::type($parms);
-			$type->assign_to_object($this->form,$item,$name,$parms);
+			$type->assign_to_object($this->form, $item, $name, $parms);
 		}
 	}
 
-	protected function item_to_form($item) {
-		foreach($this->filtered_form_fields as $name => $parms) {
+	protected function item_to_form($item)
+	{
+		foreach ($this->filtered_form_fields as $name => $parms) {
 			$type = CMS_Fields::type($parms);
 			$parms['__item_id'] = $this->item_id($item);
 			$parms['__item'] = $item;
-			$type->assign_from_object($this->form,$item,$name,$parms);
+			$type->assign_from_object($this->form, $item, $name, $parms);
 		}
 	}
 
-	protected function process_form($item) {
-		return CMS_Fields::process_form($this->form,$this->env->request);
+	protected function process_form($item)
+	{
+		return CMS_Fields::process_form($this->form, $this->env->request);
 	}
 
-
-	protected function uploaded_path($path) {
+	protected function uploaded_path($path)
+	{
 		$path = trim($path);
-		if ($path=='') return false;
-		if ($path[0]=='/'||$path[0]=='.') return $path;
+		if ($path == '') {
+			return false;
+		}
+		if ($path[0] == '/' || $path[0] == '.') {
+			return $path;
+		}
 		return "./$path";
 	}
 
-	protected function validate_filename($name) {
+	protected function validate_filename($name)
+	{
 		$name = trim($name);
-		$name = preg_replace('{\s+}sm',' ',$name);
-		$name = str_replace(' ','_',$name);
+		$name = preg_replace('{\s+}sm', ' ', $name);
+		$name = str_replace(' ', '_', $name);
 		$name = CMS::translit($name);
 		return $name;
 	}
 
 	protected $uploaded_files = array();
 
-	protected function process_uploads($item) {
-		if (!isset($_FILES[$this->form->name])) return;
+	protected function process_uploads($item)
+	{
+		if (!isset($_FILES[$this->form->name])) {
+			return;
+		}
 		$dir = CMS::temp_dir();
 		$files = $_FILES[$this->form->name];
-		foreach($files['tmp_name'] as $field => $path) {
+		foreach ($files['tmp_name'] as $field => $path) {
 			$t = time();
 			$path = trim($path);
-			if ($path=='') {
+			if ($path == '') {
 				continue;
 			}
 			$original_name = $files['name'][$field];
 			$original_name_we = $original_name;
 			$ext = '';
 			$dotext = '';
-			if ($m = Core_Regexps::match_with_results('{^(.*)\.([a-z0-9_]+)$}i',$original_name)) {
+			if ($m = Core_Regexps::match_with_results('{^(.*)\.([a-z0-9_]+)$}i', $original_name)) {
 				$original_name_we = strtolower($m[1]);
 				$ext = $m[2];
 				$dotext = ".$ext";
 			}
 			$uplname = "uploaded-$field-$t$dotext";
 			$uplpath = "$dir/$uplname";
-			move_uploaded_file($path,$uplpath);
+			move_uploaded_file($path, $uplpath);
 			CMS::chmod_file($uplpath);
 
 			$this->uploaded_files[$field] = array(
@@ -321,34 +394,35 @@ class CMS_Controller_Fields extends CMS_Controller {
 		}
 
 		$uploads_extra = array(
-				'old_item' => $this->item_before_assign,
-				'id' => $this->item_id($item),
-				'homedir' => $this->item_homedir($item),
-				'private_homedir' => $this->item_homedir($item,true),
-				'controller' => $this,
-				'form' => $this->form,
-				'form_fields' => $this->filtered_form_fields,
+			'old_item' => $this->item_before_assign,
+			'id' => $this->item_id($item),
+			'homedir' => $this->item_homedir($item),
+			'private_homedir' => $this->item_homedir($item, true),
+			'controller' => $this,
+			'form' => $this->form,
+			'form_fields' => $this->filtered_form_fields,
 		);
 
-		foreach($this->filtered_form_fields as $field => $parms) {
+		foreach ($this->filtered_form_fields as $field => $parms) {
 			$type = CMS_Fields::type($parms);
-			$type->process_uploads($field,$parms,$this->uploaded_files,$item,$uploads_extra);
+			$type->process_uploads($field, $parms, $this->uploaded_files, $item, $uploads_extra);
 		}
 
-
-		
-		foreach($this->uploaded_files as $fdata) {
+		foreach ($this->uploaded_files as $fdata) {
 			IO_FS::rm($fdata['uplpath']);
 		}
 
 	}
 
-	protected function process_inserted_item($item) {
+	protected function process_inserted_item($item)
+	{
 		$rc = false;
-		foreach($this->filtered_form_fields as $name => $data) {
+		foreach ($this->filtered_form_fields as $name => $data) {
 			$type = CMS_Fields::type($data);
-			$r = $type->process_inserted($name,$data,$item);
-			if ($r) $rc = true;
+			$r = $type->process_inserted($name, $data, $item);
+			if ($r) {
+				$rc = true;
+			}
 		}
 		return $rc;
 	}
@@ -358,33 +432,39 @@ class CMS_Controller_Fields extends CMS_Controller {
 	protected $form_redirect_url = '';
 	protected $form_template = 'form';
 
-	protected function action_form() {
+	protected function action_form()
+	{
 		$item = $this->load($this->id);
-		if (!$item) return $this->page_not_found();
+		if (!$item) {
+			return $this->page_not_found();
+		}
 		$this->edit_item = $item;
 
 		$this->create_form($this->form_url);
 		$this->item_to_form($item);
 
 		$errors = array();
-		if ($this->env->request->method_name=='post') {
+		if ($this->env->request->method_name == 'post') {
 			$errors = $this->process_form($item);
-			if (sizeof($errors)==0) {
+			if (sizeof($errors) == 0) {
 				$this->form_to_item($item);
 				$this->process_inserted_item($item);
-				if (count($this->upload_fields)>0) $this->process_uploads($item);
+				if (count($this->upload_fields) > 0) {
+					$this->process_uploads($item);
+				}
 				$item->update();
 				return $this->redirect_to($this->form_redirect_url);
 			}
 		}
 
 		return $this->render($this->form_template, array(
-			'form' => $this->form,
-			'form_fields' => $this->filtered_form_fields,
-			'item' => $item,
-			'item_id' => $this->id,
-			'errors' => $errors,
-		));
+				'form' => $this->form,
+				'form_fields' => $this->filtered_form_fields,
+				'item' => $item,
+				'item_id' => $this->id,
+				'errors' => $errors,
+			)
+		);
 	}
 
 }

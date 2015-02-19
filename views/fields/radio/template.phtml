@@ -1,17 +1,11 @@
 <?php
-	if (isset($data['__items'])) {
-		$items = $data['__items'];
-	} else {
-		$items = CMS::items_for_select($data['items']);
-	}
 	$fname = $form->name."[$name]";
 	$tagparms['type'] = 'radio';
 	$tagparms['name'] = $fname;
 	foreach($items as $key => $title) {
 		$tagparms['value'] = $key;
 		unset($tagparms['checked']);
-		if ($form[$name]==$key) $tagparms['checked'] = true;
-		print $this->tags->tag('input',$tagparms);
-		print " $title &nbsp; ";
-	}
-?>
+		if ($form[$name]==$key) $tagparms['checked'] = true; ?>
+		<label><?= $this->tags->tag('input',$tagparms); ?>
+		<span><?=$title?>&nbsp;</span></label>
+	<?php }

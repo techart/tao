@@ -3,7 +3,6 @@
  * @package Config
  */
 
-
 Core::load('Config.DSL');
 
 class Config implements Core_ModuleInterface
@@ -36,8 +35,8 @@ class Config implements Core_ModuleInterface
 	}
 
 	/**
-	* @todo: find all files & load ?
-	*/
+	 * @todo: find all files & load ?
+	 */
 	public static function all()
 	{
 		return self::app();
@@ -66,7 +65,7 @@ class Config implements Core_ModuleInterface
 
 	protected static function instance($paths)
 	{
-		$paths = (array) $paths;
+		$paths = (array)$paths;
 		$res = null;
 		foreach ($paths as $path) {
 			$inst = self::make_instance();
@@ -80,7 +79,7 @@ class Config implements Core_ModuleInterface
 				$res = $res->extend($inst);
 			}
 		}
-		return is_null($res) ? self::make_instance(): $res;
+		return is_null($res) ? self::make_instance() : $res;
 	}
 
 	protected static function make_instance()
@@ -108,7 +107,7 @@ class Config_Instance extends stdClass
 
 	protected function extend_object($object)
 	{
-		$merge = array_merge((array) $this, (array) $object);
+		$merge = array_merge((array)$this, (array)$object);
 		foreach ($merge as $key => $value) {
 			$this->$key = $value;
 		}
@@ -133,7 +132,8 @@ class Config_Instance extends stdClass
 /**
  * @package Config
  */
- \nreturn " . var_export($this, true) . ';');
+ \nreturn " . var_export($this, true) . ';'
+			);
 		}
 	}
 

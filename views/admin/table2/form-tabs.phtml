@@ -22,6 +22,13 @@
 
 <?php $this->begin('js'); ?>
 $(function(){
-	$('#admin-table-form-tabs-<?= $key ?>').tabs(<?= json_encode($tabs_parms) ?>);
+	var tabs = $('#admin-table-form-tabs-<?= $key ?>');
+	tabs.tabs(<?= json_encode($tabs_parms) ?>);
+	tabs.on("tabsactivate", function(event, ui){
+		var newTab = $(ui.newTab)
+		if (newTab.parents(".mfp-content").size() == 0){
+			history.replaceState(undefined, undefined, newTab.find("a").attr("href"));
+		}
+	});
 });
 <?php $this->end('js'); ?>

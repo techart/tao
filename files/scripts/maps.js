@@ -508,30 +508,41 @@ function Yandex_map(options, map_id) {
 /* !Main map classes */
 
 
-$(document).ready(function() {
-	window.TAO = window.TAO || {};
-	if (typeof(google_maps_list)!='undefined') {
-		if (typeof(TAO.maps)=='undefined') {
-			TAO.maps = { };
-		}
-		for (var map_id in google_maps_list) {
-			var list_map_options = google_maps_options[google_maps_list[map_id]];
-			TAO.maps['google_maps_' + map_id] = Google_map(list_map_options, map_id);
-		}
-	}
-});
+function MapsInit() {
 
-if (typeof(ymaps)!='undefined') {
-	ymaps.ready (function() {
+	$(document).ready(function() {
 		window.TAO = window.TAO || {};
-		if (typeof(yandex_maps_list)!='undefined') {
+		if (typeof(google_maps_list)!='undefined') {
 			if (typeof(TAO.maps)=='undefined') {
 				TAO.maps = { };
 			}
-			for (var map_id in yandex_maps_list) {
-				var list_map_options = yandex_maps_options[yandex_maps_list[map_id]];
-				TAO.maps['yandex_maps_' + map_id] = Yandex_map(list_map_options, map_id);
-			}	
+			for (var map_id in google_maps_list) {
+				var key = 'google_maps_' + map_id;
+				if (!TAO.maps.hasOwnProperty(key)) {
+					var list_map_options = google_maps_options[google_maps_list[map_id]];
+					TAO.maps[key] = Google_map(list_map_options, map_id);
+				}
+			}
 		}
 	});
+
+	if (typeof(ymaps)!='undefined') {
+		ymaps.ready (function() {
+			window.TAO = window.TAO || {};
+			if (typeof(yandex_maps_list)!='undefined') {
+				if (typeof(TAO.maps)=='undefined') {
+					TAO.maps = { };
+				}
+				for (var map_id in yandex_maps_list) {
+					var key = 'yandex_maps_' + map_id;
+					if (!TAO.maps.hasOwnProperty(key)) {
+						var list_map_options = yandex_maps_options[yandex_maps_list[map_id]];
+						TAO.maps[key] = Yandex_map(list_map_options, map_id);
+					}
+				}
+			}
+		});
+	}
 }
+
+MapsInit();

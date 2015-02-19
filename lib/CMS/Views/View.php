@@ -3,10 +3,12 @@
  * @package CMS\Views\View
  */
 
-
 Core::load('Templates.HTML');
 
-class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInterface {
+class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInterface
+{
+
+	protected $is_cache_loaded = false;
 
 	public function parent()
 	{
@@ -36,7 +38,8 @@ class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInter
 		return $paths;
 	}
 
-	public function use_file(array $file, $type = null) {
+	public function use_file(array $file, $type = null)
+	{
 		$path = $file['name'];
 		if (!Templates_HTML::path($type, $path)) {
 			if (!is_null($type)) {
@@ -46,7 +49,11 @@ class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInter
 					$path = $prefix . '/' . ltrim($path, '/');
 				}
 			}
-			$component_url =  CMS::component_static_path($path);
+			$component = false;
+			if ($file['component']) {
+				$component = $file['component'];
+			}
+			$component_url = CMS::component_static_path($path, $component);
 			$component_path = str_replace('file://', '', $component_url);
 			if (is_file($component_path)) {
 				$file['name'] = $component_url;
@@ -55,5 +62,32 @@ class CMS_Views_View extends Templates_HTML_Template implements Core_ModuleInter
 		return parent::use_file($file, $type);
 	}
 
+	protected function get_helpers()
+	{
+		$helpers = parent::get_helpers();
+		$this->load_helperes_from_cache($helpers);
+		return $helpers;
+	}
+
+	protected function load_helperes_from_cache($helpers)
+	{
+		if (!CMS::is_lazy_components()) {
+			return;
+		}
+		if ($this->is_cache_loaded) {
+			return;
+		}
+		$this->is_cache_loaded = true;
+		if ($classes = WS::env()->cache->get('cms:viwes:helpers_classes')) {
+			foreach ($classes as $name => $class) {
+				$helpers->append($class, $name);
+			}
+		} else {
+			Events::add_once('cms.load_components', function() use ($helpers) {
+				WS::env()->cache->set('cms:viwes:helpers_classes', $helpers->classes, 0);
+			});
+			CMS::load_components();
+		}
+	}
 }
 

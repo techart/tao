@@ -81,7 +81,7 @@
     }
 
     function buildUrl(fromPage, toPage) {
-      var url = baseUrl + (window.location.search ? window.location.search + "&" : "?")
+      var url = baseUrl + (window.location.search ? window.location.search + "&" : ( baseUrl.indexOf('?') > -1 ? '&' : "?") )
         + "offset=" + (fromPage * pagesize) + "&count=" + (((toPage - fromPage) * pagesize) + pagesize);
       if (sortcol) {
         url += "&sortcol=" + sortcol + "&sortdir=" + sortdir;

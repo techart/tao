@@ -1,0 +1,184 @@
+<?php
+
+$this->use_styles(
+	'admin/table.css',
+	'SlickGrid/slick.grid.css',
+	'SlickGrid/slick.css',
+	'SlickGrid/controls/slick.pager.css'
+);
+
+$this->use_scripts(
+	'tao.js',
+	'tao/oop.js',
+	'jquery/ui.js',
+	'jquery/event.drag.js',
+	'jquery/event.drop.js',
+	'SlickGrid/slick.core.js',
+	'SlickGrid/slick.formatters.js',
+	'SlickGrid/slick.editors.js',
+	'SlickGrid/slick.grid.js',
+	'SlickGrid/slick.dataview.js',
+	'SlickGrid/controls/slick.remotepager.js',
+	'SlickGrid/slick.remotestore.js',
+	'SlickGrid/slick.table.js',
+	'SlickGrid/slick.tree.class.js',
+	'SlickGrid/plugins/slick.rowmovemanager.js',
+	'SlickGrid/plugins/slick.rowselectionmodel.js'
+);
+?>
+<?php
+
+function create_cache_tree($items, $env)
+{
+	$tree = array();
+	foreach ($items as $i => $item) {
+		$parts = explode(':', $item);
+		$name = '';
+		foreach ($parts as $i => $p) {
+			$name .= ":$p";
+			$name = trim($name, ':');
+			if (!in_array($name, $items)) {
+				$items[] = $name;
+			}
+		}
+	}
+	$items = array_unique($items);
+	usort($items, function($a, $b) {
+		$a_parts = explode(':', $a);
+		$b_parts = explode(':', $b);
+		$al = count($a_parts);
+		$bl = count($b_parts);
+		$min_len = min($al, $bl);
+		for ($i = 0; $i < $min_len; $i++) {
+			$ap = $a_parts[$i];
+			$bp = $b_parts[$i];
+			if ($ap == $bp) {
+				continue;
+			}
+			return $ap > $bp;
+		}
+		return $al == $bl ? 0 : $al > $bl;
+	});
+	foreach ($items as $i => $item) {
+		if (empty($item)) {
+			continue;
+		}
+		$parts = explode(':', $item);
+		$name = array_pop($parts);
+		$parent = 0;
+		if (count($parts)) {
+			$parent = implode(':', $parts);
+		}
+		$tree[] = array(
+			'id' => $item,
+			'_collapsed' => true,
+			'code' => $item,
+			'title' => $name,
+			'parent_id' => $parent,
+			'depth' => count($parts),
+			'delete' => "?tree=delete&code=$item"
+		);
+	}
+	return $tree;
+}
+
+
+function action($view, $request, $env) {
+	if (!empty($request['tree'])) {
+		$view->no_layout();
+	}
+	switch($request['tree']) {
+		case 'data':
+			$keys = $env->cache->get_all_keys();
+			$stories = create_cache_tree($keys, $env);
+			$result = array(
+				'count' => count($stories),
+				'total' => count($stories),
+				'stories' => $stories,
+			);
+			print(json_encode($result));
+			die();
+		case 'columns':
+			print('columns');
+			die();
+		case 'options':
+			print('options');
+			die();
+		case 'delete':
+			$code = $request['code'];
+			if ($code) {
+				$env->cache->delete($code);
+				header("Location: /admin/caches/");
+				break;
+			} else {
+				print('delete');
+				die();
+			}
+		case 'delete_all':
+			$env->cache->flush();
+			header("Location: /admin/caches/");
+			break;
+		default:
+			break;
+	}
+}
+
+action($this, $request, $env);
+
+?>
+
+<script>
+	$(function () {
+		var dataStore = new Slick.Data.RemoteStore({'url' : window.location.pathname + '?tree=data', 'pagesize' : Number.MAX_VALUE});
+		Slick.Tree.prototype.buildUrl =  function(name) {
+			return this.url + '?tree=' + name; // + window.location.search;
+		}
+		var columns = [
+			{id:"title",  field:"title", name: "Заголовок"},
+			{id:"code",  field:"code", name: "Ключ"},
+			{id:"delete", name: " ", maxWidth : 26, weight: 101,
+				cssClass: 'cell-button', icon: "/tao/images/del.gif", formatter: Slick.Tree.prototype.buttonFormatter,
+				toolTip: 'Удалить', action: 'deleteAction'}
+		];
+		var grid = new Slick.Tree(".admin-cache--tree", dataStore, columns, {
+			reordered: false,
+			enableTextSelectionOnCells: true
+		});
+	});
+</script>
+
+<h1>Управление кешированием</h1>
+
+<div class="admin-cache--info">
+<strong>Информация о текущем кеше:</strong>
+<br>
+dsn: <?= $env->config->cache->dsn ?>
+<br>
+Использование тегерования: <?= $env->config->cache->tagged ? 'Да' : 'Нет' ?>
+<br>
+Время жизни по умолчанию: <?= (int) $env->config->cache->timeout ?> секунд
+</div>
+<br>
+<div class="admin-cache--delete">
+<form action="/admin/caches/" method="GET">
+<label for="delete-key"><strong>Удалить кеш по ключу?</strong></label>
+<input type="hidden" name="tree" value="delete" />
+<input id="delete-key" name="code" value="" />
+<button class="submit-button">Удалить</button>
+</form>
+</div>
+
+<div class="admin-cache--delete-all">
+<form action="/admin/caches/" method="GET">
+<input type="hidden" name="tree" value="delete_all" />
+<button class="submit-button">Удалить Всё</button>
+</form>
+</div>
+
+<br><br>
+
+<div class="admin-cache--tree-wrapper table-data">
+<div class="admin-cache--tree">
+Кеш пуст
+</div>
+</div>

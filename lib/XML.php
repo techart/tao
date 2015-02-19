@@ -1,9 +1,9 @@
 <?php
 /**
  * XML
- * 
+ *
  * Модуль для работы с XML
- * 
+ *
  * @package XML
  * @version 0.2.0
  */
@@ -11,58 +11,72 @@
 /**
  * @package XML
  */
-class XML implements Core_ModuleInterface {
+class XML implements Core_ModuleInterface
+{
 
-  const VERSION = '0.2.0';
+	const VERSION = '0.2.0';
 
-  static protected $loader;
+	static protected $loader;
 
+	/**
+	 * Инициализация модуля
+	 *
+	 */
+	static public function initialize()
+	{
+		self::$loader = new XML_Loader();
+	}
 
-/**
- * Инициализация модуля
- * 
- */
-  static public function initialize() { self::$loader = new XML_Loader(); }
+	/**
+	 * Вовзращает DOMDocument
+	 *
+	 * @param  $source
+	 *
+	 * @return DOMDocument
+	 */
+	static public function load($source)
+	{
+		return self::$loader->load($source);
+	}
 
+	/**
+	 * Возвращает ошибки парсинга XML
+	 *
+	 * @return ArrayObject
+	 */
+	static public function errors()
+	{
+		return self::$loader->errors;
+	}
 
+	/**
+	 * Фабричный метод, возвращает объект класса XML.Loader
+	 *
+	 * @return XML_Loader
+	 */
+	static public function Loader()
+	{
+		return new XML_Loader();
+	}
 
-/**
- * Вовзращает DOMDocument
- * 
- * @param  $source
- * @return DOMDocument
- */
-  static public function load($source) { return self::$loader->load($source); }
+	/**
+	 * Фабричный метод, возвращает объект класса XML.Builder
+	 *
+	 * @return XML_Builder
+	 */
+	static public function Builder()
+	{
+		return new XML_Builder();
+	}
 
-/**
- * Возвращает ошибки парсинга XML
- * 
- * @return ArrayObject
- */
-  static public function errors() { return self::$loader->errors; }
-
-
-
-/**
- * Фабричный метод, возвращает объект класса XML.Loader
- * 
- * @return XML_Loader
- */
-  static public function Loader() { return new XML_Loader(); }
-
-/**
- * Фабричный метод, возвращает объект класса XML.Builder
- * 
- * @return XML_Builder
- */
-  static public function Builder() { return new XML_Builder(); }
-
-	static public function ElementIterator() {
+	static public function ElementIterator()
+	{
 		$args = func_get_args();
 		return Core::amake('XML.ElementIterator', $args);
 	}
-	
-	static public function Writer() {
+
+	static public function Writer()
+	{
 		$args = func_get_args();
 		return Core::amake('XML.Writer', $args);
 	}
@@ -71,320 +85,369 @@ class XML implements Core_ModuleInterface {
 
 /**
  * Служит для перехвата ошибок парсинга XML документа
- * 
+ *
  * @package XML
  */
-class XML_Loader implements Core_PropertyAccessInterface {
+class XML_Loader implements Core_PropertyAccessInterface
+{
 
-  protected $errors;
+	protected $errors;
 
+	/**
+	 * Конструктор
+	 *
+	 */
+	public function __construct()
+	{
+		$this->errors = new ArrayObject();
+	}
 
-/**
- * Конструктор
- * 
- */
-  public function __construct() { $this->errors = new ArrayObject(); }
+	/**
+	 * Вовзращает DOMDocument и перехватывает ошибки парсинга
+	 *
+	 * @param  $source
+	 *
+	 * @return DOMDocument
+	 */
+	public function load($source)
+	{
+		$error_handling_mode = libxml_use_internal_errors(true);
 
+		libxml_clear_errors();
 
+		if ($source instanceof IO_FS_File) {
+			$result = DOMDocument::load($source->path);
+		} else {
+			$result = DOMDocument::loadXML((string)$source);
+		}
 
-/**
- * Вовзращает DOMDocument и перехватывает ошибки парсинга
- * 
- * @param  $source
- * @return DOMDocument
- */
-  public function load($source) {
-    $error_handling_mode = libxml_use_internal_errors(true);
+		$this->errors = new ArrayObject(libxml_get_errors());
+		libxml_use_internal_errors($error_handling_mode);
 
-    libxml_clear_errors();
+		return $result;
+	}
 
-    if ($source instanceof IO_FS_File) {
-      $result = DOMDocument::load($source->path);
-    } else {
-      $result = DOMDocument::loadXML((string) $source);
-    }
+	/**
+	 * Доступ на чтение к свойствам объекта
+	 *
+	 * @param string $property
+	 *
+	 * @return mixed
+	 */
+	public function __get($property)
+	{
+		switch ($property) {
+			case 'has_errors':
+				return (count($this->errors) > 0);
+			case 'errors':
+				return clone $this->errors;
+			default:
+				throw new Core_MissingPropertyException($property);
+		}
+	}
 
-    $this->errors = new ArrayObject(libxml_get_errors());
-    libxml_use_internal_errors($error_handling_mode);
+	/**
+	 * Доступ на чтение к свойтвам объекта
+	 *
+	 * @param string $property
+	 * @param        $value
+	 *
+	 * @return mixed
+	 */
+	public function __set($property, $value)
+	{
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
-    return $result;
-  }
+	/**
+	 * Проверяет установленно ли свойство объекта
+	 *
+	 * @param string $property
+	 *
+	 * @return boolean
+	 */
+	public function __isset($property)
+	{
+		switch ($property) {
+			case 'has_errors':
+			case 'errors':
+				return true;
+			default:
+				return false;
+		}
+	}
 
-
-
-/**
- * Доступ на чтение к свойствам объекта
- * 
- * @param string $property
- * @return mixed
- */
-  public function __get($property) {
-    switch ($property) {
-      case 'has_errors':
-        return (count($this->errors) > 0);
-      case 'errors':
-        return clone $this->errors;
-      default:
-        throw new Core_MissingPropertyException($property);
-    }
-  }
-
-/**
- * Доступ на чтение к свойтвам объекта
- * 
- * @param string $property
- * @param  $value
- * @return mixed
- */
-  public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
-
-/**
- * Проверяет установленно ли свойство объекта
- * 
- * @param string $property
- * @return boolean
- */
-  public function __isset($property) {
-    switch ($property) {
-      case 'has_errors':
-      case 'errors':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-/**
- * Очищает свойство объекта
- * 
- * @param string $property
- */
-  public function __unset($property) { throw new Core_ReadOnlyObjectException($this); }
+	/**
+	 * Очищает свойство объекта
+	 *
+	 * @param string $property
+	 */
+	public function __unset($property)
+	{
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
 }
-
 
 /**
  * Класс служит для удобного построения XML документа (DOMDocument)
- * 
+ *
  * @package XML
  */
 class XML_Builder
-  implements Core_PropertyAccessInterface,
-             Core_CallInterface,
-             Core_StringifyInterface,
-             Core_IndexedAccessInterface {
+	implements Core_PropertyAccessInterface,
+	Core_CallInterface,
+	Core_StringifyInterface,
+	Core_IndexedAccessInterface
+{
 
-  protected $parent;
-  protected $node;
-  protected $children = array();
+	protected $parent;
+	protected $node;
+	protected $children = array();
 
+	/**
+	 * Конструктор
+	 *
+	 * @param             $node
+	 * @param XML_Builder $parent
+	 */
+	public function __construct($node = null, XML_Builder $parent = null)
+	{
+		$this->node = ($node === null) ? new DOMDocument('1.0', 'UTF-8') : $node;
+		$this->parent = $parent;
+	}
 
-/**
- * Конструктор
- * 
- * @param  $node
- * @param XML_Builder $parent
- */
-  public function __construct($node = null, XML_Builder $parent = null) {
-    $this->node =  ($node === null) ? new DOMDocument('1.0', 'UTF-8') : $node;
-    $this->parent = $parent;
-  }
+	/**
+	 * С помощью вызова методов струиться документ
+	 *
+	 * @param string $method
+	 * @param array  $args
+	 *
+	 * @return XML_Builder
+	 */
+	public function __call($method, $args)
+	{
+		if ($p = strpos($method, 'begin_') !== false) {
+			$name = substr($method, $p + 5);
+			if (!isset($this->children[$name])) {
+				$this->children[$name] = array();
+			}
+			$child = new XML_Builder($this->make_element($name, $args), $this);
+			$this->children[$name][] = $child;
+			return $child;
+		} else {
+			$this->make_element($method, $args);
+			return $this;
+		}
+	}
 
+	/**
+	 * Возвращает строку сформированного XML
+	 *
+	 * @return string
+	 */
+	public function as_string()
+	{
+		return $this->node->saveXML();
+	}
 
+	/**
+	 * Возвращает строку сформированного XML
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return $this->as_string();
+	}
 
-/**
- * С помощью вызова методов струиться документ
- * 
- * @param string $method
- * @param array $args
- * @return XML_Builder
- */
-  public function __call($method, $args) {
-    if ($p = strpos($method, 'begin_') !== false) {
-      $name = substr($method, $p + 5);
-      if (!isset($this->children[$name])) $this->children[$name] = array();
-      $child = new XML_Builder($this->make_element($name, $args), $this);
-      $this->children[$name][] = $child;
-      return $child;
-    } else {
-      $this->make_element($method, $args);
-      return $this;
-    }
-  }
+	/**
+	 * Доступ на чтение к свойствам объекта
+	 *
+	 * @param string $property
+	 *
+	 * @return mixed
+	 */
+	public function __get($property)
+	{
+		switch ($property) {
+			case 'document':
+				return $this->parent ? $this->parent->document : $this->node;
+			case 'children':
+				return $this->children;
+			case 'end':
+			case 'parent':
+				return $this->parent;
+			case 'node':
+				return $this->node;
+			default:
+				throw new Core_MissingPropertyException($property);
+		}
+	}
 
+	/**
+	 * Доступ на чтение к свойствам объекта
+	 *
+	 * @param string $property
+	 * @param        $value
+	 *
+	 * @return mixed
+	 */
+	public function __set($property, $value)
+	{
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
+	/**
+	 * Проверяет установленно ли свойство
+	 *
+	 * @param string $property
+	 *
+	 * @return boolean
+	 */
+	public function __isset($property)
+	{
+		switch ($property) {
+			case 'document':
+			case 'children':
+			case 'parent':
+			case 'node':
+				return true;
+			default:
+				return false;
+		}
+	}
 
-/**
- * Возвращает строку сформированного XML
- * 
- * @return string
- */
-  public function as_string() { return $this->node->saveXML(); }
+	/**
+	 * Очищает свойство
+	 *
+	 * @param string $property
+	 */
+	public function  __unset($property)
+	{
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
-/**
- * Возвращает строку сформированного XML
- * 
- * @return string
- */
-  public function __toString() { return $this->as_string(); }
+	/**
+	 * Возвращает влоденный элемент
+	 *
+	 * @param string $index
+	 *
+	 * @return array
+	 */
+	public function offsetGet($index)
+	{
+		return isset($this->children[$index]) ? $this->children[$index] : null;
+	}
 
+	/**
+	 * Выкидывает исключение
+	 *
+	 * @param string $index
+	 * @param mixed  $value
+	 *
+	 * @return mixed
+	 */
+	public function offsetSet($index, $value)
+	{
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
+	/**
+	 * Проверяет есть ли такой элемент среди вложенных
+	 *
+	 * @param string $index
+	 *
+	 * @return boolean
+	 */
+	public function offsetExists($index)
+	{
+		return isset($this->children[$index]);
+	}
 
-/**
- * Доступ на чтение к свойствам объекта
- * 
- * @param string $property
- * @return mixed
- */
-  public function __get($property) {
-    switch ($property) {
-      case 'document':
-        return $this->parent ? $this->parent->document : $this->node;
-      case 'children':
-        return $this->children;
-      case 'end':
-      case 'parent':
-        return $this->parent;
-      case 'node':
-        return $this->node;
-      default:
-        throw new Core_MissingPropertyException($property);
-    }
-  }
+	/**
+	 * Выкидывает исключение
+	 *
+	 * @param  $index
+	 */
+	public function offsetUnset($index)
+	{
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
-/**
- * Доступ на чтение к свойствам объекта
- * 
- * @param string $property
- * @param  $value
- * @return mixed
- */
-  public function __set($property, $value) { throw new Core_ReadOnlyObjectException($this); }
+	/**
+	 * Строит очередное элемент документа
+	 *
+	 * @param string $name
+	 * @param        $args
+	 *
+	 * @return DOMElement
+	 */
+	protected function make_element($name, array $args)
+	{
+		$content = '';
+		$attributes = array();
 
-/**
- * Проверяет установленно ли свойство
- * 
- * @param string $property
- * @return boolean
- */
-  public function __isset($property) {
-    switch ($property) {
-      case 'document':
-      case 'children':
-      case 'parent':
-      case 'node':
-        return true;
-      default:
-        return false;
-    }
-  }
+		if (isset($args[0])) {
+			if (is_array($args[0])) {
+				if (isset($args[0][0])) {
+					$content = array_shift($args[0]);
+				}
+				$attributes = $args[0];
+			} else {
+				$content = $args[0];
+				if (isset($args[1]) && is_array($args[1])) {
+					$attributes = $args[1];
+				}
+			}
+		}
 
-/**
- * Очищает свойство
- * 
- * @param string $property
- */
-  public function  __unset($property) { throw new Core_ReadOnlyObjectException($this); }
+		if ($content instanceof XML_Builder) {
+			$content = $content->node;
+		}
 
+		if ($content instanceof DOMElement) {
+			$element = $this->document->createElement($name);
+			$element->appendChild($content);
+		} else {
+			$element = $this->document->createElement($name, (string)$content);
+		}
 
+		foreach ($attributes as $k => $v)
+			if ($v !== null) {
+				$element->setAttribute($k, $v);
+			}
 
-/**
- * Возвращает влоденный элемент
- * 
- * @param string $index
- * @return array
- */
-  public function offsetGet($index) {
-    return isset($this->children[$index]) ? $this->children[$index] : null;
-  }
+		$this->node->appendChild($element);
 
-/**
- * Выкидывает исключение
- * 
- * @param string $index
- * @param mixed $value
- * @return mixed
- */
-  public function offsetSet($index, $value) { throw new Core_ReadOnlyObjectException($this); }
-
-/**
- * Проверяет есть ли такой элемент среди вложенных
- * 
- * @param string $index
- * @return boolean
- */
-  public function offsetExists($index) { return isset($this->children[$index]); }
-
-/**
- * Выкидывает исключение
- * 
- * @param  $index
- */
-  public function offsetUnset($index) { throw new Core_ReadOnlyObjectException($this); }
-
-
-
-/**
- * Строит очередное элемент документа
- * 
- * @param string $name
- * @param  $args
- * @return DOMElement
- */
-  protected function make_element($name, array $args) {
-    $content    = '';
-    $attributes = array();
-
-    if (isset($args[0])) {
-      if (is_array($args[0])) {
-        if (isset($args[0][0])) $content = array_shift($args[0]);
-        $attributes = $args[0];
-      } else {
-        $content = $args[0];
-        if (isset($args[1]) && is_array($args[1])) $attributes = $args[1];
-      }
-    }
-
-    if ($content instanceof XML_Builder) $content = $content->node;
-
-    if ($content instanceof DOMElement) {
-      $element = $this->document->createElement($name);
-      $element->appendChild($content);
-    } else {
-      $element = $this->document->createElement($name, (string) $content);
-    }
-
-    foreach ($attributes as $k => $v) if ($v !== null) $element->setAttribute($k, $v);
-
-    $this->node->appendChild($element);
-
-    return $element;
-  }
+		return $element;
+	}
 
 }
 
-
-class XML_ElementIterator implements Iterator {
+class XML_ElementIterator implements Iterator
+{
 
 	protected $reader;
 	protected $name;
 	protected $doc;
-	
+
 	protected $element;
 	protected $key = 0;
 	protected $current_depth = 0;
-	
+
 	protected $safe_limit = 1000000;
 
-	public function __construct($reader, $name, $type = 'node') {
+	public function __construct($reader, $name, $type = 'node')
+	{
 		$this->reader = $reader;
 		$this->name = $name;
 		$this->doc = new DOMDocument();
 		$this->type = $type;
 	}
-	
-	protected function create_element() {
+
+	protected function create_element()
+	{
 		if (Core_Types::is_callable($this->type)) {
 			$this->element = Core::invoke($this->type, array($this->reader, $this->name));
 			return $this;
@@ -397,20 +460,24 @@ class XML_ElementIterator implements Iterator {
 		}
 		return $this;
 	}
-	
-	protected function element_none() {
+
+	protected function element_none()
+	{
 		return $this->element = array();
 	}
-	
-	protected function element_node() {
+
+	protected function element_node()
+	{
 		$node = $this->reader->expand();
-		if ($node)
+		if ($node) {
 			$this->element = simplexml_import_dom($this->doc->importNode($node, true));
-		else
+		} else {
 			$this->element = null;
+		}
 	}
-	
-	protected function element_attrs() {
+
+	protected function element_attrs()
+	{
 		if ($this->reader->name != $this->name) {
 			return $this->element = null;
 		}
@@ -421,118 +488,72 @@ class XML_ElementIterator implements Iterator {
 		}
 		$this->element = $res;
 	}
-	
-	
-	function rewind() {
+
+	function rewind()
+	{
 		$this->move();
 		$this->current_depth = $this->reader->depth;
 		$this->key = 0;
 		$this->element = null;
 		$this->create_element();
 	}
-	
-	protected function move() {
+
+	protected function move()
+	{
 		$i = 0;
 		while ($this->reader->read()) {
-			if ($this->reader->name == $this->name && $this->reader->nodeType == XMLReader::ELEMENT)
+			if ($this->reader->name == $this->name && $this->reader->nodeType == XMLReader::ELEMENT) {
 				return true;
-			if ($i > $this->safe_limit) return false;
+			}
+			if ($i > $this->safe_limit) {
+				return false;
+			}
 			$i++;
 		}
 		return true;
 	}
-	
-	protected function search() {
+
+	protected function search()
+	{
 		$i = 0;
 		while ($this->reader->read()) {
 			if ($this->reader->depth < $this->current_depth) {
 				return false;
 			}
-			if (($this->reader->name == $this->name && $this->reader->nodeType == XMLReader::ELEMENT && $this->reader->depth == $this->current_depth))
+			if (($this->reader->name == $this->name && $this->reader->nodeType == XMLReader::ELEMENT && $this->reader->depth == $this->current_depth)) {
 				return true;
-			if ($i > $this->safe_limit) return false;
+			}
+			if ($i > $this->safe_limit) {
+				return false;
+			}
 			$i++;
 		}
 		return true;
 	}
 
-	function current() {
+	function current()
+	{
 		return $this->element;
 	}
 
-	function key() {
+	function key()
+	{
 		return $this->key;
 	}
 
-	function next() {
+	function next()
+	{
 		if ($this->search()) {
 			$this->create_element();
 			$this->key++;
-		}
-		else {
+		} else {
 			$this->element = null;
 		}
 	}
 
-	function valid() {
+	function valid()
+	{
 		return !is_null($this->element);
 	}
 
 }
-
-class XML_Writer implements Core_CallInterface {
-	
-	protected $xw;
-	
-	public function __construct() {
-		$this->xw = new XMLWriter();
-		$this->xw->openURI('php://output');
-		$this->xw->setIndent(true);
-	}
-	
-	public function start_XML(){
-		$this->xw->startDocument('1.0', 'utf-8');
-	}
-
-	public function end_XML() {
-		$this->xw->endDocument();
-		$this->xw->flush();
-	}
-
-	public function __call($method, $args) {
-		return call_user_func_array(array($this->xw, $method), $args);
-	}
-	
-		
-	public function cadata($name, $text = null, $attrs = array(), $end = true) {
-		return $this->create_element($name, $text, $attrs, true, $end);
-	}
-	
-	public function tag($name, $attrs, $end = true) {
-		return $this->create_element($name, null, $attrs, false, $end);
-	}
-	
-	public function content_tag($name, $text = null, $attrs = array(), $end = true) {
-		return $this->create_element($name, $text, $attrs, false, $end);
-	}
-
-	public function create_element($name, $text = null, $attrs = array(), $cdata = false, $end = true) {
-		$this->xw->startElement($name);
-		if (!empty($attrs)){
-			foreach ($attrs as $k => $v){
-				$this->xw->writeAttribute($k, $v);
-			}
-		}
-		if (!is_null($text)) {
-			if ($cdata) $this->xw->startCData();
-			$this->xw->text($text);
-			if ($cdata) $this->xw->endCData();
-		}
-		if (!$end) return;
-		if (!empty($text))
-			$this->xw->fullEndElement();
-		else
-			$this->xw->endElement();
-	}
-}
-

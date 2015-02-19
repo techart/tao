@@ -11,7 +11,7 @@ class CMS_Vars2_Type_WIKI extends CMS_Vars2_Type_String implements Core_ModuleIn
 	{
 		return '%LANG{en}WIKI text%LANG{ru}Текст с WIKI-разметкой';
 	}
-	
+
 	public function fields()
 	{
 		return array(
@@ -23,7 +23,7 @@ class CMS_Vars2_Type_WIKI extends CMS_Vars2_Type_String implements Core_ModuleIn
 			),
 		);
 	}
-	
+
 	public function get()
 	{
 		$value = parent::get();

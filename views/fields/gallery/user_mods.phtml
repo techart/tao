@@ -1,6 +1,6 @@
 <?php if (!empty($data['user_mods'])): ?>
 <?php $mods_info = $type_object->load_mods_info($type_object->container($name,$data,$item)->dir()) ?>
-<div class="gallery-user-mods clearfix" id="gallery-user-mods-<?= $name ?>-<?= $f->name ?>">
+<div class="gallery-user-mods gallery-clearfix" id="gallery-user-mods-<?= $name ?>-<?= $f->name ?>">
 	<table>
 	<?php foreach ($data['user_mods'] as $mod => $title): ?>
 		<tr class="gallery-user-mods-item">

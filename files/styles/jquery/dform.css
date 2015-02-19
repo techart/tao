@@ -1,0 +1,8 @@
+.ui-dform-form input,
+.ui-dform-form textarea {
+	display: block;
+}
+.ui-dform-checkbox {
+	float: left;
+	margin: 4px 4px 0 0;
+}

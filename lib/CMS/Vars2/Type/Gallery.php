@@ -1,16 +1,17 @@
 <?php
+
 /**
  * @package CMS\Vars2\Type\Gallery
  */
-
-
 class CMS_Vars2_Type_Gallery extends CMS_Var implements Core_ModuleInterface
 {
-	public function type_title() {
+	public function type_title()
+	{
 		return '%LANG{en}Image gallery%LANG{ru}Галерея';
 	}
-	
-	public function fields() {
+
+	public function fields()
+	{
 		return array(
 			'gallery' => array(
 				'type' => 'gallery',
@@ -19,11 +20,12 @@ class CMS_Vars2_Type_Gallery extends CMS_Var implements Core_ModuleInterface
 			),
 		);
 	}
-	
-	public function render() {
+
+	public function render()
+	{
 		return $this->field('gallery')->render();
 	}
-	
+
 	public function get()
 	{
 		return $this->field('gallery');

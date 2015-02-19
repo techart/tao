@@ -1,15 +1,11 @@
-<div class="field field-<?= $name ?> <?= $url_class ?>">
+<div class="field field-<?= $name ?> <?= $url_class ?> field-type--<?= $data['type'] ?>">
 	<?= $ccont ?>
 	<div class="right">
 		<?php 
 			if ($type_object->validator_tagparms($name,$data,$tagparms)) {
-				$validation_js = 'scripts/validation.js';
-				$vjs = $validation_js;
+				$validation_js = 'validation.js';
 				Events::call("cms.fields.{$form->name}.validation.js",$validation_js);
-				if ($validation_js) {
-					if ($vjs==$validation_js) $validation_js = CMS::stdfile_url($validation_js);
-					$this->use_scripts($validation_js);
-				}
+				$this->use_scripts($validation_js);
 			}
 			$_name = $name; print $this->partial($template, array('_name' => $_name))
 		?><?= ($rcaption?" $rcaption":'') ?>

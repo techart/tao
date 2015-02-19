@@ -3,10 +3,10 @@
  * @package CMS\Vars\Schema
  */
 
-
 Core::load('DB.Schema');
 
-class CMS_Vars_Schema implements Core_ModuleInterface {
+class CMS_Vars_Schema implements Core_ModuleInterface
+{
 
 	const VERSION = '0.1.0';
 
@@ -14,24 +14,29 @@ class CMS_Vars_Schema implements Core_ModuleInterface {
 	protected static $init_data = array();
 	protected static $options = array('insert_init_data' => true);
 
-	public static function initialize(array $options = array()) {
+	public static function initialize(array $options = array())
+	{
 		self::$schema = self::default_schema();
 		self::$init_data = self::default_init_data();
 		self::options($options);
 	}
-	
+
 	//TODO: testing
-	public function options(array $options = array()) {
-		if (!empty($options['schema']))
+	public function options(array $options = array())
+	{
+		if (!empty($options['schema'])) {
 			self::$schema = array_merge_recursive(self::$schema, $options['schema']);
-		if (!empty($options['init_data']))
+		}
+		if (!empty($options['init_data'])) {
 			self::$init_data = array_merge_recursive(self::$init_data, $options['init_data']);
+		}
 		unset($options['schema']);
 		unset($options['init_data']);
 		self::$options = array_merge(self::$options, $options);
 	}
-	
-	public function default_schema () {
+
+	public function default_schema()
+	{
 		return array(
 			'mysql_engine' => 'MyISAM',
 			'columns' => array(
@@ -59,9 +64,10 @@ class CMS_Vars_Schema implements Core_ModuleInterface {
 			)
 		);
 	}
-	
-	protected static function default_init_data() {
-		return array (
+
+	protected static function default_init_data()
+	{
+		return array(
 			'navigation-16' => array(
 				'id' => 16,
 				'parent_id' => 0,
@@ -123,17 +129,25 @@ class CMS_Vars_Schema implements Core_ModuleInterface {
 		);
 	}
 
-	public static function run() {
-		if (CMS::vars()->storage_type() == 'orm')
+	public static function run()
+	{
+		if (CMS::vars()->storage_type() == 'orm') {
 			DB_Schema::process_cache(array(
-				'vars' => self::$schema
-			));
+					'vars' => self::$schema
+				)
+			);
+		}
 		self::insert_init_data();
 	}
-	
-	public static function insert_init_data() {
-		if (CMS::vars()->storage_type() == 'orm' && !CMS::vars()->db()->connection) return;
-		if (!self::$options['insert_init_data'] || CMS::vars()->db()->count()) return;
+
+	public static function insert_init_data()
+	{
+		if (CMS::vars()->storage_type() == 'orm' && !CMS::vars()->db()->connection) {
+			return;
+		}
+		if (!self::$options['insert_init_data'] || CMS::vars()->db()->count()) {
+			return;
+		}
 		foreach (self::$init_data as $key => $data) {
 			$e = CMS::vars()->db()->make_entity();
 			$e->assign($data);
@@ -142,6 +156,5 @@ class CMS_Vars_Schema implements Core_ModuleInterface {
 			}
 		}
 	}
-
 
 }

@@ -1,17 +1,19 @@
 <?php
+
 /**
  * @package CMS\Vars2\Type\Array
  */
-
-
-class CMS_Vars2_Type_Array extends CMS_Var implements Core_ModuleInterface {
+class CMS_Vars2_Type_Array extends CMS_Var implements Core_ModuleInterface
+{
 	const VERSION = '0.0.0';
 
-	public function type_title() {
+	public function type_title()
+	{
 		return '%LANG{en}Array%LANG{ru}Массив';
 	}
 
-	public function fields() {
+	public function fields()
+	{
 		return array(
 			'array' => array(
 				'type' => 'array',
@@ -21,13 +23,17 @@ class CMS_Vars2_Type_Array extends CMS_Var implements Core_ModuleInterface {
 		);
 	}
 
-	public function get() {
+	public function get()
+	{
 		return $this['array'];
 	}
-	
-	public function preview() {
+
+	public function preview()
+	{
 		$v = $this->get();
-		if (!is_array($v)) return '';
+		if (!is_array($v)) {
+			return '';
+		}
 		$c = count($v);
 		return "Array({$c})";
 	}

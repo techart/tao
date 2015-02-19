@@ -1,7 +1,7 @@
 <?php
 /**
  * Dev.Source.Diagram
- * 
+ *
  * @package Dev\Source\Diagram
  * @version 0.4.0
  */
@@ -10,28 +10,32 @@ Core::load('CLI.Application', 'IO.FS', 'Dev.Source', 'Text', 'Proc');
 /**
  * @package Dev\Source\Diagram
  */
-class Dev_Source_Diagram implements Core_ModuleInterface, CLI_RunInterface {
-  const VERSION = '0.4.0';
+class Dev_Source_Diagram implements Core_ModuleInterface, CLI_RunInterface
+{
+	const VERSION = '0.4.0';
 
-
-/**
- * @param array $argv
- */
-  static public function main(array $argv) {
-    Core::with(new Dev_Source_Diagram_Application())->main($argv);
-  }
+	/**
+	 * @param array $argv
+	 */
+	static public function main(array $argv)
+	{
+		Core::with(new Dev_Source_Diagram_Application())->main($argv);
+	}
 
 }
-
 
 /**
  * @package Dev\Source\Diagram
  */
-class Dev_Diagram_Exception extends Core_Exception {}
+class Dev_Diagram_Exception extends Core_Exception
+{
+}
 
-class Dev_Source_Diagram_XSL {
-  static public function class_diagram() {
-    return <<<XSL
+class Dev_Source_Diagram_XSL
+{
+	static public function class_diagram()
+	{
+		return <<<XSL
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
   <xsl:output method="text" indent="no" />
@@ -206,93 +210,101 @@ digraph library {
 
 </xsl:stylesheet>
 XSL;
-  }
+	}
 }
 
 /**
  * @package Dev\Source\Diagram
  */
-class Dev_Source_Diagram_Application extends CLI_Application_Base {
+class Dev_Source_Diagram_Application extends CLI_Application_Base
+{
 
+	/**
+	 * @param array $argv
+	 *
+	 * @return int
+	 */
+	public function run(array $argv)
+	{
+		try {
+			$xslt = new XSLTProcessor();
+			$xslt->importStylesheet(
+				DOMDocument::loadXML(Dev_Source_Diagram_XSL::class_diagram())
+			);
 
-/**
- * @param array $argv
- * @return int
- */
-  public function run(array $argv) {
-    try {
-      $xslt = new XSLTProcessor();
-      $xslt->importStylesheet(
-        DOMDocument::loadXML(Dev_Source_Diagram_XSL::class_diagram()));
+			$result = $xslt->transformToXML(Dev_Source::Library($argv)->xml);
 
-      $result = $xslt->transformToXML(Dev_Source::Library($argv)->xml);
+		} catch (Dev_Source_InvalidSourceException $e) {
+			$this->dump_errors($e);
+			return -1;
+		}
 
-    } catch (Dev_Source_InvalidSourceException $e) {
-      $this->dump_errors($e);
-      return -1;
-    }
+		$this->config->dump ?
+			IO::stdout()->write($result) : $this->output($result);
 
-    $this->config->dump ?
-      IO::stdout()->write($result) : $this->output($result);
+		return 0;
+	}
 
-    return 0;
-  }
+	/**
+	 */
+	protected function setup()
+	{
+		$this->options->
+			brief('Dev.Source.Diagram ' . Dev_Source_Diagram::VERSION . ': TAO module visualization utility')->
+			string_option('application', '-a', '--application', 'Visualizer application (graphviz)')->
+			string_option('format', '-T', '--format', 'Output format')->
+			boolean_option('dump', '-d', '--dump', 'No output conversion')->
+			string_option('output', '-o', '--output', 'Output file');
 
+		$this->config->application = 'dot';
+		$this->config->format = 'png';
+		$this->config->output = null;
+		$this->config->dump = false;
 
+	}
 
-/**
- */
-  protected function setup() {
-    $this->options->
-      brief('Dev.Source.Diagram '.Dev_Source_Diagram::VERSION.': TAO module visualization utility')->
-        string_option('application', '-a', '--application', 'Visualizer application (graphviz)')->
-        string_option('format',      '-T', '--format',      'Output format')->
-        boolean_option('dump',       '-d', '--dump',        'No output conversion')->
-        string_option('output',      '-o', '--output',      'Output file');
+	/**
+	 */
+	protected function output($result)
+	{
+		switch ($application = $this->config->application) {
+			case 'dot':
+			case 'neato':
+			case 'fdp':
+			case 'circo':
+			case 'twopi':
+				Proc::Pipe(
+					Core_Strings::format('%s -T%s %s',
+						$application,
+						$this->config->format,
+						$this->config->output ? ' -o ' . $this->config->output : ''
+					), 'w'
+				)->
+					write($result)->
+					close();
+				break;
+			default:
+				throw new Dev_Diagram_Exception(
+					Core_Strings::format('Unknown application (%s)', $application));
+		}
+	}
 
-    $this->config->application = 'dot';
-    $this->config->format = 'png';
-    $this->config->output = null;
-    $this->config->dump   = false; 
+	/**
+	 * @param Dev_Source_InvalidSourceException $exception
+	 */
+	protected function dump_errors(Dev_Source_InvalidSourceException $exception)
+	{
+		$stderr = IO::stderr();
 
-  }
+		$stderr->write("{$exception->message}\n\n");
 
-/**
- */
-  protected function output($result) {
-    switch ($application = $this->config->application) {
-      case 'dot':
-      case 'neato':
-      case 'fdp':
-      case 'circo':
-      case 'twopi':
-        Proc::Pipe(
-          Core_Strings::format('%s -T%s %s',
-            $application,
-            $this->config->format,
-            $this->config->output ? ' -o '.$this->config->output : ''), 'w')->
-              write($result)->
-              close();
-        break;
-      default:
-        throw new Dev_Diagram_Exception(
-          Core_Strings::format('Unknown application (%s)', $application));
-    }
-  }
+		foreach (Text::Tokenizer($exception->source) as $no => $line)
+			$stderr->format("%05d: %s\n", $no + 1, $line);
+		$stderr->write("\n");
 
-/**
- * @param Dev_Source_InvalidSourceException $exception
- */
-  protected function dump_errors(Dev_Source_InvalidSourceException $exception) {
-    $stderr = IO::stderr();
-
-    $stderr->write("{$exception->message}\n\n");
-
-    foreach (Text::Tokenizer($exception->source) as $no => $line) $stderr->format("%05d: %s\n", $no + 1, $line);
-    $stderr->write("\n");
-
-    foreach ($exception->errors as $error) $stderr->format("%d : %s", $error->line, $error->message);
-  }
+		foreach ($exception->errors as $error)
+			$stderr->format("%d : %s", $error->line, $error->message);
+	}
 
 }
 

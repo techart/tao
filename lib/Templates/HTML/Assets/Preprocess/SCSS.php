@@ -41,7 +41,7 @@ class Templates_HTML_Assets_Preprocess_SCSS implements Core_ConfigurableModuleIn
 
 	public static function instance()
 	{
-		$config = (array) WS::env()->config->scss;
+		$config = (array)WS::env()->config->scss;
 		if (!empty($config)) {
 			self::options($config);
 		}
@@ -53,7 +53,6 @@ class Templates_HTML_Assets_Preprocess_SCSS implements Core_ConfigurableModuleIn
 	protected $server;
 	protected $loaded = false;
 	protected $scss = null;
-
 
 	public function __construct($output = null, $cache_dir = null, $scss = null)
 	{
@@ -67,7 +66,7 @@ class Templates_HTML_Assets_Preprocess_SCSS implements Core_ConfigurableModuleIn
 		if (!is_null($scss)) {
 			return $scss;
 		}
-		$class = self::option('scss_class') ;
+		$class = self::option('scss_class');
 		$instance = Core::make($class);
 		foreach (self::option('import_paths') as $key => $value) {
 			$instance->addImportPath($value);
@@ -91,7 +90,7 @@ class Templates_HTML_Assets_Preprocess_SCSS implements Core_ConfigurableModuleIn
 		}
 		$this->loaded = true;
 		if (!class_exists('scssc')) {
-			$path = !empty(WS::env()->config->scss->scss_dir) 
+			$path = !empty(WS::env()->config->scss->scss_dir)
 				? WS::env()->config->less->lessphp_dir
 				: self::option('scss_php_dir');
 			@include_once($path . '/scss.inc.php');
@@ -102,7 +101,6 @@ class Templates_HTML_Assets_Preprocess_SCSS implements Core_ConfigurableModuleIn
 		}
 		return false;
 	}
-
 
 	public function preprocess($file, $data)
 	{
@@ -125,13 +123,12 @@ class Templates_HTML_Assets_Preprocess_SCSS implements Core_ConfigurableModuleIn
 			if (!IO_FS::exists($dir)) {
 				IO_FS::mkdir($dir);
 			}
-			if ($this->server->needsCompile($scss_file, $css_file)) {
+			if ($this->server->needsCompile($scss_file, $css_file, $etag = '')) {
 				$this->server->compile($scss_file, $css_file);
 			}
 			return array('/' . ltrim($css_file, '\/.'), $content);
 		}
 		return array($file, $content);
 	}
-
 
 }

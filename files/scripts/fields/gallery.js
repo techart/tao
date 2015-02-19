@@ -139,8 +139,13 @@ TAO.fields.gallery.user_mods = function(field) {
 TAO.fields.gallery.rotate = function(field) {
 	$('.gallery-button-rotate', field).click(function(e) {
 		var $button = $(this);
+		if (TAO.fields.gallery.is_sending) {
+			return;
+		}
+		TAO.fields.gallery.is_sending = true;
 		var url = $button.attr('href');
 		TAO.helpers.ajax_block($('.attaches-list', field), {url: url}).always(function(resp) {
+			TAO.fields.gallery.is_sending = false;
 			if (resp=='ok') {
 				var parent = $button.parents('.attaches-list')[0];
 				parent.__reload();

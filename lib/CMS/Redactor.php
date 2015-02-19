@@ -2,16 +2,15 @@
 /**
  * Возможность использовать разные редакторы
  *
- * @author Svistunov <svistunov@techart.ru>
+ * @author   Svistunov <svistunov@techart.ru>
  *
  * @version  0.1.0
  *
- * @package CMS\Redactor
- * 
+ * @package  CMS\Redactor
+ *
  */
 
 Core::load('CMS.Redactor.Helper');
-
 
 /**
  * Класс модуля CMS.Redactor
@@ -22,8 +21,8 @@ Core::load('CMS.Redactor.Helper');
  *
  * По умолчанию поддерживаются следующие редакторы:
  *
- * - *tiny* {@link http://www.tinymce.com/ TinyMCE}  
- * - *nicedit* {@link http://nicedit.com/ NicEdit}  
+ * - *tiny* {@link http://www.tinymce.com/ TinyMCE}
+ * - *nicedit* {@link http://nicedit.com/ NicEdit}
  * - *redactor* {@link http://imperavi.com/redactor/ Redactorjs}
  * - *ckeditor* {@link http://ckeditor.com/ CKEditor}
  * - *epic* {@link http://epiceditor.com/ EpicEditor}
@@ -34,17 +33,17 @@ Core::load('CMS.Redactor.Helper');
  * Для установки редактора необходимо скопировать файлы в docroot/scripts/editors/.
  * Список файлов можно найти в соответствующем классе CMS.Redactor.*
  *
- * Для добавления своего редактора необходимо реализовать класс CMS.Redactor.AbstractEditor и зарегистрировать его 
+ * Для добавления своего редактора необходимо реализовать класс CMS.Redactor.AbstractEditor и зарегистрировать его
  * с помощью CMS_Redactor::add_editor($name, $class), а также создать js обертку (см. scripts/tao/editor.js).
  *
  * Для изменения/добавления настроек редактора и установки другого редакторо по умолчанию можно воспользоваться Core::configure
  *
  * <code>
  * Core::configure(array(
- * 		'CMS.Redactor' => array(
- * 			'default_editor' => 'tiny',
- * 			'settings' => array('tiny' => array('theme' => 'modern')),
- * 		)
+ *        'CMS.Redactor' => array(
+ *            'default_editor' => 'tiny',
+ *            'settings' => array('tiny' => array('theme' => 'modern')),
+ *        )
  * ));
  * </code>
  *
@@ -65,7 +64,6 @@ Core::load('CMS.Redactor.Helper');
 class CMS_Redactor implements Core_ModuleInterface
 {
 
-
 	/**
 	 * Набор опций модуля
 	 *
@@ -73,7 +71,7 @@ class CMS_Redactor implements Core_ModuleInterface
 	 * - *settings* настройки редакторов
 	 * - *default_editor* редактор по умолчанию
 	 * - *fallback_editor* редактор, который используется при отсутствии default_editor
-	 * 
+	 *
 	 * @var array
 	 */
 	private static $options = array(
@@ -89,8 +87,8 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Инициализация модуля
-	 * 
-	 * @param  array  $options массив опций
+	 *
+	 * @param  array $options массив опций
 	 */
 	public static function initialize(array $options = array())
 	{
@@ -116,7 +114,8 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Установка опций
-	 * @param  array  $options масси опций
+	 *
+	 * @param  array $options масси опций
 	 */
 	public static function options(array $options = array())
 	{
@@ -125,9 +124,11 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Чтение опций
+	 *
 	 * @param  string $name название опции
+	 *
 	 * @return mixed       значение опции
-	 */	
+	 */
 	public static function option($name)
 	{
 		return isset(self::$options[$name]) ? self::$options[$name] : null;
@@ -135,6 +136,7 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Регистрация редакторов
+	 *
 	 * @param array $editors массив редакторов для регистрации
 	 */
 	public static function add_editors($editors)
@@ -146,7 +148,9 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Доступ к настройкам редактора
+	 *
 	 * @param  string $name название редактора
+	 *
 	 * @return array       массив настроек
 	 */
 	public static function get_settings($name)
@@ -156,6 +160,7 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Регистрация редактора
+	 *
 	 * @param string $name  название редактора
 	 * @param string $class класс редактора
 	 */
@@ -166,7 +171,9 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Получение экземпляра редактора
+	 *
 	 * @param  string $name имя редактора
+	 *
 	 * @return object       редактор
 	 */
 	public static function get_editor($name)
@@ -183,6 +190,7 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Получение редактора по умолчанию
+	 *
 	 * @return object редактор
 	 */
 	public static function get_default()
@@ -193,7 +201,8 @@ class CMS_Redactor implements Core_ModuleInterface
 
 	/**
 	 * Имя редактора по умолчанию
-	 * @return string 
+	 *
+	 * @return string
 	 */
 	public function get_default_name()
 	{
@@ -205,7 +214,7 @@ class CMS_Redactor implements Core_ModuleInterface
 /**
  * Интерфейс редактора
  *
- * @todo заполнить интерфейс
+ * @todo    заполнить интерфейс
  *
  * @package CMS\Redactor
  */
@@ -216,7 +225,7 @@ interface CMS_Redactor_EditorInterface
 
 /**
  * Абстрактный класс редактора
- * 
+ *
  * @package CMS\Redactor
  */
 abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterface
@@ -224,24 +233,28 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Название редактора
+	 *
 	 * @var string
 	 */
 	protected $name;
 
 	/**
 	 * Настройки редактора
+	 *
 	 * @var array
 	 */
 	protected $settings = array();
 
 	/**
 	 * Настройки редактора при подключении
+	 *
 	 * @var array
 	 */
 	protected $attach_options = array();
 
 	/**
 	 * Конструктор класса
+	 *
 	 * @param string $name     название редактора
 	 * @param array  $settings массив настроек
 	 */
@@ -253,16 +266,17 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Проверяет установлен ли редактор
-	 * @return boolean 
+	 *
+	 * @return boolean
 	 */
 	public function is_installed()
 	{
 		foreach ($this->include_files() as $file) {
 			$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-			if ($ext == 'js' && !is_file('.'.Templates_HTML::js_path($file['name']))) {
+			if ($ext == 'js' && !is_file('.' . Templates_HTML::js_path($file['name']))) {
 				return false;
 			}
-			if ($ext == 'css' && !is_file('.'.Templates_HTML::css_path($file['name']))) {
+			if ($ext == 'css' && !is_file('.' . Templates_HTML::css_path($file['name']))) {
 				return false;
 			}
 		}
@@ -271,6 +285,7 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Настройки по умолчанию
+	 *
 	 * @return array
 	 */
 	public function default_settings()
@@ -280,8 +295,10 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Обновление настроек редактора
-	 * @param  array  $settings настройки
-	 * @return self           
+	 *
+	 * @param  array $settings настройки
+	 *
+	 * @return self
 	 */
 	public function update_settings(array $settings = array())
 	{
@@ -291,7 +308,8 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Получение настроек редактора
-	 * @return array 
+	 *
+	 * @return array
 	 */
 	public function settings()
 	{
@@ -300,7 +318,9 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Проверка установки и выдача сообщения об ошибке
+	 *
 	 * @param  mixed $t объект шаблона
+	 *
 	 * @return boolean    прошла ли валидация
 	 */
 	protected function validate_instalation($t)
@@ -316,6 +336,7 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Подключение необходимых файлов к шаблону
+	 *
 	 * @param mixed $t объект шаблона
 	 */
 	protected function add_files_to($t)
@@ -330,13 +351,17 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 	 * Инициализации редактора
 	 *
 	 * Дополнительно можно указать jquery селектор textarea для автоматического подключения редактора
-	 * @param  mixed $t        объект шаблона
+	 *
+	 * @param  mixed  $t        объект шаблона
 	 * @param  string $selector jquery селектор
-	 * @return self           
+	 *
+	 * @return self
 	 */
 	public function process_template($t, $selector = '')
 	{
-		if (!$this->validate_instalation($t)) return $this;
+		if (!$this->validate_instalation($t)) {
+			return $this;
+		}
 		$this->add_files_to($t);
 
 		Templates_HTML::add_scripts_settings(array('editor' => array($this->name => $this->settings())), true);
@@ -348,7 +373,9 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Дополнительные настройки при подключении
+	 *
 	 * @param  string $selector jquery селектор
+	 *
 	 * @return array           массив опций
 	 */
 	protected function attach_options($selector)
@@ -358,9 +385,11 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Подключение редактора
-	 * @param  mixed $t        объект шаблона
+	 *
+	 * @param  mixed  $t        объект шаблона
 	 * @param  string $selector jquery селектор
-	 * @return self           
+	 *
+	 * @return self
 	 */
 	public function attach_to($t, $selector)
 	{
@@ -373,6 +402,7 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Установка ссылки для добавления картинок в редактор
+	 *
 	 * @param string $link ссылка
 	 */
 	public function set_images_link($link)
@@ -382,8 +412,8 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Список файлов для подключения в формате Templates_HTML::use_file
-	 * 
-	 * @see Templates_HTML::use_file
+	 *
+	 * @see    Templates_HTML::use_file
 	 * @return [type] [description]
 	 */
 	public function include_files()
@@ -399,6 +429,7 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 	 * Библиотечные файлы
 	 *
 	 * Обычно список файлов для подключения плагина
+	 *
 	 * @return array
 	 */
 	protected function libraries_files()
@@ -410,7 +441,8 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 	 * Файлы приложения
 	 *
 	 * Обчыно дополнительные файлы стилей (тем) или скриптов (инициализация)
-	 * @return array 
+	 *
+	 * @return array
 	 */
 	protected function application_files()
 	{
@@ -419,7 +451,9 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 
 	/**
 	 * Преобразование списка файлов в необходимый json формат
+	 *
 	 * @param  array $files список файлов
+	 *
 	 * @return string        json
 	 */
 	public function image_list_to_js($files)
@@ -431,20 +465,19 @@ abstract class CMS_Redactor_AbstractEditor implements CMS_Redactor_EditorInterfa
 		return json_encode($res);
 	}
 
-
 }
-
 
 /**
  * Реализация редактора ввиде простой textarea
- * 
+ *
  * @package CMS\Redactor
  */
 class CMS_Redactor_Textarea extends CMS_Redactor_AbstractEditor
 {
 	/**
 	 * Всегда установлен
-	 * @return boolean 
+	 *
+	 * @return boolean
 	 */
 	public function is_installed()
 	{
@@ -453,18 +486,20 @@ class CMS_Redactor_Textarea extends CMS_Redactor_AbstractEditor
 
 	/**
 	 * Подключение к шаблону
-	 * 
+	 *
 	 */
 	public function process_template($t, $selector = '')
 	{
-		if (!$this->validate_instalation($t)) return $this;
+		if (!$this->validate_instalation($t)) {
+			return $this;
+		}
 		$this->add_files_to($t);
 		return $this;
 	}
 
 	/**
 	 * Подключение к шаблону
-	 * 
+	 *
 	 */
 	public function attach_to($t, $selector)
 	{

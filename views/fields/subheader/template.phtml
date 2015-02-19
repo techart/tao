@@ -1,1 +1,3 @@
-<h2 class="field-type-subheader"><?= $data['__caption'] ?></h2>
+<h2 class="field-type-subheader"<?= isset($data['style']) ? ' style="'.$data['style'].'"' : '' ?>>
+	<?= $data['__caption'] ?>
+</h2>

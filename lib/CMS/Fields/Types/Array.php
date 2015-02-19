@@ -1,40 +1,54 @@
 <?php
+
 /**
  * @package CMS\Fields\Types\Array
  */
-
-
-class CMS_Fields_Types_Array extends CMS_Fields_AbstractField implements Core_ModuleInterface {
+class CMS_Fields_Types_Array extends CMS_Fields_AbstractField implements Core_ModuleInterface
+{
 
 	const VERSION = '0.0.0';
 
-	static function initialize() {
+	static function initialize()
+	{
 		Validation::use_tests(array('validate_array' => 'CMS_Fields_Types_Array_Test'));
 	}
 
-	public function field_src_name($name,$data) {
+	public function field_src_name($name, $data)
+	{
 		return "{$name}_src";
 	}
 
-	public function form_fields($form,$name,$data) {
-		$src = $this->field_src_name($name,$data);
+	public function form_fields($form, $name, $data)
+	{
+		$src = $this->field_src_name($name, $data);
 		$form->input($src);
 		return $form;
 	}
 
-	public function sqltypes($name,$data) {
-		$src = $this->field_src_name($name,$data);
+	public function sqltypes($name, $data)
+	{
+		$src = $this->field_src_name($name, $data);
 		return array(
 			$name => 'text',
 			$src => 'text',
 		);
 	}
 
-	public function serialized($name,$data) {
+	public function init_value($name, $data, $item)
+	{
+		parent::init_value($name, $data, $item);
+		$src = $this->field_src_name($name, $data);
+		$item[$src] = '';
+		return $item;
+	}
+
+	public function serialized($name, $data)
+	{
 		return array($name);
 	}
 
-	public function preprocess($template, $name, $data) {
+	public function preprocess($template, $name, $data)
+	{
 		parent::preprocess($template, $name, $data);
 		$parms = $template->parms;
 		if (empty($parms['tagparms']['style'])) {
@@ -46,34 +60,38 @@ class CMS_Fields_Types_Array extends CMS_Fields_AbstractField implements Core_Mo
 		return $template;
 	}
 
-	public function assign_to_object($form,$object,$name,$data) {
-		$src_name = $this->field_src_name($name,$data);
+	public function assign_to_object($form, $object, $name, $data)
+	{
+		$src_name = $this->field_src_name($name, $data);
 		$src = $form[$src_name];
 		$parsed = CMS::parse_parms($src);
-		if (is_array($parsed)) $object[$name] = $parsed;
+		if (is_array($parsed)) {
+			$object[$name] = $parsed;
+		}
 		$object[$src_name] = $form[$src_name];
 		return $this;
 	}
 
-	public function assign_from_object($form,$object,$name,$data) {
-		$src = $this->field_src_name($name,$data);
+	public function assign_from_object($form, $object, $name, $data)
+	{
+		$src = $this->field_src_name($name, $data);
 		$form[$src] = $object[$src];
 		return $this;
 	}
 
-
-	public function form_validator($form,$name,$data) {
-		$src = $this->field_src_name($name,$data);
+	public function form_validator($form, $name, $data)
+	{
+		$src = $this->field_src_name($name, $data);
 		return $this->validator($form)->validate_array($src);
 	}
 
-	public function copy_value($from, $to, $name, $data) {
-		$src = $this->field_src_name($name,$data);
+	public function copy_value($from, $to, $name, $data)
+	{
+		$src = $this->field_src_name($name, $data);
 		$to[$name] = $from[$name];
 		$to[$src] = $from[$src];
 		return $this;
 	}
-
 
 }
 
@@ -99,15 +117,18 @@ class CMS_Fields_Types_Array_ValueContainer extends CMS_Fields_ValueContainer im
 	}
 }
 
-class CMS_Fields_Types_Array_Test extends Validation_AbstractTest {
+class CMS_Fields_Types_Array_Test extends Validation_AbstractTest
+{
 
 	protected $attribute;
 
-	public function __construct($attribute) {
-		$this->attribute    = $attribute;
+	public function __construct($attribute)
+	{
+		$this->attribute = $attribute;
 	}
 
-	public function test($object, Validation_Errors $errors, $array_access = false) {
+	public function test($object, Validation_Errors $errors, $array_access = false)
+	{
 		$value = trim($this->value_of_attribute($object, $this->attribute, $array_access));
 		$parsed = CMS::parse_parms($value);
 		if (is_string($parsed)) {
@@ -115,4 +136,4 @@ class CMS_Fields_Types_Array_Test extends Validation_AbstractTest {
 		}
 	}
 
-  }
+}

@@ -1,9 +1,9 @@
 <?php
 /**
  * CLI.Application
- * 
+ *
  * Простейшая структура CLI-приложения
- * 
+ *
  * @package CLI\Application
  * @version 0.3.0
  */
@@ -11,26 +11,27 @@ Core::load('CLI', 'CLI.GetOpt', 'IO', 'Log', 'Config.DSL');
 
 /**
  * Класс модуля
- * 
+ *
  * @package CLI\Application
  */
-class CLI_Application implements Core_ModuleInterface {
-  const MODULE  = 'CLI.Application';
-  const VERSION = '0.3.0';
+class CLI_Application implements Core_ModuleInterface
+{
+	const MODULE = 'CLI.Application';
+	const VERSION = '0.3.0';
 }
-
 
 /**
  * Базовый класс исключений
- * 
+ *
  * @package CLI\Application
  */
-class CLI_Application_Exception extends CLI_Exception {}
-
+class CLI_Application_Exception extends CLI_Exception
+{
+}
 
 /**
  * Базовый класс CLI-приложения
- * 
+ *
  * <p>Базовый класс определяет простую структуру приложения командной строки со следующими
  * возможностями:</p>
  * <ul><li>хранение информации о настройках приложения в объекте конфигурации;</li>
@@ -71,204 +72,223 @@ class CLI_Application_Exception extends CLI_Exception {}
  * приложения.</li>
  * <li>Закрытие логов.</li>
  * </ol>
- * 
+ *
  * @abstract
  * @package CLI\Application
  */
-abstract class CLI_Application_Base implements Core_PropertyAccessInterface {
+abstract class CLI_Application_Base implements Core_PropertyAccessInterface
+{
 
-  protected $options;
-  protected $config;
-  protected $log;
+	protected $options;
+	protected $config;
+	protected $log;
 
+	/**
+	 * Конструктор
+	 *
+	 */
+	public function __construct()
+	{
+		$this->options = CLI_GetOpt::Parser()->
+			boolean_option('show_usage', '-h', '--help', 'Shows help message');
 
-/**
- * Конструктор
- * 
- */
-  public function __construct() {
-    $this->options = CLI_GetOpt::Parser()->
-      boolean_option('show_usage', '-h', '--help', 'Shows help message');
+		$this->log = Log::logger()->context(array(
+				'module' => Core_Types::module_name_for($this))
+		);
 
-    $this->log = Log::logger()->context(array(
-      'module' => Core_Types::module_name_for($this)));
+		$this->config = Core::object(array(
+				'log' => Log::logger(),
+				'show_usage' => false)
+		);
 
-    $this->config = Core::object(array(
-      'log'        => Log::logger(),
-      'show_usage' => false));
+	}
 
-  }
+	/**
+	 * Первоначальная настройка приложения
+	 *
+	 */
+	protected function setup()
+	{
+	}
 
+	/**
+	 * Завершение работы приложения
+	 *
+	 */
+	protected function shutdown()
+	{
+	}
 
+	/**
+	 * Выполняет конфигурирование приложения
+	 *
+	 */
+	protected function configure()
+	{
+	}
 
-/**
- * Первоначальная настройка приложения
- * 
- */
-  protected function setup() {}
+	/**
+	 * Выполняет пользовательскую логику приложения
+	 *
+	 * @abstract
+	 *
+	 * @param array $argv
+	 *
+	 * @return int
+	 */
+	abstract public function run(array $argv);
 
-/**
- * Завершение работы приложения
- * 
- */
-  protected function shutdown() {}
+	/**
+	 * Точка входа приложения
+	 *
+	 * @param array $argv
+	 */
+	public function main(array $argv)
+	{
+		try {
+			$this->setup();
 
-/**
- * Выполняет конфигурирование приложения
- * 
- */
-  protected function configure() {}
+			$this->options->parse($argv, $this->config);
 
+			$this->configure();
 
+			Log::logger()->init();
 
-/**
- * Выполняет пользовательскую логику приложения
- * 
- * @abstract
- * @param array $argv
- * @return int
- */
-  abstract public function run(array $argv);
+			$rc = $this->config->show_usage ? $this->show_usage() : $this->run($argv);
 
+		} catch (Exception $e) {
+			return $this->finalize($this->handle_error($e));
+		}
+		return $this->finalize($rc);
+	}
 
-/**
- * Точка входа приложения
- * 
- * @param array $argv
- */
-  public function main(array $argv) {
-    try {
-      $this->setup();
+	/**
+	 * Возвращает значение свойства
+	 *
+	 * @param string $property
+	 *
+	 * @return mixed
+	 */
+	public function __get($property)
+	{
+		switch ($property) {
+			case 'options':
+			case 'log':
+			case 'config':
+				return $this->$property;
+			default:
+				throw new Core_MissingPropertyException($property);
+		}
+	}
 
-      $this->options->parse($argv, $this->config);
+	/**
+	 * Устанавливает значение свойства
+	 *
+	 * @param string $property
+	 * @param        $value
+	 *
+	 * @return Service_Yandex_Direct_Manager_Application
+	 */
+	public function __set($property, $value)
+	{
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
-      $this->configure();
+	/**
+	 * Проверяет установку значения свойства
+	 *
+	 * @param string $property
+	 *
+	 * @return boolean
+	 */
+	public function __isset($property)
+	{
+		switch ($property) {
+			case 'options':
+			case 'log':
+			case 'config':
+				return isset($this->$property);
+			default:
+				return false;
+		}
+	}
 
-      Log::logger()->init();
+	/**
+	 * Сбрасывает значение свойства
+	 *
+	 * @param string $property
+	 */
+	public function __unset($property)
+	{
+		throw new Core_ReadOnlyObjectException($this);
+	}
 
-      $rc =  $this->config->show_usage ? $this->show_usage() : $this->run($argv);
+	/**
+	 * Завершает выполнение
+	 *
+	 * @param int $status
+	 */
+	protected function finalize($status)
+	{
+		$this->shutdown();
+		Log::logger()->close();
+		return $this->exit_wrapper($status);
+	}
 
-    } catch (Exception $e) {
-      return $this->finalize($this->handle_error($e));
-    }
-    return $this->finalize($rc);
-  }
+	/**
+	 * Обертка над оператором exit
+	 *
+	 * @param int $status
+	 *
+	 * @return int
+	 */
+	protected function exit_wrapper($status)
+	{
+		exit((int)$status);
+	}
 
+	/**
+	 * Выводит в stdout описание программы
+	 *
+	 * @return int
+	 */
+	protected function show_usage()
+	{
+		IO::stdout()->write($this->options->usage_text());
+		return 0;
+	}
 
+	/**
+	 * Выполняет обработку ошибок
+	 *
+	 * @param Exception $e
+	 */
+	protected function handle_error(Exception $e)
+	{
+		try {
+			$this->log->critical($e->getMessage());
+		} catch (Exception $e) {
+		}
+		return -1;
+	}
 
-/**
- * Возвращает значение свойства
- * 
- * @param string $property
- * @return mixed
- */
-  public function __get($property) {
-    switch ($property) {
-      case 'options':
-      case 'log':
-      case 'config':
-        return $this->$property;
-      default:
-        throw new Core_MissingPropertyException($property);
-    }
-  }
-
-/**
- * Устанавливает значение свойства
- * 
- * @param string $property
- * @param  $value
- * @return Service_Yandex_Direct_Manager_Application
- */
-  public function __set($property, $value) {
-    throw new Core_ReadOnlyObjectException($this);
-  }
-
-/**
- * Проверяет установку значения свойства
- * 
- * @param string $property
- * @return boolean
- */
-  public function __isset($property) {
-    switch ($property) {
-      case 'options':
-      case 'log':
-      case 'config':
-        return isset($this->$property);
-      default:
-        return false;
-    }
-  }
-
-/**
- * Сбрасывает значение свойства
- * 
- * @param string $property
- */
-  public function __unset($property) {
-    throw new Core_ReadOnlyObjectException($this);
-  }
-
-
-
-/**
- * Завершает выполнение
- * 
- * @param int $status
- */
-  protected function finalize($status) {
-    $this->shutdown();
-    Log::logger()->close();
-    return $this->exit_wrapper($status);
-  }
-
-/**
- * Обертка над оператором exit
- * 
- * @param int $status
- * @return int
- */
-  protected function exit_wrapper($status) {
-    exit((int) $status);
-  }
-
-/**
- * Выводит в stdout описание программы
- * 
- * @return int
- */
-  protected function show_usage() {
-    IO::stdout()->write($this->options->usage_text());
-    return 0;
-  }
-
-/**
- * Выполняет обработку ошибок
- * 
- * @param Exception $e
- */
-  protected function handle_error(Exception $e) {
-    try {
-      $this->log->critical($e->getMessage());
-    } catch (Exception $e) {}
-    return -1;
-  }
-
-/**
- * Подгружает файл конфигурации в формате Config.DSL
- * 
- * @param string $path
- * @return CLI_Application_Base
- */
-  protected function load_config($path) {
-    if (IO_FS::exists($path)) {
-      $this->log->debug('Using config: %s', $path);
-      Config_DSL::Builder($this->config)->load($path);
-    } else
-      throw new CLI_ApplicationException("Missing config file: $path");
-    return $this;
-  }
+	/**
+	 * Подгружает файл конфигурации в формате Config.DSL
+	 *
+	 * @param string $path
+	 *
+	 * @return CLI_Application_Base
+	 */
+	protected function load_config($path)
+	{
+		if (IO_FS::exists($path)) {
+			$this->log->debug('Using config: %s', $path);
+			Config_DSL::Builder($this->config)->load($path);
+		} else {
+			throw new CLI_ApplicationException("Missing config file: $path");
+		}
+		return $this;
+	}
 
 }
 

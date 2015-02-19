@@ -1,3 +1,10 @@
 .nicEdit-main ul, .nicEdit-main ol {
 	padding-left: 40px;
 }
+
+.nicEdit-main {
+	word-wrap: break-word;
+	outline: none;
+	overflow-wrap: break-word;
+	word-break: break-all;
+}

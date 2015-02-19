@@ -3,14 +3,13 @@
  * @package CMS\Controller\Stockroom
  */
 
-
 Core::load('CMS.Controller.Table');
 
 class CMS_Controller_Stockroom extends CMS_Controller_Table
 {
 
-	protected $title_list	= 'Библиотека компонентов';
-	protected $norows	= 'Нет ни одного компонента';
+	protected $title_list = 'Библиотека компонентов';
+	protected $norows = 'Нет ни одного компонента';
 	protected $connect_error = false;
 	protected $can_add = false;
 	protected $can_delete = false;
@@ -24,17 +23,17 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 	{
 		$url = $this->rep_query('tags.json');
 		$this->tags = $this->get_query($url);
-		return parent::setup()->render_defaults('connect_error','tags');
+		return parent::setup()->render_defaults('connect_error', 'tags');
 	}
 
-	protected function rep_query($uri,$parms=array())
+	protected function rep_query($uri, $parms = array())
 	{
 		$url = self::current_repository_url();
 		if (!$url) {
 			die('No repositories!');
 		}
-		$q = $uri.'?site='.$_SERVER['HTTP_HOST'];
-		foreach($parms as $k=>$v) {
+		$q = $uri . '?site=' . $_SERVER['HTTP_HOST'];
+		foreach ($parms as $k => $v) {
 			$q .= "&{$k}={$v}";
 		}
 		$url .= $q;
@@ -52,10 +51,10 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 
 	public static function current_repository()
 	{
-		if (isset($_GET['repository'])&&isset(CMS_Stockroom::$repositories[$_GET['repository']])) {
+		if (isset($_GET['repository']) && isset(CMS_Stockroom::$repositories[$_GET['repository']])) {
 			return $_GET['repository'];
 		}
-		if (count(CMS_Stockroom::$repositories)>0) {
+		if (count(CMS_Stockroom::$repositories) > 0) {
 			return array_shift(array_keys(CMS_Stockroom::$repositories));
 		}
 		return false;
@@ -68,9 +67,9 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 		}
 		$agent = Net_HTTP::Agent(CMS_Stockroom::$curl_options)->act_as_browser();
 		$res = $agent->send($url);
-		if ($res->status->code!=200) {
+		if ($res->status->code != 200) {
 			$this->connect_error = "<p>Ошибка подключения к <a href='{$url}'>репозиторию</a></p><p class='status'>";
-			if ($res->status->code>0) {
+			if ($res->status->code > 0) {
 				$this->connect_error .= "{$res->status->code}: ";
 			}
 			$this->connect_error .= "{$res->status->message}</p>";
@@ -95,7 +94,7 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 
 	protected function filters()
 	{
-		return array('tag','search','repository');
+		return array('tag', 'search', 'repository');
 	}
 
 	protected function filters_form()
@@ -110,7 +109,7 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 
 	protected function count_all($parms)
 	{
-		$url = $this->rep_query('count.json',$parms);
+		$url = $this->rep_query('count.json', $parms);
 		$o = $this->get_query($url);
 		if ($this->connect_error) {
 			return 0;
@@ -126,13 +125,13 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 
 	protected function select_all($parms)
 	{
-		$url = $this->rep_query('select.json',$parms);
+		$url = $this->rep_query('select.json', $parms);
 		$o = $this->get_query($url);
 		if ($this->connect_error) {
 			return array();
 		}
 		if (is_array($o)) {
-			foreach($o as $n => $item) {
+			foreach ($o as $n => $item) {
 				$o[$n] = new CMS_Stockroom_Entity;
 				$o[$n]->init_from($item);
 			}
@@ -152,22 +151,23 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 		Core::load('Net.HTTP.Session');
 		$session = Net_HTTP_Session::Store();
 
-		$updated = isset($session['stockroom/updated'])? $session['stockroom/updated'] : array();
+		$updated = isset($session['stockroom/updated']) ? $session['stockroom/updated'] : array();
 		if (!is_array($updated)) {
 			$updated = array();
 		}
-		$not_updated = isset($session['stockroom/not_updated'])? $session['stockroom/not_updated'] : array();
+		$not_updated = isset($session['stockroom/not_updated']) ? $session['stockroom/not_updated'] : array();
 		if (!is_array($not_updated)) {
 			$not_updated = array();
 		}
 
-		return $this->render('updok',array(
-			'item' => $item,
-			'list_url' => $this->action_url('list',$this->page),
-			'list_button_caption' => $this->button_list(),
-			'updated' => $updated,
-			'not_updated' => $not_updated,
-		));
+		return $this->render('updok', array(
+				'item' => $item,
+				'list_url' => $this->action_url('list', $this->page),
+				'list_button_caption' => $this->button_list(),
+				'updated' => $updated,
+				'not_updated' => $not_updated,
+			)
+		);
 	}
 
 	protected function action_update()
@@ -180,21 +180,21 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 
 		if (!$item->installed()) {
 			$error = 'Этот компонент еще не установлен. Попробуйте сначала установить его.';
-		} elseif($item->installed()==$item['version']) {
+		} elseif ($item->installed() == $item['version']) {
 			$error = 'Уже установлена последняя версия этого компонента. Обновление не требуется.';
 		} else {
-			if ($this->env->request->method=='post') {
+			if ($this->env->request->method == 'post') {
 				$files = $this->get_install_pack($item);
 				if (is_string($files)) {
 					$error = $files;
 				} else {
 					$updated = array();
 					$not_updated = array();
-					foreach($files as $file => $data) {
+					foreach ($files as $file => $data) {
 						if ($item->can_update_file($file)) {
 							$from = $data['path'];
 							$to = "../{$file}";
-							if ($m = Core_Regexps::match_with_results('{^(.+)/[^/]+$}',$to)) {
+							if ($m = Core_Regexps::match_with_results('{^(.+)/[^/]+$}', $to)) {
 								$dir = $m[1];
 								if (!IO_FS::exists($dir)) {
 									@CMS::mkdirs($dir);
@@ -205,17 +205,17 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 								}
 								$new_hash = $data['hash'];
 								$old_hash = $item->get_installed_hash($file);
-								if (!$old_hash||$old_hash!=$new_hash) {
+								if (!$old_hash || $old_hash != $new_hash) {
 									if ($item->file_was_changed($file)) {
-										copy($from,"{$to}.upd");
+										copy($from, "{$to}.upd");
 										CMS::chmod_file("{$to}.upd");
 										$not_updated[] = $file;
 									} else {
-										copy($from,$to);
+										copy($from, $to);
 										CMS::chmod_file($to);
 										$updated[] = $file;
 									}
-									$item->set_installed_hash($file,$new_hash);
+									$item->set_installed_hash($file, $new_hash);
 								}
 							}
 						}
@@ -226,24 +226,25 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 					$session['stockroom/not_updated'] = $not_updated;
 					$item->save_info_file();
 					CMS::rmdir($item->install_temp_dir());
-					return $this->redirect_to($this->action_url('updok',$item));
+					return $this->redirect_to($this->action_url('updok', $item));
 				}
 			}
 		}
 
 		Events::call('cms.stockroom.after_update', $item, $error);
 
-		return $this->render('update',array(
-			'item' => $item,
-			'error' => $error,
-			'list_url' => $this->action_url('list',$this->page),
-			'list_button_caption' => $this->button_list(),
-		));
+		return $this->render('update', array(
+				'item' => $item,
+				'error' => $error,
+				'list_url' => $this->action_url('list', $this->page),
+				'list_button_caption' => $this->button_list(),
+			)
+		);
 	}
 
 	protected function load_item($id)
 	{
-		$url = $this->rep_query('info.json',array('id' => $id));
+		$url = $this->rep_query('info.json', array('id' => $id));
 		$o = $this->get_query($url);
 		if (!$o) {
 			return false;
@@ -263,16 +264,16 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 		$zip = "{$tdir}/install.zip";
 		$agent = Net_HTTP::Agent(CMS_Stockroom::$curl_options)->act_as_browser();
 		$res = $agent->send($item['download']);
-		if ($res->status->code==200) {
+		if ($res->status->code == 200) {
 			$unknown = 'Некорректный инсталляционный пакет!';
 			if (isset($res->headers['Content-Type'])) {
-				if (Core_Regexps::match('{^application/zip}',$res->headers['Content-Type'])) {
-					file_put_contents($zip,$res->body);
+				if (Core_Regexps::match('{^application/zip}', $res->headers['Content-Type'])) {
+					file_put_contents($zip, $res->body);
 					CMS::chmod_file($zip);
 					Core::load('IO.Arc');
 					IO_Arc::ZIP($zip)->extract_to($tdir);
 					unlink($zip);
-					return $this->hash_dir($tdir,'',$item);
+					return $this->hash_dir($tdir, '', $item);
 				} else {
 					return $unknown;
 				}
@@ -284,26 +285,26 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 		}
 	}
 
-	protected function hash_dir($path,$prefix='',$item=false)
+	protected function hash_dir($path, $prefix = '', $item = false)
 	{
 		$out = array();
-		foreach(IO_FS::Dir($path) as $file) {
-			$fp = $prefix==''?$file->name:"{$prefix}/{$file->name}";
-			if ($fp=='www') {
+		foreach (IO_FS::Dir($path) as $file) {
+			$fp = $prefix == '' ? $file->name : "{$prefix}/{$file->name}";
+			if ($fp == 'www') {
 				$fp = CMS::www();
 			}
 			if (is_dir($file->path)) {
-				$files = $this->hash_dir($file->path,$fp,$item);
-				foreach($files as $key => $value) {
+				$files = $this->hash_dir($file->path, $fp, $item);
+				foreach ($files as $key => $value) {
 					$out[$key] = $value;
 				}
 			} else {
-				if ($item&&Core_Regexps::match('{\.(php|phtml)$}',$file)) {
+				if ($item && Core_Regexps::match('{\.(php|phtml)$}', $file)) {
 					$version = trim($item['version']);
-					if ($version!='') {
+					if ($version != '') {
 						$content = file_get_contents($file->path);
-						$content = str_replace('%%{version}',$version,$content);
-						file_put_contents($file->path,$content);
+						$content = str_replace('%%{version}', $version, $content);
+						file_put_contents($file->path, $content);
 					}
 				}
 				$out[$fp] = array(
@@ -322,11 +323,12 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 			return $this->page_not_found();
 		}
 
-		return $this->render('instok',array(
-			'item' => $item,
-			'list_url' => $this->action_url('list',$this->page),
-			'list_button_caption' => $this->button_list(),
-		));
+		return $this->render('instok', array(
+				'item' => $item,
+				'list_url' => $this->action_url('list', $this->page),
+				'list_button_caption' => $this->button_list(),
+			)
+		);
 	}
 
 	protected function action_install()
@@ -336,7 +338,7 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 			return $this->page_not_found();
 		}
 		$error = false;
-		foreach($item->not_install_if_exists as $entry) {
+		foreach ($item->not_install_if_exists as $entry) {
 			$entry = $this->validate_path($entry);
 			if ($entry) {
 				if (IO_FS::exists($entry)) {
@@ -345,19 +347,19 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 			}
 		}
 
-		if ($item['download']=='-') {
+		if ($item['download'] == '-') {
 			$error = 'Невозможно получить инсталляционный пакет!';
 		}
 
-		if ($this->env->request->method=='post') {
+		if ($this->env->request->method == 'post') {
 			$files = $this->get_install_pack($item);
 			if (is_string($files)) {
 				$error = $files;
 			} else {
-				foreach($files as $file => $data) {
+				foreach ($files as $file => $data) {
 					$from = $data['path'];
 					$to = "../{$file}";
-					if ($m = Core_Regexps::match_with_results('{^(.+)/[^/]+$}',$to)) {
+					if ($m = Core_Regexps::match_with_results('{^(.+)/[^/]+$}', $to)) {
 						$dir = $m[1];
 						if (!IO_FS::exists($dir)) {
 							@CMS::mkdirs($dir);
@@ -366,38 +368,39 @@ class CMS_Controller_Stockroom extends CMS_Controller_Table
 								break;
 							}
 						}
-						copy($from,$to);
+						copy($from, $to);
 						CMS::chmod_file($to);
-						$item->set_installed_hash($file,$data['hash']);
+						$item->set_installed_hash($file, $data['hash']);
 					}
 				}
 				$item->save_info_file();
 				CMS::rmdir($item->install_temp_dir());
-				return $this->redirect_to($this->action_url('instok',$item));
+				return $this->redirect_to($this->action_url('instok', $item));
 			}
 		}
 
 		Events::call('cms.stockroom.after_install', $item, $error);
 
-		return $this->render('install',array(
-			'item' => $item,
-			'error' => $error,
-			'list_url' => $this->action_url('list',$this->page),
-			'list_button_caption' => $this->button_list(),
-		));
+		return $this->render('install', array(
+				'item' => $item,
+				'error' => $error,
+				'list_url' => $this->action_url('list', $this->page),
+				'list_button_caption' => $this->button_list(),
+			)
+		);
 	}
 
 	protected function validate_path($s)
 	{
 		$s = trim($s);
-		if ($s=='') {
+		if ($s == '') {
 			return false;
 		}
-		if ($s[0]!='.'&&$s[0]!='/') {
+		if ($s[0] != '.' && $s[0] != '/') {
 			$s = "../{$s}";
 		}
-		if ($m = Core_Regexps::match_with_results('{^\.\./www/(.+)$}',$s)) {
-			$s = '../'.CMS::www().'/'.$m[1];
+		if ($m = Core_Regexps::match_with_results('{^\.\./www/(.+)$}', $s)) {
+			$s = '../' . CMS::www() . '/' . $m[1];
 		}
 		return $s;
 	}
@@ -412,11 +415,11 @@ class CMS_Stockroom_Entity extends CMS_ORM_Entity
 	public function init_from($o)
 	{
 		$this->rep = CMS_Controller_Stockroom::current_repository();
-		foreach($o as $field => $value) {
-			if ($field=='install_only'||$field=='not_install_if_exists') {
+		foreach ($o as $field => $value) {
+			if ($field == 'install_only' || $field == 'not_install_if_exists') {
 				$m = array();
-				foreach($value as $s) {
-					$s = preg_replace('{^www/}',CMS::www().'/',$s);
+				foreach ($value as $s) {
+					$s = preg_replace('{^www/}', CMS::www() . '/', $s);
 					$m[$s] = $s;
 				}
 				$value = $m;
@@ -429,9 +432,17 @@ class CMS_Stockroom_Entity extends CMS_ORM_Entity
 	public function can_update_file($file)
 	{
 		$this->load_info();
-		if (isset($this['install_only'])&&is_array($this['install_only'])) {
+		if (isset($this['install_only']) && is_array($this['install_only'])) {
 			if (isset($this['install_only'][$file])) {
 				return false;
+			}
+			foreach($this['install_only'] as $f) {
+				$f = trim($f);
+				if ($f!=''&&$f[strlen($f)-1]=='/') {
+					if (strpos($file,$f)===0) {
+						return false;
+					}
+				}
 			}
 		}
 		return true;
@@ -439,12 +450,12 @@ class CMS_Stockroom_Entity extends CMS_ORM_Entity
 
 	public function install_temp_dir()
 	{
-		return CMS::temp_dir().'/stockroom/'.$this->code();
+		return CMS::temp_dir() . '/stockroom/' . $this->code();
 	}
 
 	public function code()
 	{
-		return $this->rep.$this->id();
+		return $this->rep . $this->id();
 	}
 
 	public function save_info_file()
@@ -452,10 +463,10 @@ class CMS_Stockroom_Entity extends CMS_ORM_Entity
 		$title = $this['title'];
 		$version = $this['version'];
 		$content = "component {$title}\nversion {$version}\n";
-		foreach($this->hashes as $file => $hash) {
+		foreach ($this->hashes as $file => $hash) {
 			$content .= "hash {$hash} {$file}\n";
 		}
-		file_put_contents($this->info_path(),$content);
+		file_put_contents($this->info_path(), $content);
 		CMS::chmod_file($this->info_path());
 	}
 
@@ -478,12 +489,12 @@ class CMS_Stockroom_Entity extends CMS_ORM_Entity
 	public function load_info()
 	{
 		if (!$this->installed_version) {
-			if( $content = $this->load_info_file()) {
-				foreach(explode("\n",$content) as $line) {
+			if ($content = $this->load_info_file()) {
+				foreach (explode("\n", $content) as $line) {
 					$line = trim($line);
-					if ($m = Core_Regexps::match_with_results('{^version(.+)$}',$line)) {
+					if ($m = Core_Regexps::match_with_results('{^version(.+)$}', $line)) {
 						$this->installed_version = trim($m[1]);
-					} elseif ($m = Core_Regexps::match_with_results('{^hash\s+([^\s]+)\s+(.+)$}',$line)) {
+					} elseif ($m = Core_Regexps::match_with_results('{^hash\s+([^\s]+)\s+(.+)$}', $line)) {
 						$hash = trim($m[1]);
 						$file = trim($m[2]);
 						$this->hashes[$file] = $hash;
@@ -502,7 +513,7 @@ class CMS_Stockroom_Entity extends CMS_ORM_Entity
 		return false;
 	}
 
-	public function set_installed_hash($file,$hash)
+	public function set_installed_hash($file, $hash)
 	{
 		$this->load_info();
 		return $this->hashes[$file] = $hash;

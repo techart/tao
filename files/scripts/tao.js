@@ -82,30 +82,54 @@ TAO.helpers.addScript = function (url, callback) {
 		});
 }
 
-TAO.helpers.process_data = function(data) {
-	var count = 0;
+TAO.helpers.process_data = function(data, async) {
+	if (typeof async == 'undefined') {
+		async = false;
+	}
+
+	var original_document_write = document.write;
+	document.write = function(content) {
+		$('head').append(content);
+	};
+
+	var jsCount = 0;
 	if (data.js) {
-		count = data.js.length;		
-		if (data.css) {
-			$.each(data.css, function(k, v) {
-				TAO.helpers.addStylesheet(k);
-			});
+		var files = data.js, filesUrls = [];
+
+		if (typeof files == 'object') {
+			files = TAO.helpers.objectToArray(files);
 		}
-		var files = []
-		for(var key in data.js) {
-			files.push(key);
+		files.sort(function (x, y) {
+			return parseInt(x.weight) - parseInt(y.weight);
+		});
+		
+		for(var key in files) {
+			filesUrls.push(key);
 		}
-		TAO.require(files, function() {
+
+		var jsCount = filesUrls.length;
+
+		TAO.require(filesUrls, function () {
 			if (data.eval) {
 				jQuery.globalEval(data.eval);
 			}
+			document.write = original_document_write;
+		}, async);
+	}
+
+	if (jsCount  == 0) {
+		if (data.eval) {
+			jQuery.globalEval(data.eval);
+		}
+		document.write = original_document_write;
+	}
+
+	if (data.css) {
+		$.each(data.css, function (k, v) {
+			TAO.helpers.addStylesheet(k);
 		});
 	}
-	
-	if(count == 0 && data.eval)  {
-		jQuery.globalEval(data.eval);
-	}
-};
+ };
 
 TAO.settings.messages = {
 	processing: 'Обработка'
@@ -148,27 +172,34 @@ TAO.helpers.stringToFunction = function(str) {
 	return  fn;
 }
 
-function sleep(ms) {
-	ms += new Date().getTime();
-	while (new Date() < ms){}
-} 
-
 TAO.helpers.scriptExists = function(url) {
 	var scripts = TAO.helpers.scripts;
 	return (scripts.indexOf(url) > -1) || $('script[src*="' + url + '"]').length > 0;
 }
 
-TAO.require = function(name, callback) {
+TAO.helpers.objectToArray = function (obj) {
+	var arr = [];
+	for (var key in obj) {
+		arr[key] = obj[key];
+	}
+	return arr;
+}
+
+TAO.require = function(name, callback, async) {
 	if (typeof this.level == 'undefined') {
 		this.level = 0;
 	} else {
 		this.level += 1;
+	}
+	if (typeof async == 'undefined') {
+		async = true;
 	}
 	var self = this;
 	var starting_level = this.level;
 
 	if (TAO.debug) {
 		console.log('run require:', name);
+		console.log('run method:', async ? 'async' : 'sync');
 		console.log('require levels (starting, currnet):', starting_level, self.level);
 	}
 
@@ -185,7 +216,7 @@ TAO.require = function(name, callback) {
 		if (!attempt[_url]) {
 			attempt[_url] = 0;
 		}
-		attempt[_url] += 1
+		attempt[_url] += 1;
 		if (TAO.debug) {
 			console.log('require attempt', attempt[_url], _url);
 			console.log('require check levels', starting_level, self.level);
@@ -202,6 +233,12 @@ TAO.require = function(name, callback) {
 		if (TAO.debug) {
 			console.log('require check numbers', number, count, _url);
 		}
+
+		if (!async && number < name.length) {
+			TAO.helpers.addScript(name[number], check);
+			return;
+		}
+
 		if (number == count) {
 			self.level = Math.max(0, self.level-1);
 			if (TAO.debug) {
@@ -210,13 +247,17 @@ TAO.require = function(name, callback) {
 			return callback();
 		}
 	};
-	for (var i = 0; i < count; i++) {
-		var path;
-		if (name[i].indexOf('.js') !=-1) {
-			path = name[i];
-		} else {
-			path = base + name[i] + '.js';
+	if(async) {
+		for (var i = 0; i < count; i++) {
+			var path;
+			if (name[i].indexOf('.js') !=-1) {
+				path = name[i];
+			} else {
+				path = base + name[i] + '.js';
+			}
+			TAO.helpers.addScript(path, check);
 		}
-		TAO.helpers.addScript(path, check);
+	} else {
+		TAO.helpers.addScript(name[0], check);
 	}
 };

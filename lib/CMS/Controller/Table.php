@@ -3,51 +3,52 @@
  * @package CMS\Controller\Table
  */
 
-
 Core::load('CMS.Controller.Fields');
 
-class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleInterface {
-	
-	const MODULE  = 'CMS.Controller.Table';
+class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleInterface
+{
+
+	const MODULE = 'CMS.Controller.Table';
 	const VERSION = '0.0.0';
 
 	////////////////////////////////////////////////////////////////////////
 	// Источник данных
 
 	// Имя DB.SQL объекта (устарело, не рекомендуется к использованию)
-	protected $entity		= false;
+	protected $entity = false;
 
 	// Имя таблицы в БД (устарело, не рекомендуется к использованию)
-	protected $dbtable		= false;
+	protected $dbtable = false;
 
 	// Модуль схемы
-	protected $schema_module	= false;
+	protected $schema_module = false;
 
 	// Имя основного ORM-маппера
-	protected $orm_name		= false;
+	protected $orm_name = false;
 
 	protected $storage_name;
 
 	// Имя ORM-субмаппера для просмотра списка
-	protected $orm_for_select	= false;
+	protected $orm_for_select = false;
 
 	// Мнемокод контроллера/экшна (для генерации евентов)
 	protected $mnemocode = 'cms.table';
 	protected $mnemocode_prefix = 'cms.table';
 
-	protected $add_in_list	= false;
+	protected $add_in_list = false;
 
-	protected $title_add_in_list	= 'Быстрое добавление записи';
+	protected $title_add_in_list = 'Быстрое добавление записи';
 
-	protected function mnemocode($name = null) {
+	protected function mnemocode($name = null)
+	{
 		if (is_null($name)) {
 			$name = $this->action;
 		}
 		$m = get_class($this);
-		$m = str_replace('Component_','',$m);
+		$m = str_replace('Component_', '', $m);
 		$m = strtolower($m);
-		$m = preg_replace('{[^a-z0-9]+}','.',$m);
-		$m = trim($m,'.');
+		$m = preg_replace('{[^a-z0-9]+}', '.', $m);
+		$m = trim($m, '.');
 		$m = "{$this->mnemocode_prefix}.{$m}.{$name}";
 		return trim($m, '.');
 	}
@@ -61,7 +62,8 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	}
 
 	// Возвращает основной ORM-маппер
-	protected function orm_mapper() {
+	protected function orm_mapper()
+	{
 
 		if (!$this->orm_name) {
 			return false;
@@ -76,87 +78,120 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return false;
 	}
 
-	protected function storage() {
+	protected function storage()
+	{
 		$name = $this->storage_name;
 		return Storage::manager()->$name();
 	}
 
-	public function orm_name() {
+	public function orm_name()
+	{
 		return $this->orm_name;
 	}
 
-	public function name() {
+	public function name()
+	{
 		return $this->storage_name ? $this->storage_name : $this->orm_name();
 	}
 
-	public function schema_fields() {
-		if (!$this->schema_module) {
-			return false;
+	protected $schema_fields = array();
+
+	public function schema_fields()
+	{
+		$fields = $this->schema_fields;
+		if (!empty($fields)) {
+			return $fields;
 		}
-		Core::load($this->schema_module);
-		$class = str_replace('.','_',$this->schema_module);
-		return call_user_func(array($class,'fields'));
+		if ($this->schema_module) {
+			Core::load($this->schema_module);
+			$class = str_replace('.', '_', $this->schema_module);
+			$fields = call_user_func(array($class, 'fields'));
+		} else {
+			if ($mapper = $this->orm_mapper()) {
+				$fields = $mapper->schema_fields();
+				if (!is_array($fields) || count($fields) == 0) {
+					$fields = array();
+				}
+			}
+		}
+		return $this->schema_fields = $fields;
 	}
 
-	public function schema_tabs() {
+	public function schema_tabs()
+	{
 		if (!$this->schema_module) {
 			return false;
 		}
 		Core::load($this->schema_module);
-		$class = str_replace('.','_',$this->schema_module);
-		if (method_exists($class,'tabs')) {
-			return call_user_func(array($class,'tabs'));
+		$class = str_replace('.', '_', $this->schema_module);
+		if (method_exists($class, 'tabs')) {
+			return call_user_func(array($class, 'tabs'));
 		}
 		return false;
 	}
 
 	// Возвращает ORM-маппер для выборки строк
-	protected function orm_mapper_for_select($parms=array()) {
+	protected function orm_mapper_for_select($parms = array())
+	{
 		$mapper = $this->orm_mapper();
-		if (!$mapper) return false;
-		if ($sub = $this->orm_for_select) $mapper = $mapper->downto($sub);
-		$mapper = $this->orm_mapper_for_parms($mapper,$parms);
+		if (!$mapper) {
+			return false;
+		}
+		if ($sub = $this->orm_for_select) {
+			$mapper = $mapper->downto($sub);
+		}
+		$created = !isset($parms[':created'])||$parms[':created'];
+		unset($parms[':created']);
+		$mapper = $this->orm_mapper_for_parms($mapper, $parms);
 		if ($mapper->auto_add()) {
-			$mapper = $mapper->auto_add_mapper_created();
+			if ($created) {
+				$mapper = $mapper->auto_add_mapper_created();
+			}
 		}
 		return $mapper;
 	}
 
 	// Возвращает ORM-маппер для подсчета строк
-	protected function orm_mapper_for_count($parms=array()) {
+	protected function orm_mapper_for_count($parms = array())
+	{
 		$parms['__mapper_for_count'] = true;
 		return $this->orm_mapper_for_select($parms);
 	}
 
 	// Применяет к ORM-мапперу параметры и фильтры
-	protected function orm_mapper_for_parms($mapper,$parms=array()) {
-		if (!$mapper) return false;
-
-		if (isset($parms['__mapper_for_count'])&&$parms['__mapper_for_count']) {
-			if (isset($parms['limit'])) unset($parms['limit']);
-			if (isset($parms['offset'])) unset($parms['offset']);
+	protected function orm_mapper_for_parms($mapper, $parms = array())
+	{
+		if (!$mapper) {
+			return false;
 		}
 
-		if(isset($parms['limit'])) {
+		if (isset($parms['__mapper_for_count']) && $parms['__mapper_for_count']) {
+			if (isset($parms['limit'])) {
+				unset($parms['limit']);
+			}
+			if (isset($parms['offset'])) {
+				unset($parms['offset']);
+			}
+		}
+
+		if (isset($parms['limit'])) {
 			$limit = (int)$parms['limit'];
 			unset($parms['limit']);
 
 			if (isset($parms['offset'])) {
 				$offset = (int)$parms['offset'];
 				unset($parms['offset']);
-			}
-
-			else {
+			} else {
 				$offset = 0;
 			}
 
-			$mapper = $mapper->spawn()->range($limit,$offset);
+			$mapper = $mapper->spawn()->range($limit, $offset);
 		}
 
 		unset($parms['__mapper_for_count']);
-		
-		foreach($parms as $key => $value) {
-			if (!in_array($key,$this->exclude_filters)) {
+
+		foreach ($parms as $key => $value) {
+			if (!in_array($key, $this->exclude_filters)) {
 				$mapper = $mapper->$key($value);
 			}
 		}
@@ -165,17 +200,29 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 	protected $object = false;
 
-	protected function new_object() {
-		if ($this->storage_name) return $this->storage()->make_entity();
-		if ($mapper = $this->orm_mapper()) return $mapper->make_entity();
-		if ($tbl = $this->dbtable) return clone DB_SQL::db()->$tbl->prototype;
+	protected function new_object()
+	{
+		if ($this->storage_name) {
+			return $this->storage()->make_entity();
+		}
+		if ($mapper = $this->orm_mapper()) {
+			return $mapper->make_entity();
+		}
+		if ($tbl = $this->dbtable) {
+			return clone DB_SQL::db()->$tbl->prototype;
+		}
 		return $this->entity_reflection()->newInstance();
 	}
 
-	protected function count_all($parms) {
+	protected function count_all($parms)
+	{
 		if ($this->storage_name) {
-			if (isset($parms['limit'])) unset($parms['limit']);
-			if (isset($parms['offset'])) unset($parms['offset']);
+			if (isset($parms['limit'])) {
+				unset($parms['limit']);
+			}
+			if (isset($parms['offset'])) {
+				unset($parms['offset']);
+			}
 			$q = $this->storage()->create_query()->filter($parms);
 			return $this->storage()->count($q);
 		}
@@ -188,7 +235,8 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return $this->object->count_all($parms);
 	}
 
-	protected function select_all($parms) {
+	protected function select_all($parms)
+	{
 		if ($this->storage_name) {
 			$q = $this->storage()->create_query()->filter($parms);
 			return $this->storage()->select($q);
@@ -202,19 +250,23 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return $this->object->select_all($parms);
 	}
 
-	protected function load($id) {
+	protected function load($id)
+	{
 		if ($this->storage_name) {
 			return $this->storage()->find($id);
 		}
 		if ($mapper = $this->orm_mapper()) {
 			return $mapper[$id];
 		}
-		if ($tbl = $this->dbtable) return DB_SQL::db()->$tbl->find($id);
+		if ($tbl = $this->dbtable) {
+			return DB_SQL::db()->$tbl->find($id);
+		}
 		$item = $this->object->load($id);
 		return $item;
 	}
 
-	protected function delete($item) {
+	protected function delete($item)
+	{
 		if ($this->storage_name) {
 			return $this->storage()->delete($item);
 		}
@@ -222,54 +274,68 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 			return $mapper->delete($item);
 		}
 		$id = $this->item_id($item);
-		if ($tbl = $this->dbtable) return DB_SQL::db()->$tbl->delete($id);
+		if ($tbl = $this->dbtable) {
+			return DB_SQL::db()->$tbl->delete($id);
+		}
 		return $this->object->delete($id);
 	}
 
-	protected function insert($item) {
+	protected function insert($item)
+	{
 		if ($this->storage_name) {
 			return $this->storage()->insert($item);
 		}
 		if ($mapper = $this->orm_mapper()) {
 			return $mapper->insert($item);
 		}
-		if ($tbl = $this->dbtable) return DB_SQL::db()->$tbl->insert($item);
+		if ($tbl = $this->dbtable) {
+			return DB_SQL::db()->$tbl->insert($item);
+		}
 		return $item->insert();
 	}
 
-	protected function update($item) {
+	protected function update($item)
+	{
 		if ($this->storage_name) {
 			return $this->storage()->update($item);
 		}
 		if ($mapper = $this->orm_mapper()) {
 			return $mapper->update($item);
 		}
-		if ($tbl = $this->dbtable) return DB_SQL::db()->$tbl->update($item);
+		if ($tbl = $this->dbtable) {
+			return DB_SQL::db()->$tbl->update($item);
+		}
 		return $item->update();
 	}
 
-	protected function item_key($item) {
+	protected function item_key($item)
+	{
 		return $item->key();
 	}
 
-	public function item_id($item) {
+	public function item_id($item)
+	{
 		return $item->id();
 	}
 
-	public function item_homedir($item,$private=false) {
+	public function item_homedir($item, $private = false)
+	{
 		return $item->homedir($private);
 	}
 
-	public function item_cachedir($item,$private=false) {
+	public function item_cachedir($item, $private = false)
+	{
 		return $item->cache_dir_path($private);
 	}
 
-
 	protected $entity_reflection = false;
 
-	protected function entity_reflection() {
-		if ($this->entity_reflection) return $this->entity_reflection;
-		$this->entity_reflection = Core_Types::reflection_for(Core_Strings::replace($this->entity,'.','_'));
+	protected function entity_reflection()
+	{
+		if ($this->entity_reflection) {
+			return $this->entity_reflection;
+		}
+		$this->entity_reflection = Core_Types::reflection_for(Core_Strings::replace($this->entity, '.', '_'));
 		return $this->entity_reflection;
 	}
 
@@ -278,46 +344,63 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 	// Список имен фильтров
 	protected $filters = array();
-	protected function filters() {
+
+	protected function filters()
+	{
 		return array_unique(array_merge($this->filters, array_keys($this->filters_form())));
 	}
 
 	// Список фильтров, не передаваемых в ORM
 	protected $exclude_filters = array();
-	protected function exclude_filters() {
+
+	protected function exclude_filters()
+	{
 		return $this->exclude_filters;
 	}
 
 	// Форма фильтра на списке (набор полей)
-	protected $filters_form	= array();
-	protected function filters_form() {
-		return $this->search_fields($this->form_fields('list'), $this->filters_form, 'in_filters');
+	protected $filters_form = array();
+
+	protected function filters_form()
+	{
+		$fields = $this->schema_fields();
+		if ($fields) {
+			return $this->search_fields($fields, $this->filters_form, 'in_filters');
+		} else {
+			return $this->search_fields($this->form_fields('list'), $this->filters_form, 'in_filters');
+		}
 	}
 
 	// Фильтры-кнопки на списке
-	protected $filters_buttons	= array();
-	protected function filters_buttons() {
+	protected $filters_buttons = array();
+
+	protected function filters_buttons()
+	{
 		return $this->filters_buttons;
 	}
 
 	// Список параметров, обязательно передаваемых в качестве фильтров
-	protected $force_filters= array();
-	protected function force_filters() {
+	protected $force_filters = array();
+
+	protected function force_filters()
+	{
 		return $this->force_filters;
 	}
 
 	// Создание формы фильтра
-	protected function create_filters_form() {
+	protected function create_filters_form()
+	{
 		$fields = $this->filters_form();
-		$form = Forms::Form('filtersform')->action($this->action_url('filter',1));
-		foreach($fields as $name => $parms) {
+		$url = $this->action_url('filter', 1, false, false, false);
+		$form = Forms::Form('filtersform')->action($url);
+		foreach ($fields as $name => $parms) {
 			$item = false;
 			if (isset($this->request[$name])) {
 				$item = new ArrayObject(array($name => $this->request[$name]));
 				$parms['__item'] = $item;
 			}
 			$type = CMS_Fields::type($parms);
-			$type->form_fields($form,$name,$parms);
+			$type->form_fields($form, $name, $parms);
 			if ($item) {
 				//$form[$name] = $_GET[$name];
 				$type->assign_from_object($form, $item, $name, $parms);
@@ -326,15 +409,16 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return $form;
 	}
 
-	protected function filter_object() {
+	protected function filter_object()
+	{
 		$form = $this->create_filters_form();
 		$form->process($this->env->request);
 		$o = $this->new_object();
 		$attrs = new ArrayObject();
-		foreach($this->filters_form() as $name => $data) {
+		foreach ($this->filters_form() as $name => $data) {
 			$type = CMS_Fields::type($data);
-			if (isset($form[$name]) && $form[$name]!='' && !is_null($form[$name])) {
-				$type->assign_to_object($form,$o,$name,$data);
+			if (isset($form[$name]) && $form[$name] != '' && !is_null($form[$name])) {
+				$type->assign_to_object($form, $o, $name, $data);
 				$attrs[$name] = $o[$name];
 			}
 		}
@@ -342,14 +426,25 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	}
 
 	// Обработчик фильтра
-	protected function action_filter() {
+	protected function action_filter()
+	{
 		list($o, $attrs) = $this->filter_object();
 		$values = array();
-		foreach($attrs as $name => $value) {
+		foreach ($attrs as $name => $value) {
 			$value = trim($value);
-			if ($value!='') $values[$name] = $value;
+			if ($value != '') {
+				$values[$name] = $value;
+			}
 		}
-		$url = $this->action_url('list','1',$values);
+		foreach($this->filters() as $name) {
+			if (!isset($values[$name])&&isset($_GET[$name])) {
+				$value = trim($_GET[$name]);
+				if ($value!='') {
+					$values[$name] = $value;
+				}
+			}
+		}
+		$url = $this->action_url('list', '1', $values);
 		return $this->redirect_to($url);
 	}
 
@@ -358,29 +453,39 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 	protected $auth_realm = 'admin';
 
-	protected function auth_realm() {
-		if ($this->auth_realm=='admin')
+	protected function auth_realm()
+	{
+		if ($this->auth_realm == 'admin') {
 			return CMS::$admin_realm;
+		}
 		return parent::auth_realm();
 	}
 
-	protected function access_denied() {
+	protected function access_denied()
+	{
 		return $this->render('denied');
 	}
 
-	protected function access($action, $item = null) {
+	protected function access($action, $item = null)
+	{
 		$rc = Events::call('cms.table.access', $action, $item, $this);
-		if (!is_null($rc)) return $rc;
+		if (!is_null($rc)) {
+			return $rc;
+		}
 		$rc = Events::call('cms.table.access.' . $action, $item, $this);
-		if (!is_null($rc)) return $rc;
+		if (!is_null($rc)) {
+			return $rc;
+		}
 		return true;
 	}
 
-	protected function check_access() {
+	protected function check_access()
+	{
 		return $this->access('list');
 	}
 
-	protected function check_item_access($item) {
+	protected function check_item_access($item)
+	{
 		return true;
 	}
 
@@ -389,84 +494,172 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 	protected $templates_dir = false;
 
-	protected function templates_dir() {
+	protected function templates_dir()
+	{
 		return $this->templates_dir;
 	}
 
-	public function redefined_template($template) {
-		if (!Core_Regexps::match('{\.phtml$}',$template)) $template .= '.phtml';
-		if ($template[0]=='.'||$template[0]=='/') return $template;
+	public function redefined_template($template)
+	{
+		if (!Core_Regexps::match('{\.phtml$}', $template)) {
+			$template .= '.phtml';
+		}
+		if ($template[0] == '.' || $template[0] == '/') {
+			return $template;
+		}
 
 		$dir = $this->templates_dir();
-		if ($dir && is_file("$dir/$template")) return "$dir/$template";
+		if ($dir && is_file("$dir/$template")) {
+			return "$dir/$template";
+		}
 
 		$dir = CMS::current_component_dir('views/admin');
-		if (is_file("$dir/$template")) return "$dir/$template";
-		
+		if (is_file("$dir/$template")) {
+			return "$dir/$template";
+		}
+
 		return false;
 	}
 
-	public function template($template) {
-		if (!Core_Regexps::match('{\.phtml$}',$template)) $template .= '.phtml';
-		if ($template[0]=='.'||$template[0]=='/') return $template;
+	public function template($template)
+	{
+		if (!Core_Regexps::match('{\.phtml$}', $template)) {
+			$template .= '.phtml';
+		}
+		if ($template[0] == '.' || $template[0] == '/') {
+			return $template;
+		}
 
-		if ($t = $this->redefined_template($template)) return $t;
+		if ($t = $this->redefined_template($template)) {
+			return $t;
+		}
 
-		$tpl = CMS::views_path('admin/table2/'.$template);
-		
-		if (is_file($tpl)) return $tpl;
-		if ($this->view_exists($template)) return $this->view_path_for($template);
-		
+		$tpl = CMS::views_path('admin/table2/' . $template);
+
+		if (is_file($tpl)) {
+			return $tpl;
+		}
+		if ($this->view_exists($template)) {
+			return $this->view_path_for($template);
+		}
+
 		return $tpl;
 	}
 
-	protected function render($template,$parms=array()) {
-		if (is_numeric($template)) return parent::render($template);
+	protected function render($template, $parms = array())
+	{
+		if (is_numeric($template)) {
+			return parent::render($template);
+		}
+		$name = $template;
 		$parms['template'] = $template;
 		$template = $this->template($template);
-		return parent::render($template,$parms);
+		$result = parent::render($template, $parms);
+		if (in_array($name, array('edit', 'add'))) {
+			$result->root->allow_filtering(false);
+		}
+		return $result;
 	}
 
 	////////////////////////////////////////////////////////////////////////
 	// Events
 
-	protected function on_before_action() {}
-	protected function on_before_list() {}
-	protected function on_after_change() {}
-	protected function on_after_change_item() {}
-	protected function on_after_update_item() {}
-	protected function on_after_mass_update_item() {}
-	protected function on_after_insert_item() {}
-	protected function on_after_copy_item($from,$to) {}
-	protected function on_after_delete_item() {}
-	protected function on_before_change_item() {}
-	protected function on_before_update_item() {}
-	protected function on_before_mass_update_item() {}
-	protected function on_before_insert_item() {}
-	protected function on_before_delete_item() {}
-	protected function on_before_action_edit() {}
-	protected function on_before_action_add() {}
-	protected function on_before_action_copy() {}
-	protected function on_row($row) {}
+	protected function on_before_action()
+	{
+	}
+
+	protected function on_before_list()
+	{
+	}
+
+	protected function on_after_change()
+	{
+	}
+
+	protected function on_after_change_item()
+	{
+	}
+
+	protected function on_after_update_item()
+	{
+	}
+
+	protected function on_after_mass_update_item()
+	{
+	}
+
+	protected function on_after_insert_item()
+	{
+	}
+
+	protected function on_after_copy_item($from, $to)
+	{
+	}
+
+	protected function on_after_delete_item()
+	{
+	}
+
+	protected function on_before_change_item()
+	{
+	}
+
+	protected function on_before_update_item()
+	{
+	}
+
+	protected function on_before_mass_update_item()
+	{
+	}
+
+	protected function on_before_insert_item()
+	{
+	}
+
+	protected function on_before_delete_item()
+	{
+	}
+
+	protected function on_before_action_edit()
+	{
+	}
+
+	protected function on_before_action_add()
+	{
+	}
+
+	protected function on_before_action_copy()
+	{
+	}
+
+	protected function on_row($row)
+	{
+	}
 
 	////////////////////////////////////////////////////////////////////////
 	// Index
 
-	public function setup_config() {
+	public function setup_config()
+	{
 		$tabs = $this->get_from_component('tabs');
-		if (!empty($tabs)) $this->form_tabs = array_merge( (array) $this->form_tabs, $tabs);
+		if (!empty($tabs)) {
+			$this->form_tabs = array_merge((array)$this->form_tabs, $tabs);
+		}
 		$table = $this->get_from_component('table');
-		if ($table)
+		if ($table) {
 			foreach ($table as $name => $value) {
-				if (property_exists($this, $name)) $this->$name = $value;
+				if (property_exists($this, $name)) {
+					$this->$name = $value;
+				}
 			}
+		}
 		return parent::setup_config();
 	}
 
-	public function setup() {
-		return parent::setup()->render_defaults('id','page','args','action','mnemocode');
+	public function setup()
+	{
+		return parent::setup()->render_defaults('id', 'page', 'args', 'action', 'mnemocode');
 	}
-
 
 	protected $id = 0;
 	protected $page = 1;
@@ -475,36 +668,39 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	protected $sort_direction = false;
 	protected $args = array();
 
-
-	protected function default_action($action, $args) {
+	protected function default_action($action, $args)
+	{
 		return 'list';
 	}
 
-	public function index($action,$args) {
+	public function index($action, $args)
+	{
 		$rc = Events::call($this->mnemocode('start_action'), $action, $args, $this);
 		if (!empty($rc)) {
 			return $rc;
 		}
 
-		if ($action == 'default' || $action == 'index')
+		if ($action == 'default' || $action == 'index') {
 			$action = $this->default_action($action, $args);
-		
+		}
+
 		if (!$this->check_access()) {
 			return $this->access_denied();
 		}
 
-		if (strpos($action,'-')!==false) {
+		if (strpos($action, '-') !== false) {
 			$args = "$action/$args";
 			$action = $this->default_action($action, $args);
 		}
 
-		$this->action = $action == 'default'? $this->action : $action;
+		$this->action = $action == 'default' ? $this->action : $action;
 		$this->mnemocode = $this->mnemocode($action);
-		if (is_int($args)) $this->page = $args;
-		else {
-			foreach(explode('/',$args) as $arg) {
+		if (is_int($args)) {
+			$this->page = $args;
+		} else {
+			foreach (explode('/', $args) as $arg) {
 				$arg = trim($arg);
-				if ($m = Core_Regexps::match_with_results('{^([^-]+)-(.+)$}',$arg)) {
+				if ($m = Core_Regexps::match_with_results('{^([^-]+)-(.+)$}', $arg)) {
 					$this->args[trim($m[1])] = trim($m[2]);
 				} else {
 					$this->args[] = $arg;
@@ -512,29 +708,42 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 			}
 		}
 
-		if (isset($this->args['id'])) $this->id = $this->args['id'];
-		if (isset($this->args['page'])) $this->page = $this->args['page'];
+		if (isset($this->args['id'])) {
+			$this->id = $this->args['id'];
+		}
+		if (isset($this->args['page'])) {
+			$this->page = $this->args['page'];
+		}
 
 		if (isset($this->args['sortdesc'])) {
 			$this->sort = $this->args['sortdesc'];
 			$this->sort_direction = 'desc';
-		}
-		else if (isset($this->args['sort'])) {
-			$this->sort = $this->args['sort'];
-			$this->sort_direction = 'asc';
+		} else {
+			if (isset($this->args['sort'])) {
+				$this->sort = $this->args['sort'];
+				$this->sort_direction = 'asc';
+			}
 		}
 
 		if (isset($this->args['field'])) {
 			$field = $this->args['field'];
 			$r = $this->on_before_field_action($this->action);
-			if (is_string($r)||is_object($r)) return $r;
-			if ($r===false) return $this->page_not_found();
-			return $this->field_action($field,$this->action);
+			if (is_string($r) || is_object($r)) {
+				return $r;
+			}
+			if ($r === false) {
+				return $this->page_not_found();
+			}
+			return $this->field_action($field, $this->action);
 		}
 
 		$r = $this->on_before_action($this->action);
-		if (is_string($r)||is_object($r)) return $r;
-		if ($r===false) return $this->page_not_found();
+		if (is_string($r) || is_object($r)) {
+			return $r;
+		}
+		if ($r === false) {
+			return $this->page_not_found();
+		}
 		$method = "action_{$this->action}";
 
 		$rc = Events::call($this->mnemocode('before_execute_action'), $method, $action, $args, $this);
@@ -542,7 +751,7 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 			return $rc;
 		}
 
-		if (!empty($method)) {
+		if (!empty($method) && method_exists($this, $method)) {
 			return $this->$method();
 		} else {
 			return $this->page_not_found();
@@ -553,97 +762,131 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	////////////////////////////////////////////////////////////////////////
 	// Urls
 
-	protected function args_for_urls() {
+	protected function args_for_urls()
+	{
 		$out = array();
-		foreach($this->args as $k => $v) {
-			if (!is_int($k)&&$k!='page'&&$k!='id') {
+		foreach ($this->args as $k => $v) {
+			if (!is_int($k) && $k != 'page' && $k != 'id') {
 				$out[] = $k;
 			}
 		}
 		return $out;
 	}
-	
-	protected function args_string() {
+
+	protected function args_string($exclude=array())
+	{
 		$out = '';
 		$args = $this->args_for_urls();
-		foreach($args as $arg) {
-			if (isset($this->args[$arg])) {
+		foreach ($args as $arg) {
+			if (isset($this->args[$arg])&&!isset($exclude[$arg])) {
 				$value = trim($this->args[$arg]);
-				if ($value!='') {
+				if ($value != '') {
 					$out .= "$arg-$value/";
 				}
 			}
 		}
 		return $out;
 	}
-
-	public function action_url($action,$p=false,$args=false,$extra=false) {
-		$url = $this->urls->admin_url();
+	
+	
+	protected function admin_url()
+	{
+		return $this->urls->admin_url();
+	}
+	
+	public function action_url($action, $p = false, $args = false, $extra = false, $include_filters = true)
+	{
+		$url = $this->admin_url();
 		if (is_object($p)) {
 			$url .= "$action/";
 			$url .= "page-$this->page/";
-			$url .= "id-".$this->item_id($p)."/";
-		}
-
-		else if ($p) {
-			if ($action!='list'||$p!=1) $url .= "$action/page-$p/";
-		}
-
-		else {
-			$url .= "$action/";
-		}
-
-		$_sort = $this->sort;
-		$_direction = $this->sort_direction;
-
-		if (is_array($extra)) {
-			if (isset($extra['sort'])) $_sort = $extra['sort'];
-			if (isset($extra['sort_direction'])) $_direction = $extra['sort_direction'];
-		}
-
-		if ($_sort) {
-			$sort = $_direction=='desc'?'sortdesc':'sort';
-			$url .= "$sort-$_sort/";
+			$url .= "id-" . $this->item_id($p) . "/";
+		} else {
+			if ($p) {
+				if ($action != 'list' || $p != 1) {
+					$url .= "$action/page-$p/";
+				}
+			} else {
+				$url .= "$action/";
+			}
 		}
 		
-		$url .= $this->args_string();
+		$exclude = array();
+		$_sort = $this->sort;
+		$_direction = $this->sort_direction;
+		
+		if (is_array($extra)) {
+			if (isset($extra['sort'])) {
+				$_sort = $extra['sort'];
+			}
+			if (isset($extra['sort_direction'])) {
+				$_direction = $extra['sort_direction'];
+			}
+		}
+		
+		if ($_sort) {
+			$sort = $_direction == 'desc' ? 'sortdesc' : 'sort';
+			$url .= "$sort-$_sort/";
+			$exclude['sort'] = true;
+			$exclude['sortdesc'] = true;
+		}
+		
+		$url .= $this->args_string($exclude);
 
-		$qs = $this->args_to_query_string($args);
-		return $url.$qs;
+		$qs = $this->args_to_query_string($args, $include_filters);
+		return $url . $qs;
 	}
 
-	protected function args_to_query_string($args=false) {
+	protected function args_to_query_string($args = false, $include_filters = true)
+	{
 		$qs = '';
 
-		if (Core_Types::is_iterable($args))
-			foreach($args as $arg => $value)
-				$qs .= ($qs==''? '?':'&')."$arg=$value";
-		else if (is_string($args))
-			$qs = ($args!=''?'?':'').$args;
-		else foreach($this->filters() as $filter)	{
-			if (isset($_GET[$filter]))
-				$qs .= ($qs==''? '?':'&')."$filter=".$_GET[$filter];
+		if (Core_Types::is_iterable($args)) {
+			foreach ($args as $arg => $value)
+				$qs .= ($qs == '' ? '?' : '&') . "$arg=$value";
+		} else {
+			if (is_string($args)) {
+				$qs = ($args != '' ? '?' : '') . $args;
+			} else {
+				$force_filters = $this->filters_in_form_url();
+				foreach ($this->filters() as $filter) {
+					if ($include_filters || in_array($filter, $force_filters)) {
+						if (isset($_GET[$filter])) {
+							$qs .= ($qs == '' ? '?' : '&') . "$filter=" . $_GET[$filter];
+						}
+					}
+				}
+			}
 		}
 
 		return $qs;
 	}
 
-	public function list_url($page) {
-		return $this->action_url('list',$page);
+	public function filters_in_form_url()
+	{
+		return array();
 	}
 
-	protected function on_field_item_access($item) {
-		return (!$this->check_item_access($item))||(!$this->access_edit($item));
+	public function list_url($page)
+	{
+		return $this->action_url('list', $page);
 	}
 
-	protected function fields_for_action() {
+	protected function on_field_item_access($item)
+	{
+		return (!$this->check_item_access($item)) || (!$this->access_edit($item));
+	}
+
+	protected function fields_for_action()
+	{
 		return array($this->form_fields('edit'), $this->filters_form());
 	}
 
-	public function field_action_url($field, $action, $item = false, $args = false) {
-		$url = parent::field_action_url($field, $action, $item , $args);
+	public function field_action_url($field, $action, $item = false, $args = false)
+	{
+		$url = parent::field_action_url($field, $action, $item, $args);
 		$qs = $this->args_to_query_string($args);
-		return $url.$qs;
+		return $url . $qs;
 	}
 
 
@@ -651,59 +894,65 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	// List
 
 	protected $list_style = 'table';
-	protected function list_style() {
+
+	protected function list_style()
+	{
 		return $this->list_style;
 	}
 
 	protected $list_fields = array();
-	protected function list_fields() {
+
+	protected function list_fields()
+	{
 		$fields = $this->schema_fields();
-		if (!$fields) {
-			if ($mapper = $this->orm_mapper()) {
-				$fields = $mapper->schema_fields();
-				if (!is_array($fields)||count($fields)==0) {
-					$fields = false;
-				}
-			}
-		}
 		if ($fields) {
-			$fields = $this->search_fields($fields,array(),'in_list','weight_in_list','caption_in_list');
+			$fields = $this->search_fields($fields, array(), 'in_list', 'weight_in_list', 'caption_in_list');
 			return Core_Arrays::merge($this->list_fields, $fields);
 		} else {
 			return $this->list_fields;
 		}
 	}
-	
+
 	protected $per_page = 20;
-	protected function per_page() {
+
+	protected function per_page()
+	{
 		return $this->per_page;
 	}
 
 	protected $title_list = 'lang:_common:ta_list';
-	protected function title_list() {
+
+	protected function title_list()
+	{
 		return $this->title_list;
 	}
 
 	protected $norows = 'lang:_common:ta_norows';
-	protected function message_norows() {
+
+	protected function message_norows()
+	{
 		return $this->norows;
 	}
 
 	protected $button_list = 'lang:_common:ta_button_list';
-	protected function button_list() {
+
+	protected function button_list()
+	{
 		return $this->button_list;
 	}
 
-	protected $submit_massupdate	= 'lang:_common:ta_submit_mass_edit';
-	protected function submit_massupdate() {
+	protected $submit_massupdate = 'lang:_common:ta_submit_mass_edit';
+
+	protected function submit_massupdate()
+	{
 		return $this->submit_massupdate;
 	}
 
-
-	protected $del_confirm	= 'lang:_common:ta_del_confirm';
+	protected $del_confirm = 'lang:_common:ta_del_confirm';
 	protected $copy_confirm = false;
 
-	public function row_actions() {
+	public function row_actions()
+	{
 		return array(
 			'copy' => array(
 				'confirm' => $this->copy_confirm,
@@ -716,27 +965,36 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	}
 
 	protected $can_copy = false;
-	protected function row_can_copy($row) {
+
+	protected function row_can_copy($row)
+	{
 		return $this->can_copy;
 	}
 
 	protected $can_edit = true;
-	protected function row_can_edit($row) {
+
+	protected function row_can_edit($row)
+	{
 		return $this->access_edit($row);
 	}
 
 	protected $can_delete = true;
-	protected function row_can_delete($row) {
+
+	protected function row_can_delete($row)
+	{
 		return $this->access_delete($row);
 	}
 
 	protected $can_massupdate = true;
-	protected function access_massupdate() {
+
+	protected function access_massupdate()
+	{
 		return $this->can_massupdate && $this->access('massupdate');
 	}
 
-	public function row_action_enabled($row,$action) {
-		switch($action) {
+	public function row_action_enabled($row, $action)
+	{
+		switch ($action) {
 			case 'copy':
 				$r = $this->row_can_copy($row);
 				return $r;
@@ -749,57 +1007,74 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return true;
 	}
 
-
 	protected $count = 0;
 
-	public function sort_param($field,$direction) {
+	public function sort_param($field, $direction)
+	{
 		$fields = $this->list_fields();
-		if (!isset($fields[$field])) return false;
+		if (!isset($fields[$field])) {
+			return false;
+		}
 		$data = $fields[$field];
-		if (!isset($data['order_by'])) return false;
-		if (is_string($data['order_by'])) return $data['order_by'].($direction=='desc'?' desc':'');
+		if (!isset($data['order_by'])) {
+			return false;
+		}
+		if (is_string($data['order_by'])) {
+			return $data['order_by'] . ($direction == 'desc' ? ' desc' : '');
+		}
 		return 'id';
 	}
 
-	public function sort_url($field,$direction) {
-		if (!$this->sort_param($field,$direction)) return false;
-		return $this->action_url('list',1,false,array('sort' => $field,'sort_direction' => $direction));
+	public function sort_url($field, $direction)
+	{
+		if (!$this->sort_param($field, $direction)) {
+			return false;
+		}
+		return $this->action_url('list', 1, false, array('sort' => $field, 'sort_direction' => $direction));
 	}
 
-
-	protected function render_list($parms) {
-		return $this->render('list',$parms);
+	protected function render_list($parms)
+	{
+		return $this->render('list', $parms);
 	}
 
-	protected function prepare_filter() {
+	protected function prepare_filter()
+	{
 		$filter = array();
-		foreach($this->filters() as $fn) if (isset($this->request[$fn])) $filter[$fn] = $this->request[$fn];
-		foreach($this->force_filters() as $fk => $fv) $filter[$fk] = $fv;
+		foreach ($this->filters() as $fn)
+			if (isset($this->request[$fn])) {
+				$filter[$fn] = $this->request[$fn];
+			}
+		foreach ($this->force_filters() as $fk => $fv)
+			$filter[$fk] = $fv;
 		return $filter;
 	}
 
 	protected $numpages = 1;
 	protected $rows;
 
-	protected function get_rows() {
+	protected function get_rows()
+	{
 		if (empty($this->rows)) {
 			$filter = $this->prepare_filter();
 			$per_page = $this->per_page();
 			$this->count = $this->count_all($filter);
-			$this->numpages = CMS::calc_pages($this->count,$per_page,$this->page);
+			$this->numpages = CMS::calc_pages($this->count, $per_page, $this->page);
 
-			$filter['offset'] = ($this->page-1)*$per_page;
+			$filter['offset'] = ($this->page - 1) * $per_page;
 			$filter['limit'] = $per_page;
 
 			if ($this->sort) {
-				$order_by = $this->sort_param($this->sort,$this->sort_direction);
-				if ($order_by) $filter['order_by'] = $order_by;
+				$order_by = $this->sort_param($this->sort, $this->sort_direction);
+				if ($order_by) {
+					$filter['order_by'] = $order_by;
+				}
 			}
 
 			$rows = $this->select_all($filter);
-			foreach($rows as $row) {
+			foreach ($rows as $row) {
 				$this->on_row($row);
-				Events::call($this->mnemocode().'.on_row',$row);
+				Events::call($this->mnemocode() . '.on_row', $row);
 			}
 			$this->rows = $rows;
 		}
@@ -809,41 +1084,53 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 
 	protected $massupdate_fields = array();
 
-	protected function massupdate_form($rows) {
-		if (count($rows)==0) return false;
+	protected function massupdate_form($rows)
+	{
+		if (count($rows) == 0) {
+			return false;
+		}
 		$fields = $this->list_fields();
 		if ($fields) {
-			foreach($this->list_fields() as $field => $parms) {
+			foreach ($this->list_fields() as $field => $parms) {
 				if (isset($parms['edit'])) {
 					$data = $parms['edit'];
-					if ($data===true) $data = array('type' => 'input');
-					if (is_string($data)) $data = array('type' => $data);
+					if ($data === true) {
+						$data = array('type' => 'input');
+					}
+					if (is_string($data)) {
+						$data = array('type' => $data);
+					}
 					$this->massupdate_fields[$field] = $data;
 				}
 			}
 		}
-		if (count($this->massupdate_fields)==0) return false;
-		$form = Forms::Form('massupdate')->action($this->action_url('list',$this->page))->input('ids');
+		if (count($this->massupdate_fields) == 0) {
+			return false;
+		}
+		$form = Forms::Form('massupdate')->action($this->action_url('list', $this->page))->input('ids');
 
 		$ids = array();
-		foreach($rows as $row) {
+		foreach ($rows as $row) {
 			$id = $this->item_id($row);
 			$ids[$id] = $id;
-			foreach($this->massupdate_fields as $field=>$data) {
+			foreach ($this->massupdate_fields as $field => $data) {
 				$name = "$field$id";
 				$type = CMS_Fields::type($data);
-				if ($type->is_upload()) $type = CMS_Fields::type('input');
-				$type->form_fields($form,$name,$data);
-				$type->assign_from_object($form,$row->$field,$name,$data);
+				if ($type->is_upload()) {
+					$type = CMS_Fields::type('input');
+				}
+				$type->form_fields($form, $name, $data);
+				$type->assign_from_object($form, $row->$field, $name, $data);
 			}
 		}
-		$form['ids'] = implode(',',$ids);
+		$form['ids'] = implode(',', $ids);
 
 		return $form;
 
 	}
 
-	protected function prepare_filter_forms() {
+	protected function prepare_filter_forms()
+	{
 		$filters_form_fields = $this->filters_form();
 		list($filter_item, $attrs) = $this->filter_object();
 		foreach ($filters_form_fields as $k => $f) {
@@ -853,7 +1140,8 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return $filters_form_fields;
 	}
 
-	protected function action_list() {
+	protected function action_list()
+	{
 
 		$fform = $this->create_filters_form();
 
@@ -865,18 +1153,18 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		if ($this->access_massupdate()) {
 			$form = $this->massupdate_form($rows);
 			if ($form) {
-				if ($this->env->request->method_code==Net_HTTP::POST) {
+				if ($this->env->request->method_code == Net_HTTP::POST) {
 					if ($form->process($this->env->request)) {
-						foreach(explode(',',$form['ids']) as $id) {
+						foreach (explode(',', $form['ids']) as $id) {
 							$id = trim($id);
-							if ($id!='') {
+							if ($id != '') {
 								$item = $this->load($id);
 								if ($this->access_edit($item)) {
-									foreach($this->massupdate_fields as $field => $data) {
+									foreach ($this->massupdate_fields as $field => $data) {
 										$name = "$field$id";
 										$type = CMS_Fields::type($data);
 										$obj = new ArrayObject;
-										$type->assign_to_object($form,$obj,$name,$data);
+										$type->assign_to_object($form, $obj, $name, $data);
 										$item->$field = $obj[$name];
 									}
 									$this->update($item);
@@ -885,95 +1173,115 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 						}
 						Events::call('admin.change');
 					}
-					return $this->redirect_to($this->action_url('list',$this->page));
+					return $this->redirect_to($this->action_url('list', $this->page));
 				}
 			}
 		}
 
 		$page_navigator = false;
-		if ($this->numpages>1) $page_navigator = CMS::page_navigator($this->page,$this->numpages,array($this,'list_url'));
+		if ($this->numpages > 1) {
+			$page_navigator = CMS::page_navigator($this->page, $this->numpages, array($this, 'list_url'));
+		}
 
 		$filters_buttons = array();
-		foreach($this->filters_buttons() as $caption => $url) {
+		foreach ($this->filters_buttons() as $caption => $url) {
 			$url = trim($url);
-			if ($caption[0]!='*') {
-				if ($m = Core_Regexps::match_with_results('{^(\w+)=(.+)$}',$url)) {
+			if ($caption[0] != '*') {
+				if ($m = Core_Regexps::match_with_results('{^(\w+)=(.+)$}', $url)) {
 					$name = trim($m[1]);
 					$value = trim($m[2]);
-					if (isset($_GET[$name])&&$_GET[$name]==$value) $caption = "*$caption";
+					if (isset($_GET[$name]) && $_GET[$name] == $value) {
+						$caption = "*$caption";
+					}
 				}
-				if ($m = Core_Regexps::match_with_results('{\{(.+)\}}',$url)) {
+				if ($m = Core_Regexps::match_with_results('{\{(.+)\}}', $url)) {
 					$cond = trim($m[1]);
-					if ($cond!=''&&$cond[0]=='!') {
-						$cond = substr($cond,1);
-						if (!isset($_GET[$cond])) $caption = "*$caption";
+					if ($cond != '' && $cond[0] == '!') {
+						$cond = substr($cond, 1);
+						if (!isset($_GET[$cond])) {
+							$caption = "*$caption";
+						}
 					}
 				}
 			}
 
-			$url = preg_replace('{\{.+\}}','',$url);
+			$url = preg_replace('{\{.+\}}', '', $url);
 
-			if ($url==''||($url[0]!='/'&&!Core_Regexps::match('{^http:}',$url)))
-				$url = $this->action_url('list',1,$url);
+			if ($url == '' || ($url[0] != '/' && !Core_Regexps::match('{^http:}', $url))) {
+				$url = $this->action_url('list', 1, $url);
+			}
 			$filters_buttons[$caption] = $url;
 		}
 
 		$filters_form_fields = $this->prepare_filter_forms();
 
 		if ($this->add_in_list && $this->access_add()) {
-			$this->create_form($this->action_url('add',$this->page), 'add');
+			$this->create_form($this->action_url('add', $this->page), 'add');
 			$item = $this->new_object();
 			$this->item_to_form($item);
 		}
 
 		return $this->render_list(array(
-			'title' => $this->title_list(),
-			'form' => $this->add_in_list ?  $this->form : null,
-			'form_fields' => $this->add_in_list ? $this->filtered_form_fields : null,
-			'submit_text' => $this->submit_add(),
-			'count' => $this->count,
-			'rows' => $rows,
-			'list_fields' => $this->list_fields(),
-			'list_style' => $this->list_style(),
-			'message_norows' => $this->message_norows(),
-			'can_add' => $this->access_add(),
-			'add_url' => $this->action_url('add',$this->page),
-			'add_button_caption' => $this->button_add(),
-			'massupdate_form' => $form,
-			'massupdate_fields' => $this->massupdate_fields,
-			'massupdate_submit_text' => $this->submit_massupdate(),
-			'page_navigator' => $page_navigator,
-			'filters_buttons' => $filters_buttons,
-			'filters_form' => $fform,
-			'filters_form_fields' => $filters_form_fields,
-			'sort' => $this->sort,
-			'sort_direction' => $this->sort_direction,
-		));
+				'title' => $this->title_list(),
+				'form' => $this->add_in_list ? $this->form : null,
+				'form_fields' => $this->add_in_list ? $this->filtered_form_fields : null,
+				'submit_text' => $this->submit_add(),
+				'count' => $this->count,
+				'rows' => $rows,
+				'list_fields' => $this->list_fields(),
+				'list_style' => $this->list_style(),
+				'message_norows' => $this->message_norows(),
+				'can_add' => $this->access_add(),
+				'add_url' => $this->action_url('add', $this->page),
+				'add_button_caption' => $this->button_add(),
+				'massupdate_form' => $form,
+				'massupdate_fields' => $this->massupdate_fields,
+				'massupdate_submit_text' => $this->submit_massupdate(),
+				'page_navigator' => $page_navigator,
+				'filters_buttons' => $filters_buttons,
+				'filters_form' => $fform,
+				'filters_form_fields' => $filters_form_fields,
+				'sort' => $this->sort,
+				'sort_direction' => $this->sort_direction,
+			)
+		);
 	}
 
 	////////////////////////////////////////////////////////////////////////
 	// Form
 
+	protected function form_field_exists($name, $parms, $action)
+	{
+		$res = parent::form_field_exists($name, $parms, $action);
+		if (!$res) {
+			return false;
+		}
+		$tabs = $this->get_form_tabs($action);
+		if (!empty($tabs) && !isset($tabs[$parms['tab']])) {
+			return false;
+		}
+		$type = CMS_Fields::type($parms);
+		if ($type && !$type->access($name, $parms, 'render_in_layout')) {
+			return false;
+		}
+		return true;
+	}
+
 	protected $filtered_form_fields = array();
 
-	protected function form_fields($action = 'edit') {
+	protected function form_fields($action = 'edit')
+	{
 		$fields = $this->schema_fields();
-		if (!$fields) {
-			if ($mapper = $this->orm_mapper()) {
-				$fields = $mapper->schema_fields();
-				if (!is_array($fields)||count($fields)==0) {
-					$fields = false;
-				}
-			}
-		}
 		if ($fields) {
-			return $this->search_fields($fields,array(),'in_form','weight_in_form','caption_in_form', true);
+			return $this->search_fields($fields, array(), 'in_form', 'weight_in_form', 'caption_in_form', true);
 		}
 		return parent::form_fields($action);
 	}
 
 	protected $form_tabs = array();
-	protected function form_tabs($action='edit',$item=false) {
+
+	protected function form_tabs($action = 'edit', $item = false)
+	{
 		if ($tabs = $this->schema_tabs()) {
 			return $tabs;
 		}
@@ -985,73 +1293,101 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		return $this->form_tabs;
 	}
 
-	protected function access_tab($tab, $data, $action, $item = false) {
+	protected function access_tab($tab, $data, $action, $item = false)
+	{
 		$er = Events::call('cms.table.tabs', $tab, $data, $action, $item, $this);
-		if (!is_null($er)) return $er;
+		if (!is_null($er)) {
+			return $er;
+		}
 		return true;
 	}
 
-	protected function get_form_tabs($action,$item=false) {
-		$tabs = $this->form_tabs($action,$item);
+	protected function get_form_tabs($action, $item = false)
+	{
+		$tabs = $this->form_tabs($action, $item);
 		$out = array();
-		if (!Core_Types::is_iterable($tabs)) return $out;
+		if (!Core_Types::is_iterable($tabs)) {
+			return $out;
+		}
 		$weight = 0;
 		$delta = 0.0001;
-		foreach($tabs as $tab => $data) {
-			if (!$this->access_tab($tab, $data, $action, $item)) continue;
-			if (is_string($data)) $data = array('caption'=>$data);
+		foreach ($tabs as $tab => $data) {
+			if (!$this->access_tab($tab, $data, $action, $item)) {
+				continue;
+			}
+			if (is_string($data)) {
+				$data = array('caption' => $data);
+			}
 			$valid = true;
-			if (isset($data['edit_only'])&&$data['edit_only']&&$action!='edit') $valid = false;
-			if (isset($data['add_only'])&&$data['add_only']&&$action!='add') $valid = false;
+			if (isset($data['edit_only']) && $data['edit_only'] && $action != 'edit') {
+				$valid = false;
+			}
+			if (isset($data['add_only']) && $data['add_only'] && $action != 'add') {
+				$valid = false;
+			}
 			if (!isset($data['weight'])) {
 				$weight += $delta;
 				$data['weight'] = $weight;
 			}
-			if ($valid) $out[$tab] = $data;
+			if ($valid) {
+				$out[$tab] = $data;
+			}
 		}
 		uasort($out, array($this, 'sort_by_weight'));
 		return $out;
-	}	
+	}
 
 
 	////////////////////////////////////////////////////////////////////////
 	// Edit
 
-	protected function with_save_button() {
+	protected function with_save_button()
+	{
 		return false;
 	}
 
-	protected function save_button_text() {
+	protected function save_button_text()
+	{
 		return 'lang:_common:ta_save_button';
 	}
 
-	protected $title_edit	= 'lang:_common:ta_title_edit';
-	protected function title_edit($item) {
+	protected $title_edit = 'lang:_common:ta_title_edit';
+
+	protected function title_edit($item)
+	{
 		return $this->title_edit;
 	}
 
-	protected $submit_edit		= 'lang:_common:ta_submit_edit';
-	protected function submit_edit($item) {
+	protected $submit_edit = 'lang:_common:ta_submit_edit';
+
+	protected function submit_edit($item)
+	{
 		return $this->submit_edit;
 	}
 
-	protected function render_edit($parms) {
-		return $this->render('edit',$parms);
+	protected function render_edit($parms)
+	{
+		return $this->render('edit', $parms);
 	}
 
-	protected function access_edit($item) {
+	protected function access_edit($item)
+	{
 		return $this->can_edit && $this->access('edit', $item);
 	}
 
-	protected function redirect_after_edit() {
-		return $this->action_url('list',$this->page);
+	protected function redirect_after_edit()
+	{
+		return $this->action_url('list', $this->page);
 	}
 
 	protected $edit_item = false;
 
-	protected function action_edit() {
+	protected function action_edit()
+	{
 		$item = $this->load($this->id);
-		if (!$item) return $this->page_not_found();
+		if (!$item) {
+			return $this->page_not_found();
+		}
 
 		$this->edit_item = $item;
 
@@ -1060,17 +1396,21 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 		}
 
 		$o = $this->on_before_action_edit($item);
-		if (is_object($o)||is_string($o)) return $o;
+		if (is_object($o) || is_string($o)) {
+			return $o;
+		}
 
-		$this->create_form($this->action_url('edit',$item),'edit');
+		$this->create_form($this->action_url('edit', $item), 'edit');
 		$this->item_to_form($item);
 
 		$errors = array();
-		if ($this->env->request->method_name=='post') {
+		if ($this->env->request->method_name == 'post') {
 			$errors = $this->process_form($item);
-			if (sizeof($errors)==0) {
+			if (sizeof($errors) == 0) {
 				$this->form_to_item($item);
-				if (count($this->upload_fields)>0) $this->process_uploads($item);
+				if (count($this->upload_fields) > 0) {
+					$this->process_uploads($item);
+				}
 				$this->process_inserted_item($item);
 				$this->on_before_change_item($item);
 				$this->on_before_update_item($item);
@@ -1078,29 +1418,29 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 				$this->on_after_change('edit');
 				$this->on_after_change_item($item);
 				$this->on_after_update_item($item);
-				Events::call('admin.change',$item);
-				if (isset($_POST['__save_and_stay'])&&$_POST['__save_and_stay']!='0') {
+				Events::call('admin.change', $item);
+				if (isset($_POST['__save_and_stay']) && $_POST['__save_and_stay'] != '0') {
 					return $this->redirect_to($_POST['__save_and_stay']);
 				}
 				return $this->redirect_to($this->redirect_after_edit($item));
 			}
 		}
 
-
 		return $this->render_edit(array(
-			'title' => $this->title_edit($item),
-			'form' => $this->form,
-			'form_fields' => $this->filtered_form_fields,
-			'submit_text' => $this->submit_edit($item),
-			'with_save_button' => $this->with_save_button($item),
-			'save_button_text' => $this->save_button_text($item),
-			'item' => $item,
-			'item_id' => $this->id,
-			'list_url' => $this->action_url('list',$this->page),
-			'list_button_caption' => $this->button_list(),
-			'form_tabs' => $this->get_form_tabs('edit',$item),
-			'errors' => $errors,
-		));
+				'title' => $this->title_edit($item),
+				'form' => $this->form,
+				'form_fields' => $this->filtered_form_fields,
+				'submit_text' => $this->submit_edit($item),
+				'with_save_button' => $this->with_save_button($item),
+				'save_button_text' => $this->save_button_text($item),
+				'item' => $item,
+				'item_id' => $this->id,
+				'list_url' => $this->action_url('list', $this->page),
+				'list_button_caption' => $this->button_list(),
+				'form_tabs' => $this->get_form_tabs('edit', $item),
+				'errors' => $errors,
+			)
+		);
 
 	}
 
@@ -1108,86 +1448,96 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	////////////////////////////////////////////////////////////////////////
 	// Add
 
-
 	protected $title_add = 'lang:_common:ta_title_add';
-	protected function title_add() {
+
+	protected function title_add()
+	{
 		return $this->title_add;
 	}
 
 	protected $submit_add = 'lang:_common:ta_submit_add';
-	protected function submit_add() {
+
+	protected function submit_add()
+	{
 		return $this->submit_add;
 	}
 
 	protected $button_add = 'lang:_common:ta_button_add';
-	protected function button_add() {
+
+	protected function button_add()
+	{
 		return $this->button_add;
 	}
 
-
-	protected function render_add($parms) {
-		return $this->render('add',$parms);
+	protected function render_add($parms)
+	{
+		return $this->render('add', $parms);
 	}
 
 	protected $can_add = true;
-	protected function access_add() {
+
+	protected function access_add()
+	{
 		return $this->can_add && $this->access('add');
 	}
 
-	protected function redirect_after_add($item) {
-		return $this->action_url('list',$this->page);
+	protected function redirect_after_add($item)
+	{
+		return $this->action_url('list', $this->page);
 	}
 
-	protected function action_add() {
+	protected function action_add()
+	{
 		if (!$this->access_add()) {
 			return $this->access_denied();
 		}
 		$this->on_before_action_add();
-		$this->create_form($this->action_url('add',$this->page),'add');
+		$this->create_form($this->action_url('add', $this->page), 'add');
 		$item = $this->new_object();
 
-		if (method_exists($item,'auto_add')&&$item->auto_add()) {
+		if (method_exists($item, 'auto_add') && $item->auto_add()) {
 			$this->on_before_change_item($item);
 			$this->on_before_insert_item($item);
 			$this->insert($item);
-			$this->orm_mapper_for_select()->auto_add_delete_old();
-			return $this->redirect_to($this->action_url('edit',$item));
+			$this->orm_mapper_for_select(array(':created' => false))->auto_add_delete_old();
+			return $this->redirect_to($this->action_url('edit', $item));
 		}
 
 		$this->item_to_form($item);
 
-		if ($this->env->request->method_name=='post') {
+		if ($this->env->request->method_name == 'post') {
 			$errors = $this->process_form($item);
-			if (sizeof($errors)==0) {
+			if (sizeof($errors) == 0) {
 				$this->form_to_item($item);
 				$this->on_before_change_item($item);
 				$this->on_before_insert_item($item);
 				$this->insert($item);
-				if (count($this->upload_fields)>0) $this->process_uploads($item);
+				if (count($this->upload_fields) > 0) {
+					$this->process_uploads($item);
+				}
 				$this->process_inserted_item($item);
 				$this->update($item);
 				$this->on_after_change('add');
 				$this->on_after_change_item($item);
 				$this->on_after_insert_item($item);
-				Events::call('admin.change',$item);
+				Events::call('admin.change', $item);
 				return $this->redirect_to($this->redirect_after_add($item));
 			}
 		}
 
-
 		return $this->render_add(array(
-			'title' => $this->title_add(),
-			'form' => $this->form,
-			'form_fields' => $this->filtered_form_fields,
-			'submit_text' => $this->submit_add(),
-			'item' => $item,
-			'item_id' => 0,
-			'list_url' => $this->action_url('list',$this->page),
-			'list_button_caption' => $this->button_list(),
-			'form_tabs' => $this->get_form_tabs('add',$item),
-			'errors' => $errors,
-		));
-
+				'title' => $this->title_add(),
+				'form' => $this->form,
+				'form_fields' => $this->filtered_form_fields,
+				'submit_text' => $this->submit_add(),
+				'item' => $item,
+				'item_id' => 0,
+				'list_url' => $this->action_url('list', $this->page),
+				'list_button_caption' => $this->button_list(),
+				'form_tabs' => $this->get_form_tabs('add', $item),
+				'errors' => $errors,
+			)
+		);
 
 	}
 
@@ -1195,27 +1545,33 @@ class CMS_Controller_Table extends CMS_Controller_Fields implements Core_ModuleI
 	////////////////////////////////////////////////////////////////////////
 	// Delete
 
-	protected function redirect_after_delete($item) {
-		return $this->action_url('list',$this->page);
+	protected function redirect_after_delete($item)
+	{
+		return $this->action_url('list', $this->page);
 	}
 
-	protected function access_delete($item) {
+	protected function access_delete($item)
+	{
 		return $this->can_delete && $this->access('delete', $item);
 	}
 
-	protected function action_delete() {
+	protected function action_delete()
+	{
 		$item = $this->load($this->id);
-		if (!$item) return $this->page_not_found();
-		if (!$this->access_delete($item)) return $this->page_not_found();
+		if (!$item) {
+			return $this->page_not_found();
+		}
+		if (!$this->access_delete($item)) {
+			return $this->page_not_found();
+		}
 		$redirect = $this->redirect_after_delete($item);
 		$this->on_before_delete_item($item);
 		$this->delete($item);
 		$this->on_after_delete_item($item);
 		$this->on_after_change('delete');
-		Events::call('admin.change',$item);
+		Events::call('admin.change', $item);
 		return $this->redirect_to($redirect);
 	}
-
 
 }
 

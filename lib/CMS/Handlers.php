@@ -1,7 +1,7 @@
 <?php
 /**
  * CMS.Handlers
- * 
+ *
  * @package CMS\Handlers
  * @version 0.0.0
  */
@@ -13,47 +13,51 @@ Core::load('WS.Auth');
 /**
  * @package CMS\Handlers
  */
-class CMS_Handlers implements Core_ModuleInterface {
-	const MODULE  = 'CMS.Handlers';
+class CMS_Handlers implements Core_ModuleInterface
+{
+	const MODULE = 'CMS.Handlers';
 	const VERSION = '0.0.0';
 
+	/**
+	 * @return CMS_StdControlsHandler
+	 */
+	static function StdControlsHandler(WS_ServiceInterface $application)
+	{
+		return new CMS_Handlers_StdControlsHandler($application);
+	}
 
-/**
- * @return CMS_StdControlsHandler
- */
-	static function StdControlsHandler(WS_ServiceInterface $application) { return new CMS_Handlers_StdControlsHandler($application); }
+	/**
+	 * @return CMS_ActionHandler
+	 */
+	static function ActionHandler()
+	{
+		return new CMS_Handlers_ActionHandler();
+	}
 
-/**
- * @return CMS_ActionHandler
- */
-	static function ActionHandler() { return new CMS_Handlers_ActionHandler(); }
-
-/**
- * @return CMS_AuthModule
- */
-	static function AuthModule() {
+	/**
+	 * @return CMS_AuthModule
+	 */
+	static function AuthModule()
+	{
 		return new CMS_Handlers_AuthModule();
 	}
 
-
-
 }
-
 
 class CMS_Handlers_AuthUser
 {
 	public $login;
 	public $password;
 	public $parms = array();
-	
-	public function check_access($access='full')
+
+	public function check_access($access = 'full')
 	{
-		if (isset($this->parms['full'])&&$this->parms['full']) {
+		if (isset($this->parms['full']) && $this->parms['full']) {
 			return true;
 		}
-		foreach(explode(',',$access) as $group) {
+		foreach (explode(',', $access) as $group) {
 			$group = trim($group);
-			if ($group!='') {
+			if ($group != '') {
 				if ($this->check_group($group)) {
 					return true;
 				}
@@ -61,39 +65,41 @@ class CMS_Handlers_AuthUser
 		}
 		return false;
 	}
-	
+
 	public function check_group($group)
 	{
-		if (isset($this->parms['full'])&&$this->parms['full']) {
+		if (isset($this->parms['full']) && $this->parms['full']) {
 			return true;
 		}
 		$group = strtolower(trim($group));
-		if ($group=='all'||$group=='*'||$group==$this->login) {
+		if ($group == 'all' || $group == '*' || $group == $this->login) {
 			return true;
 		}
-		if (isset($this->parms[$group])&&$this->parms[$group]) {
+		if (isset($this->parms[$group]) && $this->parms[$group]) {
 			return true;
 		}
 		return false;
 	}
 }
 
-
 /**
  * @package CMS\Handlers
  */
-class CMS_Handlers_AuthModule implements WS_Auth_AuthModuleInterface {
+class CMS_Handlers_AuthModule implements WS_Auth_AuthModuleInterface
+{
 
-/**
- * @param string $login
- * @param string $password
- * @return Data_Tree|false
- */
-	public function authenticate($login,$password) {
+	/**
+	 * @param string $login
+	 * @param string $password
+	 *
+	 * @return Data_Tree|false
+	 */
+	public function authenticate($login, $password)
+	{
 		$login = trim($login);
 		$password = trim($password);
 
-		if ($login!=''&&$password!='') {
+		if ($login != '' && $password != '') {
 			$user = new CMS_Handlers_AuthUser();
 			$user->login = $login;
 			$user->password = $password;
@@ -105,71 +111,77 @@ class CMS_Handlers_AuthModule implements WS_Auth_AuthModuleInterface {
 
 }
 
-
 /**
  * @package CMS\Handlers
  */
-class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService {
+class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService
+{
 
-/**
- * @param WebKit_AbstractHandler $application
- */
-	public function __construct(WS_ServiceInterface $application) {
+	/**
+	 * @param WebKit_AbstractHandler $application
+	 */
+	public function __construct(WS_ServiceInterface $application)
+	{
 		parent::__construct($application);
 	}
 
-/**
- * @param WebKit_Environment $env
- * @param WebKit_HTTP_Response $response
- * @return Iterator
- */
-	public function run(WS_Environment $env) {
+	/**
+	 * @param WebKit_Environment   $env
+	 * @param WebKit_HTTP_Response $response
+	 *
+	 * @return Iterator
+	 */
+	public function run(WS_Environment $env)
+	{
 		$response = $env->response;
-		
+
 		$uri = $env->request->urn;
 		/**
-		@event cms.actions.dispatch
-		
-		Вызывается перед началом диспетчеризации запроса.
-		Здесь можно подменить что-нибудь в запросе, обратившись к WS::env()->request, выполнить какие-либо действия,
-		а также вернуть объект Net_HTTP_Response - в этом случае диспетчеризация даже не начнется,
-		а будет использован возвращенный отклик.
-		
-		@arg $uri REQUEST_URI
-		*/
-		$rs = Events::call('cms.actions.dispatch',$uri);
-		if (!is_null($rs)) return $rs;
-		
-		if ($m = Core_Regexps::match_with_results('{^/cms-actions/(.+)}',$uri)) {
-			$action = preg_replace('{\?.+$}','',$m[1]);
-			if ($m = Core_Regexps::match_with_results('{^files/(.+)/(\d+)/$}',$action)) {
+		 * @event cms.actions.dispatch
+		 *
+		 * Вызывается перед началом диспетчеризации запроса.
+		 * Здесь можно подменить что-нибудь в запросе, обратившись к WS::env()->request, выполнить какие-либо действия,
+		 * а также вернуть объект Net_HTTP_Response - в этом случае диспетчеризация даже не начнется,
+		 * а будет использован возвращенный отклик.
+		 *
+		 * @arg $uri REQUEST_URI
+		 */
+		$rs = Events::call('cms.actions.dispatch', $uri);
+		if (!is_null($rs)) {
+			return $rs;
+		}
+
+		if ($m = Core_Regexps::match_with_results('{^/cms-actions/(.+)}', $uri)) {
+			$action = preg_replace('{\?.+$}', '', $m[1]);
+			if ($m = Core_Regexps::match_with_results('{^files/(.+)/(\d+)/$}', $action)) {
 				$file = CMS::stdfile(trim($m[1]));
 				if (!IO_FS::exists($file)) {
 					return $response->status(Net_HTTP::NOT_FOUND);
 				}
 				return Net_HTTP::Download($file);
 			}
-			if ($m = Core_Regexps::match_with_results('{^subsite/(.+)}',$action)) {
+			if ($m = Core_Regexps::match_with_results('{^subsite/(.+)}', $action)) {
 				$site = $m[1];
 				CMS_Admin::set_site($site);
 				$path = CMS::$admin;
 				header("location: /$path/");
 				die;
 			}
-			if ($m = Core_Regexps::match_with_results('{^help/([^/]+)/([^/]+)/(.+)/$}',$action)) {
-				$stddir = CMS::$taopath.'/views/help';
+			if ($m = Core_Regexps::match_with_results('{^help/([^/]+)/([^/]+)/(.+)/$}', $action)) {
+				$stddir = CMS::$taopath . '/views/help';
 				$file = "$stddir/en/_notfound";
-				if ($m[1]=='_app') {
+				if ($m[1] == '_app') {
 					$dir = trim($m[2]);
 					$f = trim($m[3]);
 					$f = CMS::app_path("help/$dir/$f");
-					if (file_exists($f)) $file = $f;
-				}
-				else {
+					if (file_exists($f)) {
+						$file = $f;
+					}
+				} else {
 					$lang = trim($m[1]);
 					$component = trim($m[2]);
 					$help = trim($m[3]);
-					$dir = $component=='_std'? $stddir : CMS::app_path("components/$component/help");
+					$dir = $component == '_std' ? $stddir : CMS::app_path("components/$component/help");
 					$file = "$dir/$lang/$help";
 					if (!file_exists($file)) {
 						$file = "$dir/$help";
@@ -177,7 +189,9 @@ class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService {
 							$file = "$dir/ru/$help";
 							if (!file_exists($file)) {
 								$file = "$stddir/$lang/_notfound";
-								if (!file_exists($file)) "$stddir/en/_notfound";
+								if (!file_exists($file)) {
+									"$stddir/en/_notfound";
+								}
 							}
 						}
 					}
@@ -187,8 +201,10 @@ class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService {
 				die;
 			}
 		}
-		if (md5($uri)=='5dc55ea23076fc98474b89cfd51ef6f2') die($uri.' ok');
-		
+		if (md5($uri) == '5dc55ea23076fc98474b89cfd51ef6f2') {
+			die($uri . ' ok');
+		}
+
 //FIXME: move to status middleware
 		try {
 			$r = $this->application->run($env);
@@ -201,37 +217,42 @@ class CMS_Handlers_StdControlsHandler extends WS_MiddlewareService {
 		}
 	}
 
-	protected function not_found($uri, $env , $r) {
-			if ($m = Core_Regexps::match_with_results('{^([^?]+)\?}',$uri)) $uri = $m[1];
-			if ($m = Core_Regexps::match_with_results('{^/digital-protect/(.*)}',$uri)) {
-				Core::load('CMS.Protect');
-				CMS_Protect::draw($m[1]);
-				die;
-			}
-			if ($m = Core_Regexps::match_with_results('{^/check-digital-protect/([^/]+)/(.*)}',$uri)) {
-				Core::load('CMS.Protect');
-				CMS_Protect::check($m[1],$m[2]);
-				die;
-			}
-			return $r;
+	protected function not_found($uri, $env, $r)
+	{
+		if ($m = Core_Regexps::match_with_results('{^([^?]+)\?}', $uri)) {
+			$uri = $m[1];
+		}
+		if ($m = Core_Regexps::match_with_results('{^/digital-protect/(.*)}', $uri)) {
+			Core::load('CMS.Protect');
+			CMS_Protect::draw($m[1]);
+			die;
+		}
+		if ($m = Core_Regexps::match_with_results('{^/check-digital-protect/([^/]+)/(.*)}', $uri)) {
+			Core::load('CMS.Protect');
+			CMS_Protect::check($m[1], $m[2]);
+			die;
+		}
+		return $r;
 	}
 
 }
 
-class CMS_Handlers_Static extends WS_MiddlewareService {
+class CMS_Handlers_Static extends WS_MiddlewareService
+{
 
-	public function run(WS_Environment $env) {
+	public function run(WS_Environment $env)
+	{
 		if (isset($_SERVER['REQUEST_URI']) && $uri = $_SERVER['REQUEST_URI']) {
-			if (strpos($uri,'/component-static/')===0) {
-				$uri = substr($uri,18);
-				if ($m = Core_regexps::match_with_results('{^([^/]+)/(.+(css|js|gif|jpg|png))/(\d+)/$}',$uri)) {
+			if (strpos($uri, '/component-static/') === 0) {
+				$uri = substr($uri, 18);
+				if ($m = Core_regexps::match_with_results('{^([^/]+)/(.+(css|js|gif|jpg|png))/(\d+)/$}', $uri)) {
 					$component = $m[1];
 					$file = $m[2];
-					$path = CMS::component_dir($component,$file);
+					$path = CMS::component_dir($component, $file);
 					if (IO_FS::exists($path)) {
 						Core::load('WS.Adapters');
 						$adapter = WS_Adapters::apache();
-						$adapter->process_response(Net_HTTP::Download($path,true));
+						$adapter->process_response(Net_HTTP::Download($path, true));
 						exit();
 					}
 				}
@@ -242,38 +263,43 @@ class CMS_Handlers_Static extends WS_MiddlewareService {
 
 }
 
-class CMS_Handlers_Configure extends WS_MiddlewareService {
+class CMS_Handlers_Configure extends WS_MiddlewareService
+{
 
-	public function run(WS_Environment $env) {
+	public function run(WS_Environment $env)
+	{
 		CMS::$env = $env;
 		CMS::$page = $env;
 		$env->cms = new stdClass();
 		Core::load('Templates.HTML');
 		$env->meta = Templates_HTML::meta();
-		$env->mappers = CMS::$mappers;
+		$env->mappers = CMS::mappers();
 		$env->auth = new stdClass();
 		$env->auth->user = false;
 		CMS::$cfg = $env->config;
 		if ($env->db->default) {
 			CMS::$db = $env->db->default;
 		}
-		Templates_HTML::use_helper('fields','CMS.Fields.Helper');
-		Templates_HTML::use_helper('cms','CMS.Helper');
+		Templates_HTML::use_helper('fields', 'CMS.Fields.Helper');
+		Templates_HTML::use_helper('cms', 'CMS.Helper');
 		Templates::option('templates_root', array_merge(Templates::option('templates_root'), array(CMS::$views_path)));
 		return $this->application->run($env);
 	}
 }
 
-class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
+class CMS_Handlers_RealmAuth extends WS_MiddlewareService
+{
 
 	static protected $realms = array();
 
-	public static function access($realm, $extra_auth_callback = null) {
+	public static function access($realm, $extra_auth_callback = null)
+	{
 		if (!$realm) {
 			return array();
 		}
-		if (isset(self::$realms[$realm]) && self::$realms[$realm])
+		if (isset(self::$realms[$realm]) && self::$realms[$realm]) {
 			return self::$realms[$realm];
+		}
 
 		$data = false;
 		$cfg_name = "{$realm}_realm";
@@ -285,54 +311,57 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 		} else {
 			return self::$realms[$realm] = false;
 		}
-		
-		if (!$data) return self::$realms[$realm] = false;
-		
-		if ($realm==CMS::$admin_realm) {
+
+		if (!$data) {
+			return self::$realms[$realm] = false;
+		}
+
+		if ($realm == CMS::$admin_realm) {
 			CMS::$in_admin = true;
 		}
-		
+
 		if (isset($data['page_404'])) {
 			CMS::$page_404 = $data['page_404'];
 		}
-			
+
 		if (isset($data['navigation_var'])) {
 			Core::load(CMS::$nav_module);
-			Core_Types::reflection_for(CMS::$nav_module)->setStaticPropertyValue('var',$data['navigation_var']);
+			Core_Types::reflection_for(CMS::$nav_module)->setStaticPropertyValue('var', $data['navigation_var']);
 		}
-		
+
 		$user = false;
-		if (isset($data['auth_type'])&&$data['auth_type']=='basic'||!isset($data['auth_type'])) {
+		if (isset($data['auth_type']) && $data['auth_type'] == 'basic' || !isset($data['auth_type'])) {
 			$user = WS::env()->admin_auth->user;
 		}
-		
+
 		if ($user) {
 			$client = false;
 			$access = false;
 			$mp = false;
-			
+
 			self::passwords($data, $user, $client, $access, $mp);
 
 			Core::load('Net.HTTP.Session');
 			$session = Net_HTTP_Session::Store();
-			if (!$access&&isset($session['auth_url_access'])&&$session['auth_url_access']) {
+			if (!$access && isset($session['auth_url_access']) && $session['auth_url_access']) {
 				$access = true;
 				$mp = $session['auth_url_parms'];
 			}
 
-			if (!$access&&isset($data['auth_url'])) {
+			if (!$access && isset($data['auth_url'])) {
 				Core::load('Net.Agents.HTTP');
 				$url = $data['auth_url'];
 				$agent = Net_HTTP::Agent();
-				$res = $agent->with_credentials($user->login,$user->password)->send(Net_HTTP::Request($url));
-				if ($res->status->code=='200') {
+				$res = $agent->with_credentials($user->login, $user->password)->send(Net_HTTP::Request($url));
+				if ($res->status->code == '200') {
 					$r = trim($res->body);
-					if ($r=='ok'||$r=='ok:') {
+					if ($r == 'ok' || $r == 'ok:') {
 						$access = true;
-					}
-					else if ($m = Core_Regexps::match_with_results('{^ok:(.+)$}',$r)) {
-						$access = true;
-						$mp = trim($m[1]);
+					} else {
+						if ($m = Core_Regexps::match_with_results('{^ok:(.+)$}', $r)) {
+							$access = true;
+							$mp = trim($m[1]);
+						}
 					}
 				}
 				if ($access) {
@@ -341,105 +370,118 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 				}
 			}
 
-
 			if (!$access) {
-				$args = array($user->login,$user->password,$realm);
-				if (Core_Types::is_callable($extra_auth_callback))
+				$args = array($user->login, $user->password, $realm);
+				if (Core_Types::is_callable($extra_auth_callback)) {
 					$extra_auth = Core::invoke($extra_auth_callback, $args);
-				else
-					$extra_auth = self::extra_auth($args[0],$args[1],$args[2]);
-				if ($extra_auth||Core_Types::is_iterable($extra_auth)) {
+				} else {
+					$extra_auth = self::extra_auth($args[0], $args[1], $args[2]);
+				}
+				if ($extra_auth || Core_Types::is_iterable($extra_auth)) {
 					$mp = $extra_auth;
 					$access = true;
+				} else {
+					return self::$realms[$realm] = false;
 				}
-				else return self::$realms[$realm] = false;
 			}
 
 			$auth_parms = self::auth_parms($mp, $client);
 			$user->parms = $auth_parms;
 
-			if ($access) return self::$realms[$realm] = array('data' => $data, 'auth_parms' => $auth_parms);	
-		}
-		else {
+			if ($access) {
+				return self::$realms[$realm] = array('data' => $data, 'auth_parms' => $auth_parms);
+			}
+		} else {
 			return self::$realms[$realm] = false;
 		}
 		return self::$realms[$realm] = false;
 	}
 
-	public function run(WS_Environment $env) {
+	public function run(WS_Environment $env)
+	{
 		//TODO: config for realms (always, url, domain, callback, ...)
 		self::access(CMS::$default_auth_realm);
 		return $this->application->run($env);
 	}
 
-	static protected function auth_parms($mp, $client) {
+	static protected function auth_parms($mp, $client)
+	{
 		$auth_parms = array();
 		if ($mp) {
-			if (is_string($mp)) $mp = explode(',',$mp);
-			if (Core_Types::is_iterable($mp)) foreach($mp as $_mp) {
-				$_mp = trim($_mp);
-				if ($_mp!='') {
-					$_v = true;
-					if ($m = Core_Regexps::match_with_results('{^([^=]+)=(.+)$}',$_mp)) {
-						$_mp = trim($m[1]);
-						$_v  = trim($m[2]);
-					}
-					
-					if ($_mp=='lang') {
-						CMS::site_set_lang($_v);
-					}
-					
-					if ($_mp=='admin_sites') {
-						$_asites = explode('|',$_v);
-						$_v = array();
-						$_las = '__';
-						foreach($_asites as $_asite) {
-							$_asite = trim($_asite);
-							if ($_asite!='') {
-								$_v[$_asite] = $_asite;
-								$_las = $_asite;
+			if (is_string($mp)) {
+				$mp = explode(',', $mp);
+			}
+			if (Core_Types::is_iterable($mp)) {
+				foreach ($mp as $_mp) {
+					$_mp = trim($_mp);
+					if ($_mp != '') {
+						$_v = true;
+						if ($m = Core_Regexps::match_with_results('{^([^=]+)=(.+)$}', $_mp)) {
+							$_mp = trim($m[1]);
+							$_v = trim($m[2]);
+						}
+
+						if ($_mp == 'lang') {
+							CMS::site_set_lang($_v);
+						}
+
+						if ($_mp == 'admin_sites') {
+							$_asites = explode('|', $_v);
+							$_v = array();
+							$_las = '__';
+							foreach ($_asites as $_asite) {
+								$_asite = trim($_asite);
+								if ($_asite != '') {
+									$_v[$_asite] = $_asite;
+									$_las = $_asite;
+								}
+							}
+							if (CMS::admin()) {
+								if (!isset($_v[CMS_Admin::site()])) {
+									header("location: /cms-actions/subsite/$_las");
+									die;
+								}
 							}
 						}
-						if (CMS::admin()) {
-							if (!isset($_v[CMS_Admin::site()])) {
-								header("location: /cms-actions/subsite/$_las");
-								die;
-							}
-						}
+
+						CMS::$globals[$_mp] = $_v;
+						$auth_parms[$_mp] = $_v;
 					}
-					
-					CMS::$globals[$_mp] = $_v;
-					$auth_parms[$_mp] = $_v;
 				}
 			}
-			if ($client) CMS::$globals['full'] = false;
+			if ($client) {
+				CMS::$globals['full'] = false;
+			}
 		}
 		return $auth_parms;
 	}
 
-	static protected function passwords($data, $user, &$client, &$access, &$mp) {
+	static protected function passwords($data, $user, &$client, &$access, &$mp)
+	{
 		if (!isset($data['passwords'])) {
 			return;
 		}
-		foreach($data['passwords'] as $p) {
+		foreach ($data['passwords'] as $p) {
 			$mp = false;
 			$p = trim($p);
-			if ($m = Core_Regexps::match_with_results('{^([^/]+)/(.*)$}',$p)) {
+			if ($m = Core_Regexps::match_with_results('{^([^/]+)/(.*)$}', $p)) {
 				$p = trim($m[1]);
 				$mp = trim($m[2]);
 			}
-			if ($m = Core_Regexps::match_with_results('{^([^:]+):(.+)$}',$p)) {
+			if ($m = Core_Regexps::match_with_results('{^([^:]+):(.+)$}', $p)) {
 				$login = trim($m[1]);
 				$password = trim($m[2]);
-			
-				if (CMS::is_local()&&CMS::$disable_local_auth) {
+
+				if (CMS::is_local() && CMS::$disable_local_auth) {
 					$clogin = trim(CMS::$cfg->client->login);
-					if ($user->login==$clogin) $client = true;
+					if ($user->login == $clogin) {
+						$client = true;
+					}
 					$access = true;
 					break;
 				}
-			
-				if ($user->login==$login && Digest::password($user->password)==$password) {
+
+				if ($user->login == $login && Digest::password($user->password) == $password) {
 					$access = true;
 					break;
 				}
@@ -447,148 +489,189 @@ class CMS_Handlers_RealmAuth extends WS_MiddlewareService {
 		}
 	}
 
-	static protected function extra_auth($login,$password,$realm) {
-		if (is_callable(CMS::$extra_auth)) return call_user_func(CMS::$extra_auth,$login,$password,$realm);
+	static protected function extra_auth($login, $password, $realm)
+	{
+		if (is_callable(CMS::$extra_auth)) {
+			return call_user_func(CMS::$extra_auth, $login, $password, $realm);
+		}
 		return false;
 	}
-	
 
 }
-
 
 /**
  * @package CMS\Handlers
  */
-class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
+class CMS_Handlers_ActionHandler implements WS_ServiceInterface
+{
 
 	protected $env;
 	protected $response;
 
-/**
- * @param WebKit_Environment $env
- * @param WebKit_HTTP_Response $response
- * @return Iterator
- */
-	public function run(WS_Environment $env) {
+	/**
+	 * @param WebKit_Environment   $env
+	 * @param WebKit_HTTP_Response $response
+	 *
+	 * @return Iterator
+	 */
+	public function run(WS_Environment $env)
+	{
 		$response = $env->response;
 		$this->env = $env;
 		$this->response = $response;
-		$response['X-Powered-CMS'] = 'Techart CMS '.CMS::VERSION;
-		
-		foreach(CMS::$plugins_before_dispatch as $class => $method) {
-			$r = new ReflectionMethod($class,$method);
-			$r->invoke(NULL);
+		$response['X-Powered-CMS'] = 'Techart CMS ' . CMS::VERSION;
+
+		foreach (CMS::$plugins_before_dispatch as $class => $method) {
+			$r = new ReflectionMethod($class, $method);
+			$r->invoke(null);
 		}
 
 		if (is_callable(CMS::$action_handler_process)) {
-			$rc = call_user_func(CMS::$action_handler_process,$this,$env,$response);
-		}
-		else {
-			$rc = $this->process_app($env,$response);
+			$rc = call_user_func(CMS::$action_handler_process, $this, $env, $response);
+		} else {
+			$rc = $this->process_app($env, $response);
 		}
 		//foreach($response as $h => $v) var_dump($h,$v);
 		//var_dump($response->status);die;
 		return $rc;
 	}
 
-
-
-/**
- * @param WebKit_Environment $env
- * @param WebKit_HTTP_Response $response
- * @return Iterator
- */
-	public function process_app(WS_Environment $env, $response) {
+	/**
+	 * @param WebKit_Environment   $env
+	 * @param WebKit_HTTP_Response $response
+	 *
+	 * @return Iterator
+	 */
+	public function process_app(WS_Environment $env, $response)
+	{
 
 		$uri = $env->request->urn;
 		$original_uri = $uri;
 		CMS::$original_uri = $uri;
 		CMS::$site = CMS::$defsite;
 
-		if (isset(CMS::$sites[CMS::$defsite]['page_main'])) CMS::$page_main = CMS::$sites[CMS::$defsite]['page_main'];
+		if (isset(CMS::$sites[CMS::$defsite]['page_main'])) {
+			CMS::$page_main = CMS::$sites[CMS::$defsite]['page_main'];
+		}
 
 		$_defdata = false;
-		if (isset(CMS::$sites[CMS::$defsite])) $_defdata = CMS::$sites[CMS::$defsite];
+		if (isset(CMS::$sites[CMS::$defsite])) {
+			$_defdata = CMS::$sites[CMS::$defsite];
+		}
 
-		if (isset(CMS::$sites)) foreach(CMS::$sites as $site => $data) {
-			$_host = isset($data['host'])?trim($data['host']):'';
-			$_prefix = isset($data['prefix'])?trim($data['prefix']):'';
-			if ($_host!=''||$_prefix!='') {
-				$_bhost = false;
-				$_bprefix = false;
-				$_uri = $uri;
-				if ($_prefix!='') {
-					if ($m = Core_Regexps::match_with_results('{^/'.$_prefix.'/(.*)$}',$uri)) {
-						$_uri = '/'.$m[1];
-						$_bprefix = true;
+		if (isset(CMS::$sites)) {
+			foreach (CMS::$sites as $site => $data) {
+				$_host = isset($data['host']) ? trim($data['host']) : '';
+				$_prefix = isset($data['prefix']) ? trim($data['prefix']) : '';
+				if ($_host != '' || $_prefix != '') {
+					$_bhost = false;
+					$_bprefix = false;
+					$_uri = $uri;
+					if ($_prefix != '') {
+						if ($m = Core_Regexps::match_with_results('{^/' . $_prefix . '/(.*)$}', $uri)) {
+							$_uri = '/' . $m[1];
+							$_bprefix = true;
+						} else {
+							continue;
+						}
 					}
-					else continue;
-				}
-				if ($_host!='') {
-					if ($env->request->host==$_host) $_bhost = true;
-					else if ($_host[0]=='{') {
-						if (Core_Regexps::match($_host,$env->request->host)) $_bhost = true;
-						else continue;
+					if ($_host != '') {
+						if ($env->request->host == $_host) {
+							$_bhost = true;
+						} else {
+							if ($_host[0] == '{') {
+								if (Core_Regexps::match($_host, $env->request->host)) {
+									$_bhost = true;
+								} else {
+									continue;
+								}
+							} else {
+								continue;
+							}
+						}
 					}
-					else continue;
-				}
-				if ($_bprefix||$_bhost) {
-					CMS::$site = $site;
-					if ($_bprefix) CMS::$site_prefix = '/'.$_prefix;
-					$uri = $_uri;
-					$env->request->uri($uri);
-					$_defdata = $data;
-					break;
+					if ($_bprefix || $_bhost) {
+						CMS::$site = $site;
+						if ($_bprefix) {
+							CMS::$site_prefix = '/' . $_prefix;
+						}
+						$uri = $_uri;
+						$env->request->uri($uri);
+						$_defdata = $data;
+						break;
+					}
 				}
 			}
 		}
 
 		if ($_defdata) {
-			if (isset($_defdata['page_main'])) CMS::$page_main = $_defdata['page_main'];
-			if (isset($_defdata['page_404'])) CMS::$page_404 = $_defdata['page_404'];
-			if (isset($_defdata['layout'])) CMS::$force_layout = $_defdata['layout'];
+			if (isset($_defdata['page_main'])) {
+				CMS::$page_main = $_defdata['page_main'];
+			}
+			if (isset($_defdata['page_404'])) {
+				CMS::$page_404 = $_defdata['page_404'];
+			}
+			if (isset($_defdata['layout'])) {
+				CMS::$force_layout = $_defdata['layout'];
+			}
 		}
 
 		if (CMS::$db) {
 			$head = CMS::vars()->get('head');
-			if (isset($head['meta.title'])) $env->meta->title($head['meta.title']);
-			if (isset($head['meta.description'])) $env->meta->description($head['meta.description']);
-			if (isset($head['meta.keywords'])) $env->meta->keywords($head['meta.keywords']);
+			if (isset($head['meta.title'])) {
+				$env->meta->title($head['meta.title']);
+			}
+			if (isset($head['meta.description'])) {
+				$env->meta->description($head['meta.description']);
+			}
+			if (isset($head['meta.keywords'])) {
+				$env->meta->keywords($head['meta.keywords']);
+			}
 		}
 
-
-
 		$curi = $uri;
-		if ($m = Core_Regexps::match_with_results('/^([^\?]+)\?/',$curi)) $curi = $m[1];
-
+		if ($m = Core_Regexps::match_with_results('/^([^\?]+)\?/', $curi)) {
+			$curi = $m[1];
+		}
 
 		$use_layout = false;
 
 		// Просмотр всех мапперов зарегистрированных в системе
-		foreach(CMS::$mappers as $name => $mapper) {
+		foreach (CMS::mappers() as $name => $mapper) {
 			// Если срабатывает маппер
 			if ($route = $mapper->route($env->request)) {
 
 				CMS::$current_mapper = $mapper;
 				CMS::$current_component_name = $name;
-				
-				if ($route instanceof Net_HTTP_Response) return $route;
+				CMS::$current_route = $route;
+
+				try {
+					Core::load('Component.' . $name);
+				} catch (Core_ModuleNotFoundException $e) {
+					;// hush
+				}
+
+				if ($route instanceof Net_HTTP_Response) {
+					return $route;
+				}
 
 				// Имя подключаемого модуля
-				$controller_module_name = 'Component.'.$name.'.Controller';
+				$controller_module_name = 'Component.' . $name . '.Controller';
 
 				// Имя контроллера по умолчанию
-				$controller_name = Core_Strings::replace($controller_module_name,'.','_');
+				$controller_name = Core_Strings::replace($controller_module_name, '.', '_');
 
 				// Имя действитя по умолчанию
 				$action_name = 'index';
 
 				$do_load_controllers = true;
 
-				if ($route===true) $route = array(
-					'controller' => $controller_name,
-					'action' => 'index',
-				);
+				if ($route === true) {
+					$route = array(
+						'controller' => $controller_name,
+						'action' => 'index',
+					);
+				}
 
 				if (is_array($route)) {
 					$_route = WebKit_Controller::Route();
@@ -596,21 +679,33 @@ class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
 					$route = $_route;
 				}
 
-				if (!isset($route['action'])) $route['action'] = 'index';
+				if (!isset($route['action'])) {
+					$route['action'] = 'index';
+				}
 
 				// Если маппер вернул нестандартное имя контроллера
-				if (isset($route['controller'])) $controller_name = $route['controller'];
+				if (isset($route['controller'])) {
+					$controller_name = $route['controller'];
+				}
 
 				// Если маппер вернул нестандартное имя действия
-				if (isset($route['action'])) $action_name = $route['action'];
+				if (isset($route['action'])) {
+					$action_name = $route['action'];
+				}
 
 				// Если маппер не велел загружать модуль с конроллером (загрузит сам)
-				if (isset($route['no_load'])) $do_load_controllers = false;
+				if (isset($route['no_load'])) {
+					$do_load_controllers = false;
+				}
 
 				// Загружаем модуль с контроллером
 				if ($do_load_controllers) {
-					if (strpos($controller_name,'.')===false&&strpos($controller_name,'_')===false) $controller_name = 'Component.'.$name.'.'.$controller_name;
-					if (strpos($controller_name,'.')!==false) $controller_module_name = $controller_name;
+					if (strpos($controller_name, '.') === false && strpos($controller_name, '_') === false) {
+						$controller_name = 'Component.' . $name . '.' . $controller_name;
+					}
+					if (strpos($controller_name, '.') !== false) {
+						$controller_module_name = $controller_name;
+					}
 					Core::autoload($controller_module_name);
 				}
 				// Получаем экземпляр контроллера
@@ -619,13 +714,21 @@ class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
 				$controller = Core::make($controller_name, $env, $response);
 
 				if ($use_layout) {
-					if (!property_exists($controller,'layout')) $controller->use_layout($use_layout);
-					else if (!$controller->layout) $controller->use_layout($use_layout);
+					if (!property_exists($controller, 'layout')) {
+						$controller->use_layout($use_layout);
+					} else {
+						if (!$controller->layout) {
+							$controller->use_layout($use_layout);
+						}
+					}
 				}
 
-				if (!CMS::$print_version&&is_string(CMS::$force_layout)) $controller->use_layout(CMS::$force_layout);
+				if (!CMS::$print_version && is_string(CMS::$force_layout)) {
+					$controller->use_layout(CMS::$force_layout);
+				}
 
 				CMS::$current_controller = $controller;
+				CMS::$current_route = $route;
 
 				// Запускаем контроллер с переданными аргументами
 				$rc = $controller->dispatch($route);
@@ -633,10 +736,11 @@ class CMS_Handlers_ActionHandler implements WS_ServiceInterface {
 			}
 		}
 
-		if (md5($uri)=='b0b94791138ef54aeb161e403329f827') die('cms');
+		if (md5($uri) == 'b0b94791138ef54aeb161e403329f827') {
+			die('cms');
+		}
 		return Net_HTTP::not_found();
 	}
-
 
 }
 

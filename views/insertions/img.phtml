@@ -9,8 +9,13 @@ if (is_string($open_mods)) $open_mods = CMS_Images::parse_modifiers($open_mods);
 if (!isset($image_args)) $image_args = array();
 if (!isset($div)) $div = false;
 if (!isset($div_styles)) $div_styles = array();
+if (!isset($extra_div)) $extra_div = false;
+if (!isset($extra_div_styles)) $extra_div_styles = array();
 if (!isset($title)) $title = false;
 if (!isset($caption)) $caption = false;
+if (!isset($center)) $center = false;
+if (!isset($container_classes)) $container_classes = '';
+
 
 $caption_styles = '';
 
@@ -27,6 +32,10 @@ foreach($image_args as $arg) {
 	if ($arg=='right'||$arg=='left') {
 		$div = true;
 		$div_styles['float'] = $arg;
+	} elseif ($arg=='center') {
+		$div = true;
+		$extra_div = true;
+		$extra_div_styles['text-align'] = 'center';
 	} elseif ($arg=='open') {
 		$open = true;
 	} elseif ($m = Core_Regexps::match_with_results('{^open:(.+)$}i',$arg)) {
@@ -44,6 +53,8 @@ foreach($image_args as $arg) {
 	} elseif ($m = Core_Regexps::match_with_results('{^(border|padding|margin):(.+)$}',$arg)) {
 		$div = true;
 		$div_styles[$m[1]] = trim($m[2]);
+	} elseif ($m = CMS_Images::parse_modifiers($arg)) {
+		$mods = is_array($mods)?array_merge($mods,$m) : $m;
 	}
 	
 	if ($m = Core_Regexps::match_with_results('{^http://([^/]+)/(.+)$}',$arg)) {
@@ -61,9 +72,6 @@ foreach($image_args as $arg) {
 		if (is_file("./{$_path}")) {
 			$path = $_path;
 		}
-	}
-	if ($m = CMS_Images::parse_modifiers($arg)) {
-		$mods = $m;
 	}
 }
 
@@ -91,6 +99,13 @@ if ($open) {
 }
 
 if ($img) {
+	if ($extra_div) {
+		print '<div style="';
+		foreach($extra_div_styles as $k => $v) {
+			print "{$k}: $v;";
+		}
+		print '">';
+	}
 	$template_simple = CMS::view('insertions/includes/img-simple.phtml');
 	$template_link = CMS::view('insertions/includes/img-link.phtml');
 	$template_div = CMS::view('insertions/includes/img-div.phtml');
@@ -108,6 +123,9 @@ if ($img) {
 		include($template_link);
 	} else {
 		include($template_simple);
+	}
+	if ($extra_div) {
+		print "</div>";
 	}
 }
 

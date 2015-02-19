@@ -13,6 +13,7 @@ div.table-data {
 	padding: 2px;
 	background-color: #eee;
 	border-radius: 5px;
+	font-size: 13px;
 }
 
 
@@ -85,7 +86,12 @@ table.table-data {
 		}
 
 table.admin-table-form {
+	font-size: 13px;
 }
+
+	table.admin-table-form select, table.admin-table-form input {
+		font-size: 13px;
+	}
 
 	table.admin-table-form th {
 		text-align: left;
@@ -110,6 +116,7 @@ div.admin-table-form-no-tabs {
 div.admin-table-right-buttons {
 	float: right;
 	padding: 10px 0 0 0;
+	font-size: 13px;
 }
 
 	div.admin-table-right-buttons a {
@@ -155,6 +162,7 @@ div.table-admin-page-navigator-top {
 	margin: 0 0 5px 0;
 	padding: 4px 0 4px 5px;
 	border-left: 3px solid #080;
+	font-size: 13px;
 }
 
 div.table-admin-page-navigator-bottom {
@@ -162,6 +170,7 @@ div.table-admin-page-navigator-bottom {
 	margin: 5px 0 0 0;
 	padding: 2px 0 2px 5px;
 	border-left: 3px solid #080;
+	font-size: 13px;
 }
 
 div.table-admin-massupdate-submit {
@@ -177,6 +186,7 @@ div.table-admin-filters-buttons {
 	border-left: 3px solid #080;
 	height: 100%;
 	overflow: hidden;
+	font-size: 13px;
 }
 
 	div.table-admin-filters-buttons a {
@@ -198,14 +208,19 @@ div.table-admin-filters-buttons {
 		}
 
 
+
 div.table-admin-filters-form {
 	float: left;
 	margin: 0 0 5px 0;
 	padding: 2px 3px 2px 5px;
 	border-left: 3px solid #080;
 	height: 100%;
-	
+	font-size: 13px;
 }
+
+	div.table-admin-filters-form select {
+		font-size: 13px;
+	}
 
 	div.table-admin-filters-form form {
 		margin: 0;
@@ -342,9 +357,13 @@ div.field-lang {
 	/*display: none;*/
 	float: none;
 	clear: both;
+	width: 0;
+	height: 0;
 }
 
 div.field-lang-visible {
+	height: inherit;
+	width: inherit;
 	left: inherit;
 	display: block;
 	position: relative;

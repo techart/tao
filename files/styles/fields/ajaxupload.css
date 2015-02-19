@@ -9,6 +9,7 @@ div.file-field {
 		text-decoration: underline;
 		color: #4A7C88;
 		display: none;
+		clear: both;
 	}
 
 
@@ -21,7 +22,7 @@ div.file-field {
 	}
 
 	div.file-field div.file-info {
-		padding: 0 0 0 5px;
+		padding: 0;
 		display: none;
 		position: relative;
 	}

@@ -84,10 +84,10 @@ if (!$data) {
 			'url' => $url,
 		);
 	}
-}
 
-if ($cache) {
-	WS::env()->cache->set($cache,$data);
+	if ($cache) {
+		WS::env()->cache->set($cache,$data);
+	}
 }
 
 

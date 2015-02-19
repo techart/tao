@@ -1,4 +1,5 @@
 #topmenu {
+	font-size: 13px;
 	height: 42px;
 	background-color: #48525B;
 	background-image: linear-gradient(to top,#46525B 88%,#aaa 100%);
@@ -95,7 +96,7 @@
 	background: linear-gradient(to top, #FFC490 40%, #FFEEAA 100%);
 	text-decoration: none;
 	border-radius: 5px 5px 0 0;
-}	
+}
 
 	#admin_menu_button span {
 		display: block;

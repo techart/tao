@@ -4,7 +4,7 @@
 	background-position: 50% 50%;
 }
 
-.clearfix:after {
+.gallery-clearfix:after {
 	content: ".";
 	display: block;
 	clear: both;
@@ -13,7 +13,7 @@
 	height: 0;
 }
  
-.clearfix {
+.gallery-clearfix {
 	display: inline-block;
 }
 

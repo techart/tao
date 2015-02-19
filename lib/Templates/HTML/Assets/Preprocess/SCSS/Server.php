@@ -5,7 +5,7 @@ class Templates_HTML_Assets_Preprocess_SCSS_Server extends scss_server implement
 
 	protected $current_dir;
 
-	public function __construct($dir, $cacheDir=null, $scss=null)
+	public function __construct($dir, $cacheDir = null, $scss = null)
 	{
 		parent::__construct($dir, $cacheDir, $scss);
 		$scss->addImportPath(array($this, 'findPath'));
@@ -30,8 +30,8 @@ class Templates_HTML_Assets_Preprocess_SCSS_Server extends scss_server implement
 		return parent::compile($in, $out);
 	}
 
-	public function needsCompile($in, $out)
+	public function needsCompile($in, $out, &$etag)
 	{
-		return parent::needsCompile($in, $out);
+		return parent::needsCompile($in, $out, $etag);
 	}
 }

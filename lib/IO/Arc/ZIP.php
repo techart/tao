@@ -1,9 +1,8 @@
 <?php
+
 /**
  * @package IO\Arc\ZIP
  */
-
-
 class IO_Arc_ZIP extends IO_Arc_Archiver implements Core_ModuleInterface
 {
 	protected $zip = false;
@@ -15,25 +14,25 @@ class IO_Arc_ZIP extends IO_Arc_Archiver implements Core_ModuleInterface
 		$this->zip = new ZipArchive();
 		if (IO_FS::exists($file)) {
 			$res = $this->zip->open($file);
-			if ($res===true) {
+			if ($res === true) {
 				return $this;
 			}
-			if ($res===ZIPARCHIVE::ER_NOZIP) {
+			if ($res === ZIPARCHIVE::ER_NOZIP) {
 				throw new IO_Arc_InvalidArchive_Exception("$file is not ZIP archive");
 			}
 			throw new IO_Arc_Exception("Error opening ZIP archive {$file}. Error code: {$res}");
 		} else {
-			$res = $this->zip->open($file,ZIPARCHIVE::CREATE);
+			$res = $this->zip->open($file, ZIPARCHIVE::CREATE);
 		}
 		return $this;
 	}
-	
-	public function add_file($path)
+
+	public function add_file($path, $localname = null)
 	{
-		$this->zip->addFile($path);
+		$this->zip->addFile($path, $localname);
 		return $this;
 	}
-	
+
 	public function add_empty_dir($path)
 	{
 		$this->zip->addEmptyDir($path);
@@ -48,7 +47,7 @@ class IO_Arc_ZIP extends IO_Arc_Archiver implements Core_ModuleInterface
 		}
 		return $this;
 	}
-	
+
 	public function extract_to($path)
 	{
 		$this->zip->extractTo($path);

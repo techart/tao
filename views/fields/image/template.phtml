@@ -57,7 +57,7 @@ if (isset($data['admin_preview_size'])) {
 
 
 <div class="image-field" id="image-field-<?= $name ?>" >
-	<?php if(!$item->is_phantom()) { ?>
+	<?php if($item && !$item->is_phantom()) { ?>
 	<div class="image-load-indicator" id="image-load-indicator-<?= $name ?>">&nbsp;</div>
 	<div <?= $size_style ?>  data-url-upload="<?= $c->field_action_url($name,'preview',$item) ?>"  data-url="<?= $type_object->admin_preview_url($name,$data,$item) ?>" class="image-preview" id="image-preview-<?= $name ?>">&nbsp;</div>
 	<div data-url="<?= $c->field_action_url($name,'info',$item) ?>" class="image-info" id="image-info-<?= $name ?>"><?php include('info.phtml'); ?></div>

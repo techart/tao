@@ -3,7 +3,6 @@
  * @package CMS\Controller\SlickTable
  */
 
-
 Core::load('Log', 'CMS.Controller.Table', 'Tree');
 
 class CMS_Controller_SlickTable extends CMS_Controller_Table
@@ -37,7 +36,8 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 
 	protected $sort_data = array('column' => null, 'dir' => 1);
 
-	protected function tree_fields() {
+	protected function tree_fields()
+	{
 		return $this->slick_fields();
 	}
 
@@ -78,10 +78,10 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		return $this;
 	}
 
-	public function index($action,$args)
+	public function index($action, $args)
 	{
 		// Log::logger()->debug($action);
-		$res = parent::index($action,$args);
+		$res = parent::index($action, $args);
 		return $res;
 	}
 
@@ -90,17 +90,18 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		$fform = $this->create_filters_form();
 		$filters_form_fields = $this->prepare_filter_forms();
 		$t = $this->render('slick', array(
-			'c' => $this,
-			'title' => $this->title_list(),
-			'count' => $this->total($this->orm_mapper()),
-			'message_norows' => $this->message_norows(),
-			'can_add' => $this->access_add(),
-			'add_url' => $this->action_url('add',$this->page),
-			'add_button_caption' => $this->button_add(),
-			'filters_form' => $fform,
-			'filters_form_fields' => $filters_form_fields,
-			'style' => $this->style,
-		));
+				'c' => $this,
+				'title' => $this->title_list(),
+				'count' => $this->total($this->orm_mapper()),
+				'message_norows' => $this->message_norows(),
+				'can_add' => $this->access_add(),
+				'add_url' => $this->action_url('add', $this->page),
+				'add_button_caption' => $this->button_add(),
+				'filters_form' => $fform,
+				'filters_form_fields' => $filters_form_fields,
+				'style' => $this->style,
+			)
+		);
 		$this->preprocess_render($t);
 		return $t;
 	}
@@ -117,27 +118,27 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 			CMS::stdfile_url('styles/SlickGrid/slick.grid.css'),
 			CMS::stdfile_url('styles/SlickGrid/slick.css'),
 			CMS::stdfile_url('styles/SlickGrid/controls/slick.pager.css')
-			//CMS::stdfile_url('styles/SlickGrid/css/smoothness/jquery-ui-1.8.16.custom.css')
+		//CMS::stdfile_url('styles/SlickGrid/css/smoothness/jquery-ui-1.8.16.custom.css')
 		);
 		$t->use_scripts(
-				CMS::stdfile_url('scripts/tao.js'),
-				CMS::stdfile_url('scripts/tao/oop.js'),
-				CMS::stdfile_url('scripts/jquery/ui.js'),
-				CMS::stdfile_url('scripts/jquery/event.drag.js'),
-				CMS::stdfile_url('scripts/jquery/event.drop.js'),
-				CMS::stdfile_url('scripts/SlickGrid/slick.core.js'),
-				CMS::stdfile_url('scripts/SlickGrid/slick.formatters.js'),
-				CMS::stdfile_url('scripts/SlickGrid/slick.editors.js'),
-				CMS::stdfile_url('scripts/SlickGrid/slick.grid.js'),
-				CMS::stdfile_url('scripts/SlickGrid/slick.dataview.js'),
-				CMS::stdfile_url('scripts/SlickGrid/controls/slick.remotepager.js'),
-				CMS::stdfile_url('scripts/SlickGrid/slick.remotestore.js'),
-				CMS::stdfile_url('scripts/SlickGrid/slick.table.js'),
-				CMS::stdfile_url('scripts/SlickGrid/slick.tree.class.js'),
-				CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowmovemanager.js'),
-				CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowselectionmodel.js'),
-				$this->app_js_file()
-			);
+			CMS::stdfile_url('scripts/tao.js'),
+			CMS::stdfile_url('scripts/tao/oop.js'),
+			CMS::stdfile_url('scripts/jquery/ui.js'),
+			CMS::stdfile_url('scripts/jquery/event.drag.js'),
+			CMS::stdfile_url('scripts/jquery/event.drop.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.core.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.formatters.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.editors.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.grid.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.dataview.js'),
+			CMS::stdfile_url('scripts/SlickGrid/controls/slick.remotepager.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.remotestore.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.table.js'),
+			CMS::stdfile_url('scripts/SlickGrid/slick.tree.class.js'),
+			CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowmovemanager.js'),
+			CMS::stdfile_url('scripts/SlickGrid/plugins/slick.rowselectionmodel.js'),
+			$this->app_js_file()
+		);
 		return $t;
 	}
 
@@ -164,7 +165,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		}
 	}
 
-	protected function tree_data_row_extra_fields($row,$entity)
+	protected function tree_data_row_extra_fields($row, $entity)
 	{
 		return $row;
 	}
@@ -175,9 +176,9 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		$keys = array_keys($rows);
 		$values = array_values($rows);
 		if (!empty($this->last)) {
-			$id = (int) $this->last['id'];
+			$id = (int)$this->last['id'];
 			$find = array_search($id, $keys);
-			if ($find !== FALSE) {
+			if ($find !== false) {
 				$offset = $find + 1;
 			}
 		}
@@ -228,7 +229,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 	protected function add_item(&$res, $row, $depth = 0)
 	{
 		$row['depth'] = $depth;
-		if ($this->expanded_to_level != -1 &&  $this->expanded_to_level <= $depth) {
+		if ($this->expanded_to_level != -1 && $this->expanded_to_level <= $depth) {
 			$row['_collapsed'] = true;
 		}
 		$attrs = $row;
@@ -272,7 +273,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 
 		$id = 0;
 		if (!empty($this->last)) {
-		 	$id = (int) $this->last['id'];
+			$id = (int)$this->last['id'];
 		}
 		$count = 0;
 		$break = false;
@@ -286,7 +287,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		foreach (array_chunk($input_rows, $this->chunks, true) as $ci => $chunk) {
 			Log::logger()->debug('chunk', $ci);
 			$s = microtime(true);
-			list($rows, $childs)  = $this->load_childs_by($rows, $chunk);
+			list($rows, $childs) = $this->load_childs_by($rows, $chunk);
 			Log::logger()->debug('load_childs_by_time', microtime(true) - $s);
 			Log::logger()->debug('childs_count', count($childs));
 			//MAGIC:
@@ -298,7 +299,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 					$count += count($childs) + 1;
 				} else {
 					$find = array_search($id, array_keys($childs));
-					if ($find !== FALSE) {
+					if ($find !== false) {
 						// $count += count($childs) - $find;
 						$start_counting = true;
 					}
@@ -307,14 +308,16 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 				if ($count > $this->limit) {
 					$break = true;
 				}
-			} else if ($count >= $this->limit * $this->chunks_break) {
-				$break = true;
+			} else {
+				if ($count >= $this->limit * $this->chunks_break) {
+					$break = true;
+				}
 			}
 			// if ($break) {
 			// 	break;
 			// }
 		}
-		
+
 		Log::logger()->debug('rows_count', count($rows));
 		return $rows;
 	}
@@ -330,7 +333,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		$child_count = 0;
 		$result_child = $child = $this->extract_parent_ids(array_keys($input));
 		$i = 0;
-		while(count($child) > 0) {
+		while (count($child) > 0) {
 			$child = $this->extract_parent_ids(array_keys($child));
 			$result_child += $child;
 			$i++;
@@ -344,7 +347,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 	protected function load_tail($el)
 	{
 		$pid = $el['parent_id'];
-		while($pid) {
+		while ($pid) {
 			$el = $this->orm_mapper()->spawn()->as_array()->where('id = :pid', $pid)->select_first();
 			if (!$el) {
 				break;
@@ -361,8 +364,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		$mapper = $mapper->spawn()->as_array();
 		if (!empty($this->sort_data['column'])) {
 			$mapper = $mapper->order_by($this->sort_data['column'] . ' ' . $this->sort_data['dir']);
-		}
-		else {
+		} else {
 			$mapper = $mapper->order_by('IFNULL(ord,0)' . ($mapper->options['order_by'] ? ',' . $mapper->options['order_by'] : ''));
 		}
 		return $mapper->select($key = 'id')->getArrayCopy();
@@ -380,7 +382,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 			$start_index = array_search($start_id, $ids);
 			if ($start_index !== false) {
 				$ids = array_slice($ids, $start_index, $this->limit + 1, true);
-			}	
+			}
 		}
 		return $this->get_tree_rows($this->orm_mapper()->spawn()->only('id', 'parent_id')->in('id', $ids));
 	}
@@ -406,8 +408,8 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 		if (isset($this->request['offset'])) {
 			$pager['offset'] = $this->request['offset'];
 		} else {
-			$this->page = (int) isset($this->request['page']) ? $this->request['page'] : 1;
-			$pager['offset'] = ($this->page-1)*$per_page;
+			$this->page = (int)isset($this->request['page']) ? $this->request['page'] : 1;
+			$pager['offset'] = ($this->page - 1) * $per_page;
 		}
 		if (isset($this->request['count'])) {
 			$pager['limit'] = $this->request['count'];
@@ -437,7 +439,9 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 	protected function tree_update()
 	{
 		$data = json_decode($this->env->request->content, true);
-		if (isset($data['id'])) $data = array($data);
+		if (isset($data['id'])) {
+			$data = array($data);
+		}
 		try {
 			foreach ($data as $row) {
 				if (!empty($row['id'])) {
@@ -454,8 +458,7 @@ class CMS_Controller_SlickTable extends CMS_Controller_Table
 			}
 			return Net_HTTP::Response()->
 				content_type('application/json')->
-				body(json_encode(array('success' => true, 'message' => 'OK')))
-				;
+				body(json_encode(array('success' => true, 'message' => 'OK')));
 		} catch (Exception $e) {
 			return Net_HTTP::Response()->
 				content_type('application/json')->

@@ -127,7 +127,7 @@ TAO.popup.include = function(paths, callback) {
 	var number = 0;
 	var wait_all_css = function() {
 		number++;
-		if (number >= count) {
+		if (number == count) {
 			TAO.require(paths.js, callback);
 		}
 	};
@@ -143,6 +143,10 @@ TAO.popup.initialize = function(self, name, std_paths, opts, callback, on_comple
 	}
 	if (typeof self.init_complete == 'undefined') {
 		self.init_complete = false;
+	}
+	self.stack = self.stack || [];
+	if (callback){
+		self.stack.push(callback);
 	}
 	if (!self.init_complete && !self.in_process) {
 		self.in_process = true;
@@ -164,15 +168,15 @@ TAO.popup.initialize = function(self, name, std_paths, opts, callback, on_comple
 		if (!on_complete) {
 			on_complete = function() {
 				self.init_complete = true;
-				if (callback) {
-					callback(TAO.popup.type(name));
-				}
+				TAO.popup.type(name)
 			};
 		}
 		TAO.popup.include(paths, on_complete);
-	} else if (self.init_complete) {
-		if (callback) {
-			callback(TAO.popup.type(name));
+	}
+	else if (self.init_complete){
+		while(self.stack.length){
+			var callback_item = self.stack.pop();
+			callback_item(TAO.popup.type(name));
 		}
 	}	
 }
@@ -196,8 +200,9 @@ TAO.popup.plugins.magnific = function(options) {
 				}
 				,callbacks: opts.callbacks
 			};
-			opts = $.extend(true, {}, opts, inline_config);
+			opts = $.extend(true, {}, inline_config, opts);
 			this.get_instance().open(opts);
+			$('.mfp-wrap').removeAttr('tabindex');
 		},
 
 		callbacks: function (opts) {
@@ -213,7 +218,9 @@ TAO.popup.plugins.magnific = function(options) {
 				type: 'image',
 				gallery: {enabled: true}
 			}, opts);
-			return $(content).magnificPopup(opts);
+			var res = $(content).magnificPopup(opts);
+			$('.mfp-wrap').removeAttr('tabindex');
+			return res;
 		},
 
 		get_type: function() {
@@ -221,7 +228,9 @@ TAO.popup.plugins.magnific = function(options) {
 		},
 
 		close: function(opts) {
-			$.magnificPopup.instance.close();
+			if ($.magnificPopup.instance) {
+				$.magnificPopup.instance.close();
+			}
 		},
 
 		open: function (opts) {
@@ -256,6 +265,7 @@ TAO.popup.plugins.colorbox = function(options) {
 			opts.inline = true;
 			opts.href = opts.content;
 			$.colorbox(opts);
+			$('[role="dialog"]').removeAttr('tabindex');
 		},
 
 		callbacks: function (opts) {
@@ -271,7 +281,9 @@ TAO.popup.plugins.colorbox = function(options) {
 				rel : 'gal' + self.gallery_counter
 			}, opts);
 			opts = this.callbacks(opts);
-			return $(content).colorbox(opts);
+			var res = $(content).colorbox(opts);
+			$('.mfp-wrap').removeAttr('tabindex');
+			return res;
 		},
 
 		get_type: function() {
@@ -315,7 +327,7 @@ TAO.popup.plugins.uidialog = function(options) {
 			var content = $(opts.content);
 			opts = this.callbacks(opts);
 			this._fix(content);
-			self.last_contet = content;
+			self.last_content = content;
 			content.dialog(opts);
 		},
 
@@ -334,8 +346,8 @@ TAO.popup.plugins.uidialog = function(options) {
 		},
 
 		close: function(opts) {
-			if (self.last_contet) {
-				$(self.last_contet).dialog('close');
+			if (self.last_content) {
+				$(self.last_content).dialog('close');
 			}
 		},
 

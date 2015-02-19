@@ -1,6 +1,6 @@
 <?php
 
-class Templates_HTML_Assets_Join implements Core_ConfigurableModuleInterface 
+class Templates_HTML_Assets_Join implements Core_ConfigurableModuleInterface
 {
 	const VERSION = '0.1.0';
 
@@ -11,22 +11,26 @@ class Templates_HTML_Assets_Join implements Core_ConfigurableModuleInterface
 
 	static public function initialize(array $options = array())
 	{
-		foreach(self::$options as $k => $v){
-			self::$options[$k] = str_replace('%files%', Core::option('files_name'),$v);
+		foreach (self::$options as $k => $v) {
+			self::$options[$k] = str_replace('%files%', Core::option('files_name'), $v);
 		}
 		self::options($options);
 	}
-	
+
 	static public function options(array $options = array())
 	{
-		if (count($options)) Core_Arrays::update(self::$options, $options);
+		if (count($options)) {
+			Core_Arrays::update(self::$options, $options);
+		}
 		return self::$options;
 	}
-	
+
 	static public function option($name, $value = null)
 	{
 		$prev = isset(self::$options[$name]) ? self::$options[$name] : null;
-		if ($value !== null) self::options(array($name => $value));
+		if ($value !== null) {
+			self::options(array($name => $value));
+		}
 		return $prev;
 	}
 
@@ -110,7 +114,7 @@ class Templates_HTML_Assets_Join_Stapler
 	protected function files_hash($files)
 	{
 		$s = '';
-		foreach($files as $file) {
+		foreach ($files as $file) {
 			$mt = @filemtime('.' . $file);
 			if ($mt) {
 				$s .= $file;
@@ -166,10 +170,10 @@ class Templates_HTML_Assets_Join_Stapler
 		$content = '';
 		if ($this->check_file_for_update($filepath, $files)) {
 			$write = true;
-			foreach($files as $file) {
+			foreach ($files as $file) {
 				$path = '.' . $file;
 				$content .= "\n\n";
-				$content .= file_exists($path) ?  file_get_contents($path) : '';
+				$content .= file_exists($path) ? file_get_contents($path) : '';
 				if ($this->type == 'js') {
 					$content .= ';';
 				}
@@ -179,12 +183,12 @@ class Templates_HTML_Assets_Join_Stapler
 			$data = $this->default_fasten_data();
 		}
 		$data = array_merge($data, array(
-			'path' => $filepath,
-			'write' => $write,
-			'content' => $content
-		));
+				'path' => $filepath,
+				'write' => $write,
+				'content' => $content
+			)
+		);
 		return array($filename, $data);
 	}
-
 
 }

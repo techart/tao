@@ -2,12 +2,12 @@
 /**
  * TinyMCE редактор
  *
- * @author Svistunov <svistunov@techart.ru>
+ * @author   Svistunov <svistunov@techart.ru>
  *
  * @version  0.1.0
  *
- * @package CMS\Redactor
- * 
+ * @package  CMS\Redactor
+ *
  */
 
 Core::load('CMS.Redactor');
@@ -16,8 +16,8 @@ Core::load('CMS.Redactor');
  * TinyMCE редактор. Класс модуля.
  *
  * @package CMS\Redactor
- * 
- * @todo: maybe configure for file paths
+ *
+ * @todo    : maybe configure for file paths
  */
 class CMS_Redactor_Tiny extends CMS_Redactor_AbstractEditor implements Core_ModuleInterface
 {
@@ -25,6 +25,7 @@ class CMS_Redactor_Tiny extends CMS_Redactor_AbstractEditor implements Core_Modu
 	 * Библиотечные файлы
 	 *
 	 * Обычно список файлов для подключения плагина
+	 *
 	 * @return array
 	 */
 	protected function libraries_files()
@@ -37,6 +38,7 @@ class CMS_Redactor_Tiny extends CMS_Redactor_AbstractEditor implements Core_Modu
 
 	/**
 	 * Установка ссылки для добавления картинок в редактор
+	 *
 	 * @param string $link ссылка
 	 */
 	public function set_images_link($link)
@@ -47,6 +49,7 @@ class CMS_Redactor_Tiny extends CMS_Redactor_AbstractEditor implements Core_Modu
 
 	/**
 	 * Настройки по умолчанию
+	 *
 	 * @return array
 	 */
 	public function default_settings()
@@ -60,7 +63,7 @@ class CMS_Redactor_Tiny extends CMS_Redactor_AbstractEditor implements Core_Modu
 			'paste_auto_cleanup_on_paste' => true,
 			'dialog_type' => "modal",
 			'language' => 'ru',
-			'skin'=> 'o2k7',
+			'skin' => 'o2k7',
 			'skin_variant' => 'silver',
 			'plugins' => "contextmenu,autosave,paste,preview,fullscreen,table,advimage,media,advlink,inlinepopups",
 			'relative_urls' => false,
@@ -79,7 +82,9 @@ class CMS_Redactor_Tiny extends CMS_Redactor_AbstractEditor implements Core_Modu
 
 	/**
 	 * Преобразование списка файлов в необходимый json формат
+	 *
 	 * @param  array $files список файлов
+	 *
 	 * @return string        json
 	 */
 	public function image_list_to_js($files)
@@ -88,9 +93,9 @@ class CMS_Redactor_Tiny extends CMS_Redactor_AbstractEditor implements Core_Modu
 		$list = array();
 		foreach ($files as $f) {
 			$name = pathinfo($f, PATHINFO_BASENAME);
-			$list[] = "[" . "'$name'" . ',' . "'$f'" .  "]";
+			$list[] = "[" . "'$name'" . ',' . "'$f'" . "]";
 		}
-		$res .= implode(',', $list) .  ');';
+		$res .= implode(',', $list) . ');';
 		return $res;
 	}
 }

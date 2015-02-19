@@ -199,17 +199,33 @@ TAO.editor.plugins.nicedit = function()
 
 		create : function(id, options) {
 			if (typeof nicEditor != 'undefined') {
-				var ins = new nicEditor(options).panelInstance(id, {hasPanel : true});
+				var height = $('#'+id)[0].style.height.replace("px", "");
+				if (height > 0) {
+					options = $.extend(true, {maxHeight : height}, options);
+				}
+				try {
+					var ins = new nicEditor(options).panelInstance(id, {hasPanel : true});
+				} catch (e) {
+				}
 				var elm = $('#'+id).prev().find('.nicEdit-main').get(0);
-				elm.addEventListener('keypress', function(ev){
-					if(ev.keyCode == '13') {
-						document.execCommand('formatBlock', false, 'p');
-					}
-				}, false);
+				if (elm.addEventListener){
+					elm.addEventListener('keypress', function(ev){
+						if(ev.keyCode == '13') {
+							document.execCommand('formatBlock', false, 'p');
+						}
+					}, false);
+				} else {
+					elm.onkeypress = function(){
+						if(window.event.keyCode == '13') {
+							document.execCommand('formatBlock', false, 'p');
+						}
+					};
+				}
 				return ins;
 			}
 			return null;
 		},
+
 		refresh: function(selector)
 		{
 			var width = $(selector)[0].style.width;

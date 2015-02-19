@@ -1,32 +1,32 @@
 <?php
 /**
  * PDO адаптер
- * 
- * @author Timokhin <timokhin@techart.ru>
- * 
+ *
+ * @author  Timokhin <timokhin@techart.ru>
+ *
  * @package DB\Adapter\PDO
  */
 Core::load('DB', 'WS');
 
 /**
  * Класс модуля
- * 
+ *
  * @version 0.2.0
- * 
+ *
  * @package DB\Adapter\PDO
  */
 class DB_Adapter_PDO implements Core_ModuleInterface
 {
-	/** 
+	/**
 	 * Версия модуля
 	 */
 	const VERSION = '0.2.0';
-	
+
 	/**
 	 * Возвращает пулл соединений с БД
-	 * 
+	 *
 	 * @todo сделать что-нибудь с WS
-	 * 
+	 *
 	 * @return array;
 	 */
 	public static function connections_pool()
@@ -37,7 +37,7 @@ class DB_Adapter_PDO implements Core_ModuleInterface
 
 /**
  * Класс подключения к БД
- * 
+ *
  * @package DB\Adapter\PDO
  */
 abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterface
@@ -49,12 +49,13 @@ abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterfa
 
 	/**
 	 * Конструктор
-	 * 
+	 *
 	 * @params DB_DSN $dsn объект строки подключения к БД
-	 * 
+	 *
 	 * @throws DB_ConnectionException Если не может подключиться к БД
 	 */
-	public function __construct(DB_DSN $dsn) {
+	public function __construct(DB_DSN $dsn)
+	{
 		try {
 			$connections = DB_Adapter_PDO::connections_pool();
 			if (isset($connections[$dsn->pdo_string])) {
@@ -69,12 +70,12 @@ abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterfa
 
 	/**
 	 * Устанавливает атрибут
-	 * 
+	 *
 	 * @params integer $id идентификатор
 	 * @params mixed $value значение
-	 * 
-	 * @link http://php.ru/manual/pdo.setattribute.html
-	 * 
+	 *
+	 * @link   http://php.ru/manual/pdo.setattribute.html
+	 *
 	 * @return boolean
 	 */
 	public function set_attribute($id, $value)
@@ -84,11 +85,11 @@ abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterfa
 
 	/**
 	 * Возвращает атрибут
-	 * 
+	 *
 	 * @params integer $id идентификатор
-	 * 
-	 * @link http://php.ru/manual/pdo.getattribute.html
-	 * 
+	 *
+	 * @link   http://php.ru/manual/pdo.getattribute.html
+	 *
 	 * @return mixed
 	 */
 	public function get_attribute($id)
@@ -98,12 +99,12 @@ abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterfa
 
 	/**
 	 * Открывает транзакцию
-	 * 
+	 *
 	 * @link http://php.ru/manual/pdo.begintransaction.html
-	 * 
+	 *
 	 * @throws DB_ConnectionException Если драйвер не поддерживает транзакции.
-	 * 
-	 */ 
+	 *
+	 */
 	public function transaction()
 	{
 		try {
@@ -115,10 +116,10 @@ abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterfa
 
 	/**
 	 * Фиксирует транзакцию
-	 * 
+	 *
 	 * @link http://php.ru/manual/pdo.commit.html
-	 * 
-	 * @throws DB_ConnectionException  
+	 *
+	 * @throws DB_ConnectionException
 	 */
 	public function commit()
 	{
@@ -131,12 +132,12 @@ abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterfa
 
 	/**
 	 * Откатывает транзакцию
-	 * 
+	 *
 	 * @link http://php.ru/manual/pdo.rollback.html
-	 * 
+	 *
 	 * @throws DB_ConnectionException Если нет активной транзакции
 	 */
-	public function rollback() 
+	public function rollback()
 	{
 		try {
 			$this->pdo->rollback();
@@ -147,29 +148,29 @@ abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterfa
 
 	/**
 	 * Возвращает последний вставленный идентификатор
-	 * 
+	 *
 	 * @link http://php.ru/manual/pdo.lastinsertid.html
-	 * 
-	 * @throws DB_ConnectionException 
-	 * 
+	 *
+	 * @throws DB_ConnectionException
+	 *
 	 * @return string
 	 */
-	public function last_insert_id()
+	public function last_insert_id($table = null)
 	{
 		try {
 			return $this->pdo->lastInsertId();
 		} catch (PDOException $e) {
-			throw new DB_ConnectionException($e->getMessage);
+			throw new DB_ConnectionException($e->getMessage());
 		}
 	}
 
 	/**
 	 * Квотит параметр
-	 * 
-	 * @link http://php.ru/manual/pdo.quote.html
-	 * 
+	 *
+	 * @link   http://php.ru/manual/pdo.quote.html
+	 *
 	 * @params string $value параметр
-	 * 
+	 *
 	 * @return string
 	 */
 	public function quote($value)
@@ -187,7 +188,7 @@ abstract class DB_Adapter_PDO_Connection implements DB_Adapter_ConnectionInterfa
 
 /**
  * Класс курсора БД
- * 
+ *
  * @package DB\Adapter\PDO
  */
 abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
@@ -195,14 +196,14 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 	/**
 	 * @var PDO объект PDO
 	 */
-	protected  $pdo;
+	protected $pdo;
 
 	/**
 	 * Конструктор
-	 * 
-	 * Устанавливается режим PDO::FETCH_ASSOC (см. {@link http://php.ru/manual/pdostatement.setfetchmode.html} и 
+	 *
+	 * Устанавливается режим PDO::FETCH_ASSOC (см. {@link http://php.ru/manual/pdostatement.setfetchmode.html} и
 	 * {@link http://php.ru/manual/pdostatement.fetch.html fetch_style})
-	 * 
+	 *
 	 * @params PDO $pdo PDO объект
 	 */
 	public function __construct($pdo)
@@ -213,8 +214,8 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 
 	/**
 	 * Возвращает очередную строку результата
-	 * 
-	 * @throws DB_CursorException 
+	 *
+	 * @throws DB_CursorException
 	 */
 	public function fetch()
 	{
@@ -227,9 +228,9 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 
 	/**
 	 * Возвращает все строки результата
-	 * 
+	 *
 	 * @throw new DB_CursorException
-	 * 
+	 *
 	 * @return array
 	 */
 	public function fetch_all()
@@ -247,9 +248,9 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 
 	/**
 	 * Закрывает курсор
-	 * 
-	 * @throws DB_CursorException 
-	 * 
+	 *
+	 * @throws DB_CursorException
+	 *
 	 * @return boolean
 	 */
 	public function close()
@@ -263,16 +264,16 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 
 	/**
 	 * Определение типа
-	 * 
-	 * @link http://php.ru/manual/pdo.constants.html
-	 * 
+	 *
+	 * @link   http://php.ru/manual/pdo.constants.html
+	 *
 	 * @params mixed $v параметр, тип которого надо определить
-	 * 
+	 *
 	 * @return integer
 	 */
 	protected function get_param_type($v)
 	{
-		switch(gettype($v)) {
+		switch (gettype($v)) {
 			case 'resource':
 				return PDO::PARAM_LOB;
 			case 'integer':
@@ -285,21 +286,21 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 				return PDO::PARAM_STR;
 		}
 	}
-  
+
 	/**
-	 * Выполняет запрос 
-	 * 
+	 * Выполняет запрос
+	 *
 	 * @params array $binds массив параметров
-	 * 
-	 * @throws DB_CursorException 
-	 * 
+	 *
+	 * @throws DB_CursorException
+	 *
 	 * @return boolean
 	 */
 	public function execute(array $binds)
 	{
 		try {
 			foreach (array_values($binds) as $n => $v) {
-				$this->pdo->bindValue($n+1, $v, $this->get_param_type($v));
+				$this->pdo->bindValue($n + 1, $v, $this->get_param_type($v));
 			}
 			return $this->pdo->execute();
 		} catch (PDOException $e) {
@@ -309,7 +310,7 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 
 	/**
 	 * Возвращает количество строк в результате
-	 * 
+	 *
 	 * @return integer
 	 */
 	public function get_num_of_rows()
@@ -319,7 +320,7 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 
 	/**
 	 * Возвращает количество колонок
-	 * 
+	 *
 	 * @return integer
 	 */
 	public function get_num_of_columns()
@@ -336,9 +337,9 @@ abstract class DB_Adapter_PDO_Cursor implements DB_Adapter_CursorInterface
 		for ($i = 0; $i < $this->pdo->columnCount(); $i++) {
 			$v = $this->pdo->getColumnMeta($i);
 			$metadata[$v['name']] = new DB_ColumnMeta(
-				$v['name'], 
-				isset($v['native_type']) ? $v['native_type'] : null, 
-				$v['len'], 
+				$v['name'],
+				isset($v['native_type']) ? $v['native_type'] : null,
+				$v['len'],
 				$v['precision']
 			);
 		}

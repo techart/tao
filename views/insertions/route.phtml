@@ -7,5 +7,5 @@ $template = 'route';
 
 $route = CMS::navigation()->route();
 if ($route) {
-	?><div class="navigation-route"><?= $route->draw($template) ?></div><?php
+	?><?= $route->draw($template) ?><?php
 }

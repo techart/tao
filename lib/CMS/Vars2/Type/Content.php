@@ -1,16 +1,17 @@
 <?php
+
 /**
  * @package CMS\Vars2\Type\Content
  */
-
-
 class CMS_Vars2_Type_Content extends CMS_Var implements Core_ModuleInterface
 {
-	public function type_title() {
+	public function type_title()
+	{
 		return '%LANG{en}Content block%LANG{ru}Контентная область';
 	}
-	
-	public function fields() {
+
+	public function fields()
+	{
 		return array(
 			'value' => array(
 				'type' => 'content',
@@ -25,7 +26,8 @@ class CMS_Vars2_Type_Content extends CMS_Var implements Core_ModuleInterface
 		);
 	}
 
-	public function render() {
+	public function render()
+	{
 		return $this->field('value')->render();
 	}
 

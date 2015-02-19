@@ -3,13 +3,13 @@
  * @package CMS\ORM\Front
  */
 
-
 Core::load('CMS.ORM');
 
-class CMS_ORM_Front implements Core_ModuleInterface {
+class CMS_ORM_Front implements Core_ModuleInterface
+{
 	const VERSION = '0.0.0';
 
-	public static function fields($fields=array())
+	public static function fields($fields = array())
 	{
 		$out = array(
 			'id' => array(
@@ -44,11 +44,11 @@ class CMS_ORM_Front implements Core_ModuleInterface {
 				'init_value' => 0,
 			),
 		);
-		foreach($fields as $field => $data) {
+		foreach ($fields as $field => $data) {
 			if (!isset($out[$field])) {
 				$out[$field] = $data;
 			} else {
-				foreach($data as $key => $value) {
+				foreach ($data as $key => $value) {
 					$out[$field][$key] = $value;
 				}
 			}
@@ -57,33 +57,40 @@ class CMS_ORM_Front implements Core_ModuleInterface {
 	}
 }
 
-class CMS_ORM_FrontMapper extends CMS_ORM_Mapper {
+class CMS_ORM_FrontMapper extends CMS_ORM_Mapper
+{
 
-	protected function map_published_or_admin() {
+	protected function map_published_or_admin()
+	{
 		if ($this->user_is_admin()) {
 			return $this;
 		}
 		if ($this->user_is_editor()) {
-			return $this->where('isactive=1 OR user_id=:user_id',WS::env()->auth->user->id);
+			return $this->where('isactive=1 OR user_id=:user_id', WS::env()->auth->user->id);
 		}
 		return $this->where('isactive=1');
 	}
-	
+
 	protected function map_published()
 	{
 		return $this->where('isactive=1');
 	}
 
-	public  function group_admins() {
+	public function group_admins()
+	{
 		return 'admin';
 	}
 
-	public  function group_editors() {
+	public function group_editors()
+	{
 		return 'admin';
 	}
 
-	public  function user_is_admin() {
-		if (CMS::admin()) return true;
+	public function user_is_admin()
+	{
+		if (CMS::admin()) {
+			return true;
+		}
 		if (!WS::env()->auth->user) {
 			return false;
 		}
@@ -91,13 +98,14 @@ class CMS_ORM_FrontMapper extends CMS_ORM_Mapper {
 			return false;
 		}
 		$ga = $this->group_admins();
-		if ($ga&&WS::env()->auth->user->check_access($ga)) {
+		if ($ga && WS::env()->auth->user->check_access($ga)) {
 			return true;
 		}
 		return false;
 	}
 
-	public  function user_is_editor($item=false) {
+	public function user_is_editor($item = false)
+	{
 		if ($this->user_is_admin()) {
 			return true;
 		}
@@ -105,66 +113,64 @@ class CMS_ORM_FrontMapper extends CMS_ORM_Mapper {
 			return false;
 		}
 		$ge = $this->group_editors();
-		if ($ge&&WS::env()->auth->user->check_access($ge)) {
+		if ($ge && WS::env()->auth->user->check_access($ge)) {
 			return true;
 		}
 		return false;
 	}
 
-	public function user_can_view($item) {
+	public function user_can_view($item)
+	{
 		if (!$item->isactive) {
 			return $this->user_can_edit($item);
 		}
 		return true;
 	}
 
-	public function user_can_edit($item) {
+	public function user_can_edit($item)
+	{
 		if ($this->user_is_admin()) {
 			return true;
 		}
-		if ($this->user_is_editor()&&WS::env()->auth->user->id==$item->user_id) {
+		if ($this->user_is_editor() && WS::env()->auth->user->id == $item->user_id) {
 			return true;
 		}
 		return false;
 	}
 
-	public function user_can_delete($item) {
+	public function user_can_delete($item)
+	{
 		return $this->user_can_edit($item);
 	}
 
 }
 
+class CMS_ORM_FrontEntity extends CMS_ORM_Entity
+{
 
-class CMS_ORM_FrontEntity extends CMS_ORM_Entity {
-
-	public function setup1() {
+	public function setup()
+	{
 		parent::setup();
 		$this->_created = 0;
 		$this->_created_time = date('Y-m-d H:m:s');
 		$this->isactive = 0;
 		$this->user_id = (int)WS::env()->auth->user->id;
-		if ($mapper = $this->mapper) {
-			foreach($mapper->fields() as $field => $data) {
-				$def = '';
-				if (isset($data['default'])) {
-					$def = $data['default'];
-				}
-				$this->{$field} = $def;
-			}
-		}
 		return $this;
 	}
 
-	public function author_name() {
+	public function author_name()
+	{
 		return CMS::objects()->users->get_name($this->user_id);
 	}
 
-	public function author_url() {
+	public function author_url()
+	{
 		return CMS::objects()->users->get_url($this->user_id);
 	}
 
-	public function author_avatar($size='100x100') {
-		return CMS::objects()->users->get_avatar($this->user_id,$size);
+	public function author_avatar($size = '100x100')
+	{
+		return CMS::objects()->users->get_avatar($this->user_id, $size);
 	}
 
 }

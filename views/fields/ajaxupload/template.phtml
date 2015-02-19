@@ -30,88 +30,11 @@
 <?= $this->forms->hidden($name,$tagparms) ?>
 
 <div class="file-field" id="file-field-<?= $name ?>">
-	<?php if(!$item->is_phantom()) { ?>
-	<div class="upload-file" id="upload-file-<?= $name ?>"><?= $lang->ta_browse ?></div>
+	<?php if($item && !$item->is_phantom()) { ?>
 	<div class="file-load-indicator" id="file-load-indicator-<?= $name ?>">&nbsp;</div>
-	<div class="file-info" id="file-info-<?= $name ?>"><?php include('info.phtml'); ?></div>
+	<div data-url="<?= $c->field_action_url($name,'info',$item) ?>" class="file-info" id="file-info-<?= $name ?>"><?php include('info.phtml'); ?></div>
+	<div class="upload-file" id="upload-file-<?= $name ?>" data-url="<?= $c->field_action_url($name,'upload',$item,array('code'=>$type_object->temp_code())) ?>"><?= $lang->ta_browse ?></div>
 	<?php } else {
 		print $lang->unable_in_add;
 	} ?>
 </div>
-
-<?php if(!$item->is_phantom()) { ?>
-<script>
-<!--
-
-	var _<?= $vname ?>TempFile = 'none';
-	
-	function build_url(url, query) {
-		if (url.indexOf("?") != -1)
-			return url + '&' + query;
-		else
-			return url + '?' + query;
-	}
-
-	function _<?= $vname ?>BindInfoButtons() {
-		$("#file-button-del-<?= $name ?>").unbind().click(function() {
-			if (confirm('<?= $lang->ta_dfconfirm ?>')) {
-				var del_url = build_url('<?= $c->field_action_url($name,'delete',$item) ?>','filename='+_<?= $vname ?>TempFile);
-				$.get(del_url,{},function(rc) {
-					$("#file-info-<?= $name ?>").empty().hide();
-					$("#<?= $ffid ?>").attr('value','#');
-					$("#upload-file-<?= $name ?>").show();
-				});
-			}
-		});
-	}
-
-	function _<?= $vname ?>LoadInfo() {
-		$("#file-info-<?= $name ?>").load(build_url('<?= $c->field_action_url($name,'info',$item) ?>', 'filename='+_<?= $vname ?>TempFile),{},function() {
-			$("#file-info-<?= $name ?>").show();
-			_<?= $vname ?>BindInfoButtons();
-		});
-	}
-
-	function _<?= $vname ?>Reload(filename) {
-		$("#<?= $ffid ?>").attr('value','#'+filename);
-		_<?= $vname ?>TempFile = filename;
-		_<?= $vname ?>LoadInfo();
-	}
-
-
-	$(function() {
-		<?php if ($value!=''&&$file_url) { ?>
-		$("#file-info-<?= $name ?>").show();
-		_<?= $vname ?>BindInfoButtons();
-		<?php } else { ?>
-		$("#upload-file-<?= $name ?>").show();
-		<?php } ?>
-
-		new AjaxUpload("upload-file-<?= $name ?>", {
-			action: '<?= $c->field_action_url($name,'upload',$item,array('code'=>$type_object->temp_code())) ?>',
-			name: 'attachement',
-			autoSubmit: true,
-			responseType: false,
-			onSubmit: function(file, extension){
-				$("#upload-file-<?= $name ?>").hide();
-				$("#file-load-indicator-<?= $name ?>").show();
-			},
-			onComplete: function(file, resp){
-				$("#file-load-indicator-<?= $name ?>").hide();
-				if (resp.charAt(0)!='!') {
-					$("#upload-file-<?= $name ?>").show();
-					alert(resp);
-				}
-
-				else {
-					var filename = resp.substr(1);
-					_<?= $vname ?>Reload(filename);
-				}
-			}
-		});
-	});
-
-//-->
-
-</script>
-<?php } ?>

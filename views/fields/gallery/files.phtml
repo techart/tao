@@ -16,7 +16,7 @@ $save_url = CMS::$current_controller->field_action_url($name,'save',$item);
 
 
 if (is_dir($dir)) {
-	print "<ul class='gallery-list gallery-list-$name clearfix attaches-list-container' style='{$data["style"]}' data-save-url='{$save_url}' >" ;
+	print "<ul class='gallery-list gallery-list-$name gallery-clearfix attaches-list-container' style='{$data["style"]}' data-save-url='{$save_url}' >" ;
 	foreach($type_object->filelist($dir, $name, $data, $item) as $k => $path):
 		$f = IO_FS::File($path);
 		$url = trim($path, '.') . "?rand=" .rand(0,1000);
@@ -31,7 +31,7 @@ if (is_dir($dir)) {
 		list($width, $height) = getimagesize($path);
 		$size = (!empty($width) ? "width=$width " : '') . (!empty($height) ? "height=$height " : '');
 		?>
-		<li class="gallery-list-item field-attaches-row clearfix <?= $k == 0 ? 'first' : '' ?>" <?= implode(' ', $parms) ?>>
+		<li class="gallery-list-item field-attaches-row gallery-clearfix <?= $k == 0 ? 'first' : '' ?>" <?= implode(' ', $parms) ?>>
 			<div class="field-gallery-image-wrapper" style="<?php print "width:{$item_size[0]}px; height: {$item_size[1]}px;background-image: url('{$url}');" ?>">
 			<img rel='gallery-<?= $name ?>' style="display:none"  <?php print $size; ?>  src="<?= trim($path, '.') ?>?rand=<?= print rand(0,1000) ?>" >
 			</div>
@@ -47,7 +47,7 @@ if (is_dir($dir)) {
 					<a class="image-button image-button-left gallery-button-rotate" href="<?= CMS::$current_controller->field_action_url($name,'left',$item, array('filename' => urlencode($f->name))) ?>" ></a>
 				</li>
 				<li>
-					<a class="image-button image-button-right gallery-button-rotate"  href="<?= CMS::$current_controller->field_action_url($name,'right',$item) ?>?filename=<?= urlencode($f->name) ?>" ></a>
+					<a class="image-button image-button-right gallery-button-rotate"  href="<?= CMS::$current_controller->field_action_url($name,'right',$item, array('filename' => urlencode($f->name)))  ?>" ></a>
 				</li>
 			</ul>
 			<?php print $this->partial($type_object->template($data, 'user_mods'), array('f' => $f)) ?>

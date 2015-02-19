@@ -4,7 +4,7 @@
 		include($controller->template('form-field'));
 	}
 ?>
-	<?php if (!$tab) { ?>
+	<?php if (false === $tab) { ?>
 	<tr class="submit-row">
 		<th>&nbsp;</th>
 		<td><input type="submit" value="<?= CMS::lang($submit_text) ?>" class="submit-button"></td>

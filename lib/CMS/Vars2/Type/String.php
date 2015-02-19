@@ -1,17 +1,19 @@
 <?php
+
 /**
  * @package CMS\Vars2\Type\String
  */
-
-
-class CMS_Vars2_Type_String extends CMS_Var implements Core_ModuleInterface {
+class CMS_Vars2_Type_String extends CMS_Var implements Core_ModuleInterface
+{
 	const VERSION = '0.0.0';
 
-	public function type_title() {
+	public function type_title()
+	{
 		return '%LANG{en}String%LANG{ru}Строка';
 	}
 
-	public function fields() {
+	public function fields()
+	{
 		return array(
 			'value' => array(
 				'type' => 'input',
@@ -22,8 +24,9 @@ class CMS_Vars2_Type_String extends CMS_Var implements Core_ModuleInterface {
 		);
 	}
 
-	public function get() {
-		return CMS::lang($this['value']);
+	public function get()
+	{
+		return CMS::lang((string) $this['value']);
 	}
 
 }

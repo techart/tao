@@ -2,12 +2,12 @@
 /**
  * NicEdit редактор
  *
- * @author Svistunov <svistunov@techart.ru>
+ * @author   Svistunov <svistunov@techart.ru>
  *
  * @version  0.1.0
  *
- * @package CMS\Redactor
- * 
+ * @package  CMS\Redactor
+ *
  */
 
 Core::load('CMS.Redactor');
@@ -16,7 +16,7 @@ Core::load('CMS.Redactor');
  * NicEdit редактор. Класс модуля.
  *
  * @package CMS\Redactor
- * 
+ *
  */
 class CMS_Redactor_NicEdit extends CMS_Redactor_AbstractEditor implements Core_ModuleInterface
 {
@@ -24,6 +24,7 @@ class CMS_Redactor_NicEdit extends CMS_Redactor_AbstractEditor implements Core_M
 	 * Библиотечные файлы
 	 *
 	 * Обычно список файлов для подключения плагина
+	 *
 	 * @return array
 	 */
 	protected function libraries_files()
@@ -36,6 +37,7 @@ class CMS_Redactor_NicEdit extends CMS_Redactor_AbstractEditor implements Core_M
 
 	/**
 	 * Настройки по умолчанию
+	 *
 	 * @return array
 	 */
 	public function default_settings()
@@ -45,5 +47,5 @@ class CMS_Redactor_NicEdit extends CMS_Redactor_AbstractEditor implements Core_M
 			'iconsPath' => CMS::stdfile_url('images/nicEditor/nicEditorIcons.gif'),
 		);
 	}
-	
+
 }

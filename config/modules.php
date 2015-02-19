@@ -2,7 +2,7 @@
 
 return array(
 	'Templates.HTML' => array(
-		'template_class'=>'CMS.Views.View',
+		'template_class' => 'CMS.Views.View',
 		'add_timestamp' => true
 	),
 	'WS.DSL' => array(

@@ -3,12 +3,12 @@
  * @package Text\Parser\Translit
  */
 
-
 Core::load('Text.Process');
 
-class Text_Parser_Translit implements Core_ModuleInterface, Text_Process_ProcessInterface { 
-	const VERSION = '0.1.0'; 
-	
+class Text_Parser_Translit implements Core_ModuleInterface, Text_Process_ProcessInterface
+{
+	const VERSION = '0.1.0';
+
 	static $letters = array(
 		'А' => 'A',
 		'Б' => 'B',
@@ -44,17 +44,24 @@ class Text_Parser_Translit implements Core_ModuleInterface, Text_Process_Process
 		'Ю' => 'Yu',
 		'Я' => 'Ya',
 	);
-	
-	function configure($config) {}
-	
-	function process($s) {return self::run($s);}
-	
-	static function run($s) {
-		foreach(self::$letters as $rus => $lat) {
-			$s = str_replace($rus,$lat,$s);  
-			$s = str_replace(mb_strtolower($rus),mb_strtolower($lat),$s);  
+
+	function configure($config)
+	{
+	}
+
+	function process($s)
+	{
+		return self::run($s);
+	}
+
+	static function run($s)
+	{
+		foreach (self::$letters as $rus => $lat) {
+			$s = str_replace($rus, $lat, $s);
+			// TODO: encoding to config
+			$s = str_replace(mb_strtolower($rus, 'UTF-8'), mb_strtolower($lat, 'UTF-8'), $s);
 		}
 		return $s;
-	} 
+	}
 }
 
